@@ -1,31 +1,47 @@
-import { StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from "react-native";
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+import { View } from "@/components/Themed";
+import { FolioTable } from "../components/foliotable";
+import { mockCoins } from "../mocks/chartData";
+import { CounterComponent } from "../components/exampleComponent";
+import CounterDisplay from "../components/exampleDisplayComponent";
 
 export default function TabOneScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      fadingEdgeLength={50}
+      removeClippedSubviews={true}
+    >
+      <View style={styles.tableContainer}>
+        <FolioTable data={mockCoins} />
+      </View>
+      <View style={styles.text}>
+        <CounterDisplay></CounterDisplay>
+      </View>
+      <View style={styles.container}>
+        <CounterComponent></CounterComponent>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  text: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    color: "rgba(20,124,54)",
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  tableContainer: {
+    flex: 1,
+    justifyContent: "center",
+    width: "100%",
+    backgroundColor: "rgba(255,255,255)",
   },
 });
