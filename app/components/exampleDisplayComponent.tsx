@@ -7,7 +7,7 @@ const CounterDisplay = () => {
 
   return (
     <View>
-      <Text>{"COUNTER: " + counter.value}</Text>
+      <Text>COUNTER:{counter.value}</Text>
     </View>
   );
 };

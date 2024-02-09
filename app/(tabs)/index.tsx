@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet, Text } from "react-native";
 
 import { View } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
@@ -16,7 +16,7 @@ export default function TabOneScreen() {
       <View style={styles.tableContainer}>
         <FolioTable data={mockCoins} />
       </View>
-      <View style={styles.text}>
+      <View style={styles.textStyle}>
         <CounterDisplay></CounterDisplay>
       </View>
       <View style={styles.container}>
@@ -32,11 +32,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  text: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    color: "rgba(20,124,54)",
+  textStyle: {
+    color: "black", // Set text color to black
+    fontSize: 20, // Increase text size
+    backgroundColor: "white", // Set background color to white
   },
   tableContainer: {
     flex: 1,
