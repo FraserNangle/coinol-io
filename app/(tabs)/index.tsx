@@ -1,10 +1,10 @@
 import { ScrollView, StyleSheet, Text } from "react-native";
+import React from "react";
 
 import { View } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
+import { DonutChart } from "../components/donutChart";
 import { mockCoins } from "../mocks/chartData";
-import { CounterComponent } from "../components/exampleComponent";
-import CounterDisplay from "../components/exampleDisplayComponent";
 
 export default function TabOneScreen() {
   return (
@@ -13,14 +13,17 @@ export default function TabOneScreen() {
       fadingEdgeLength={50}
       removeClippedSubviews={true}
     >
+      <View style={styles.container}>
+        <DonutChart
+          data={mockCoins.map(({ name, quantity, price }) => ({
+            name,
+            value: quantity * price,
+          }))}
+          backgroundColor="black"
+        />
+      </View>
       <View style={styles.tableContainer}>
         <FolioTable data={mockCoins} />
-      </View>
-      <View style={styles.textStyle}>
-        <CounterDisplay></CounterDisplay>
-      </View>
-      <View style={styles.container}>
-        <CounterComponent></CounterComponent>
       </View>
     </ScrollView>
   );
