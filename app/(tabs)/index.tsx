@@ -7,6 +7,8 @@ import { DonutChart } from "../components/donutChart";
 import { mockCoins } from "../mocks/chartData";
 
 export default function TabOneScreen() {
+  const totalPortfolioValue = mockCoins.reduce((total, item) => total + (item.quantity * item.price), 0);
+
   return (
     <ScrollView
       contentContainerStyle={styles.container}
@@ -19,7 +21,7 @@ export default function TabOneScreen() {
             name,
             value: quantity * price,
           }))}
-          backgroundColor="black"
+          backgroundColor="white"
         />
       </View>
       <View style={styles.tableContainer}>

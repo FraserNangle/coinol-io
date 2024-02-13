@@ -9,12 +9,11 @@ const colors = ['#5D3FD3', '#FF6B35', '#0096FF', '#FFC542', '#6C757D', '#6610F2'
 const totalAnimationTime = 1000;
 
 const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex, accumulatedValue, totalValue, outerRadius }) => {
-
   const { value, startAngle, endAngle } = slice;
   const animation = useSharedValue(0);
   const scale = useSharedValue(1);
 
-  const color = colors[index % colors.length];
+  const color = useMemo(() => colors[index % colors.length], [index]);
 
   const animatedEndAngle = useDerivedValue(() => {
     return interpolate(animation.value, [0, 1], [startAngle, endAngle]);
@@ -27,6 +26,17 @@ const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex
     const y2 = outerRadius * Math.sin(animatedEndAngle.value);
     const largeArcFlag = animatedEndAngle.value - startAngle > Math.PI ? 1 : 0;
     const d = `M ${x1} ${y1} A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${x2} ${y2} L 0 0`;
+
+    return { d };
+  });
+
+  const overlayAnimatedProps = useAnimatedProps(() => {
+    const x1 = outerRadius * Math.cos(startAngle);
+    const y1 = outerRadius * Math.sin(startAngle);
+    const x2 = outerRadius * Math.cos(animatedEndAngle.value);
+    const y2 = outerRadius * Math.sin(animatedEndAngle.value);
+    const largeArcFlag = animatedEndAngle.value - startAngle > Math.PI ? 1 : 0;
+    const d = `M 0 0 L ${x1} ${y1} A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
 
     return { d };
   });
@@ -61,96 +71,147 @@ const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex
   }, [setSelectedSlice, setSelectedIndex, slice, color, index]);
 
   return (
-    <G onPress={handlePress}>
+    <G>
       <AnimatedPath
         animatedProps={animatedProps}
         fill={color}
         style={animatedStyle}
       />
+      <AnimatedPath
+        animatedProps={overlayAnimatedProps}
+        fill="transparent"
+        onPressIn={handlePress}
+      />
     </G>
   );
 };
 
-export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 'white' }) => {
-    const [selectedSlice, setSelectedSlice] = useState(null);
-    const [selectedIndex, setSelectedIndex] = useState(null);
-    const [outerRadius, setOuterRadius] = useState(150);
-    const [thickness, setThickness] = useState(30);
-  
+export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 'white', currencySymbol = '$' }) => {
+  const [selectedSlice, setSelectedSlice] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [outerRadius, setOuterRadius] = useState(150);
+  const [thickness, setThickness] = useState(30);
+  const [showPercentage, setShowPercentage] = useState(true); // New state variable
+
+  // Calculate the total money of all items
+  const totalMoney = data.reduce((acc, slice) => acc + slice.value, 0);
+
+  // Filter out items that are less than 5% of the total value
+  const significantItems = data.filter(slice => slice.value / totalMoney >= 0.05);
+
+  // Combine the remaining items into one "Other" item
+  const otherItemValue = data.reduce((acc, slice) => {
+    if (slice.value / totalMoney < 0.05) {
+      return acc + slice.value;
+    }
+    return acc;
+  }, 0);
+
+  if (otherItemValue > 0) {
+    significantItems.push({ name: 'Other', value: otherItemValue });
+  }
+
+  // Now use significantItems instead of data to create the slices
+  const sortedData = useMemo(() => {
+    return [...significantItems].sort((a, b) => b.value - a.value);
+  }, [significantItems]);
+
+  const minSliceAngle = 2 * Math.PI * 0.05; // Minimum slice angle is 5% of the donut chart
+
+  let startAngle = -Math.PI / 2;
+  let accumulatedValue = 0;
+
+  // First, calculate the slices without considering the minimum slice angle
+  let slices = sortedData.map((slice) => {
+    const gapSize = 2 / outerRadius; // Adjust this value to increase or decrease the gap size
+    const sliceAngle = Math.max(2 * Math.PI * (slice.value / totalMoney), minSliceAngle);
+    const startAngleGap = startAngle + gapSize;
+    const endAngle = startAngleGap + sliceAngle - 2 * gapSize;
+    const s = { ...slice, startAngle: startAngleGap, endAngle, accumulatedValue };
+    startAngle = endAngle + gapSize;
+    accumulatedValue += slice.value;
+    return s;
+  });
+
+  // Calculate the total angle of all slices
+  const totalAngle = slices.reduce((total, slice) => total + (slice.endAngle - slice.startAngle), 0);
+
+  // If the total angle exceeds 2 * Math.PI, scale down the angle of each slice proportionally
+  if (totalAngle > 2 * Math.PI) {
+    const scale = 2 * Math.PI / totalAngle;
     let startAngle = -Math.PI / 2;
-    let accumulatedValue = 0;
-  
-    const sortedData = useMemo(() => {
-      return [...data].sort((a, b) => b.value - a.value);
-    }, [data]);
-  
-    const slices = sortedData.map((slice) => {
-      const gapSpacing = 2; // Adjust this value to increase or decrease the gap size
-      const gapSize = gapSpacing / outerRadius;
-      const startAngleGap = startAngle + gapSize;
-      const endAngle = startAngleGap + (2 * Math.PI * (slice.value / 100)) - (2 * gapSize);
-      const s = { ...slice, startAngle: startAngleGap, endAngle, accumulatedValue };
-      startAngle = endAngle + gapSize;
-      accumulatedValue += slice.value;
+
+    slices = slices.map(slice => {
+      const gapSize = 2 / outerRadius; // Adjust this value to increase or decrease the gap size
+      const sliceAngle = (slice.endAngle - slice.startAngle) * scale;
+      const startAngleGap = startAngle + gapSize * scale;
+      const endAngle = startAngleGap + sliceAngle - 2 * gapSize * scale;
+      const s = { ...slice, startAngle: startAngleGap, endAngle };
+      startAngle = endAngle + gapSize * scale;
       return s;
     });
-  
-    const totalValue = data.reduce((acc, slice) => acc + slice.value, 0);
-  
-    useEffect(() => {
-      setThickness(outerRadius * 0.3); // adjust the factor as needed
-    }, [outerRadius]);
-  
-    return (
-      <View style={styles.container} onLayout={(event) => {
-        const { width, height } = event.nativeEvent.layout;
-        setOuterRadius(Math.min(width, height) / 2 / 1.1); // consider the scale factor
-      }}>
-        <Svg width={width} height={height}>
-          <G x={width / 2} y={height / 2}>
-            {slices.map((slice, index) => (
-              <Slice
-                key={index}
-                slice={slice}
-                index={index}
-                setSelectedSlice={setSelectedSlice}
-                setSelectedIndex={setSelectedIndex}
-                selectedIndex={selectedIndex}
-                accumulatedValue={slice.accumulatedValue}
-                totalValue={totalValue}
-                outerRadius={outerRadius}
-              />
-            ))}
-            <Circle cx="0" cy="0" r={outerRadius - thickness} fill={backgroundColor} />
-            {selectedSlice && (
-              <View style={styles.selectedSliceContainer}>
-                  <Text
-                  style={styles.selectedSliceValue}
-                  >
-                  {`${selectedSlice.value}%`}
-                  </Text>
-                  {selectedSlice.image ? (
-                  <Image
-                      source={{ uri: selectedSlice.image }}
-                      style={styles.selectedSliceImage}
-                  />
-                  ) : (
-                  <G style={styles.selectedSliceCircle}>
-                      <Circle cx="0" cy="0" r="7" fill={selectedSlice.color} />
-                  </G>
-                  )}
-                  <Text
-                  style={styles.selectedSliceName}
-                  >
-                  {selectedSlice.name}
-                  </Text>
-              </View>
+  }
+
+  useEffect(() => {
+    setThickness(outerRadius * 0.3); // adjust the factor as needed
+  }, [outerRadius]);
+
+  const toggleShowPercentage = useCallback(() => {
+    setShowPercentage(prevShowPercentage => !prevShowPercentage);
+  }, []);
+
+  const circleSize = 10; // Fixed size of the circle
+
+  return (
+    <View style={styles.container} onLayout={(event) => {
+      const { width, height } = event.nativeEvent.layout;
+      setOuterRadius(Math.min(width, height) / 2 / 1.1); // consider the scale factor
+    }}>
+      <Svg width={width} height={height}>
+        <G x={width / 2} y={height / 2}>
+          {slices.map((slice, index) => (
+            <Slice
+              key={index}
+              slice={slice}
+              index={index}
+              setSelectedSlice={setSelectedSlice}
+              setSelectedIndex={setSelectedIndex}
+              selectedIndex={selectedIndex}
+              accumulatedValue={slice.accumulatedValue}
+              totalValue={totalMoney}
+              outerRadius={outerRadius}
+            />
+          ))}
+          <Circle cx="0" cy="0" r={outerRadius - thickness} fill={backgroundColor} onPressIn={toggleShowPercentage} />
+          {selectedSlice && (
+            <View style={styles.selectedSliceContainer}>
+              <Text
+                style={styles.selectedSliceValue}
+              >
+                {showPercentage ? `${(selectedSlice.value / totalMoney * 100).toFixed(2)}%` : `${currencySymbol}${selectedSlice.value.toLocaleString()}`}
+              </Text>
+              {selectedSlice.image ? (
+                <Image
+                  source={{ uri: selectedSlice.image }}
+                  style={[styles.selectedSliceImage, { width: circleSize * 2, height: circleSize * 2 }]} // Set the size of the image to be the same as the circle
+                />
+              ) : (
+                <G style={styles.selectedSliceCircle}>
+                  <Circle cx="-3" cy="0" r={circleSize} fill={selectedSlice.color} />
+                </G>
               )}
-          </G>
-        </Svg>
-      </View>
-    );
-  };
+              <Text
+                style={styles.selectedSliceName}
+              >
+                {selectedSlice.name}
+              </Text>
+            </View>
+          )}
+        </G>
+      </Svg>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
