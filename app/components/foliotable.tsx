@@ -1,7 +1,14 @@
 import * as React from "react";
 import { DataTable, PaperProvider } from "react-native-paper";
 import { Coin, CoinAPI } from "../models/coinData";
-import { StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { StyleSheet, Text, View, useColorScheme, LayoutAnimation, UIManager, Platform } from 'react-native';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android') {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
 
 interface FolioTableProps {
   data: Coin[];
@@ -88,6 +95,9 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
   }, [data, apiData, sortField, sortOrder]);
 
   const handleSort = (field: 'name' | 'price' | 'total') => {
+    // Configure the animation
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
