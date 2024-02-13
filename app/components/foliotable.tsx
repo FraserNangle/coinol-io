@@ -56,26 +56,70 @@ const getPriceDifferenceDisplay = (priceDifference: number) => {
 }
 
 export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
+  const [sortField, setSortField] = React.useState<'name' | 'price' | 'total'>('name');
+  const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('asc');
+
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
   const styles = getStyles(isDarkMode);
+
+  const sortedData = React.useMemo(() => {
+    return [...data].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'price':
+          const aApiItem = apiData.find(apiItem => apiItem.name === a.name);
+          const bApiItem = apiData.find(apiItem => apiItem.name === b.name);
+          const aPriceDifference = aApiItem ? ((a.price - aApiItem.price24) / aApiItem.price24) * 100 : 0;
+          const bPriceDifference = bApiItem ? ((b.price - bApiItem.price24) / bApiItem.price24) * 100 : 0;
+          comparison = aPriceDifference - bPriceDifference;
+          break;
+        case 'total':
+          comparison = (a.quantity * a.price) - (b.quantity * b.price);
+          break;
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  }, [data, apiData, sortField, sortOrder]);
+
+  const handleSort = (field: 'name' | 'price' | 'total') => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const getSortIndicator = (field: 'name' | 'price' | 'total') => {
+    if (sortField !== field) {
+      return '';
+    }
+
+    return sortOrder === 'asc' ? ' ↓' : ' ↑';
+  };
 
   return (
     <PaperProvider>
       <DataTable>
         <DataTable.Header>
-          <DataTable.Title>
-            <Text style={styles.mainDataTableTitle}>Coins</Text>
+          <DataTable.Title onPress={() => handleSort('name')}>
+            <Text style={styles.mainDataTableTitle}>Coins{getSortIndicator('name')}</Text>
           </DataTable.Title>
-          <DataTable.Title numeric>
-            <Text style={styles.dataTableTitle}>Price (24h %)</Text>
+          <DataTable.Title numeric onPress={() => handleSort('price')}>
+            <Text style={styles.dataTableTitle}>Price (24h %){getSortIndicator('price')}</Text>
           </DataTable.Title>
-          <DataTable.Title numeric>
-            <Text style={styles.dataTableTitle}>Total</Text>
+          <DataTable.Title numeric onPress={() => handleSort('total')}>
+            <Text style={styles.dataTableTitle}>Total{getSortIndicator('total')}</Text>
           </DataTable.Title>
         </DataTable.Header>
 
-        {data.map((item) => {
+        {sortedData.map((item) => {
           const apiItem = apiData.find(apiItem => apiItem.name === item.name);
           const priceDifference = apiItem ? ((item.price - apiItem.price24) / apiItem.price24) * 100 : 0;
           const priceDifferenceDisplay = getPriceDifferenceDisplay(priceDifference);
