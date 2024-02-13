@@ -6,15 +6,19 @@ import { useColorScheme } from 'react-native';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-const colors = ['#5D3FD3', '#FF6B35', '#0096FF', '#FFC542', '#6C757D', '#6610F2', '#E83E8C', '#28A745', '#17A2B8', '#343A40'];
+const colors = ['#FF7F00', '#FF6E1A', '#FF5D34', '#FF4C4E', '#FF3B68', '#FF2A82', '#FF199C', '#FF08B6', '#F000D2', '#E400E0', '#D800EE', '#CC00FC', '#C000FA', '#B400F8', '#A800F6', '#9C00F4', '#9000F2', '#8400F0', '#7800EE', '#6C00EC'];
 const totalAnimationTime = 1000;
 
-const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex, accumulatedValue, totalValue, outerRadius }) => {
+const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex, accumulatedValue, totalValue, outerRadius, totalSlices }) => {
   const { value, startAngle, endAngle } = slice;
   const animation = useSharedValue(0);
   const scale = useSharedValue(1);
 
-  const color = useMemo(() => colors[index % colors.length], [index]);
+  const color = useMemo(() => {
+    const colorIndex = interpolate(index, [0, totalSlices - 1], [0, colors.length - 1]);
+    const roundedColorIndex = Math.round(colorIndex);
+    return colors[roundedColorIndex];
+  }, [index, totalSlices]);
 
   const animatedEndAngle = useDerivedValue(() => {
     return interpolate(animation.value, [0, 1], [startAngle, endAngle]);
@@ -91,7 +95,7 @@ const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex
   );
 };
 
-export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 'white', Symbol = '$' }) => {
+export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 'white', currencyTicker = 'USD' }) => {
   const [selectedSlice, setSelectedSlice] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [outerRadius, setOuterRadius] = useState(150);
@@ -168,7 +172,7 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
     }}>
       <Svg width={width} height={height}>
         <G x={width / 2} y={height / 2}>
-          {slices.map((slice, index) => (
+          { slices.map((slice, index) => (
             <Slice
               key={index}
               slice={slice}
@@ -179,13 +183,16 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
               accumulatedValue={slice.accumulatedValue}
               totalValue={totalMoney}
               outerRadius={outerRadius}
+              totalSlices={slices.length}
             />
           ))}
           <Circle cx="0" cy="0" r={outerRadius - thickness} fill={backgroundColor} onPressIn={toggleShowPercentage} />
           {selectedSlice && (
             <View style={styles.selectedSliceContainer}>
               <Text style={styles.selectedSliceValue}>
-                {showPercentage ? `${(selectedSlice.value / totalMoney * 100).toFixed(2)}%` : `${Symbol}${parseFloat(selectedSlice.value).toFixed(2).toLocaleString()}`}
+                {showPercentage 
+                  ? `${(selectedSlice.value / totalMoney * 100).toFixed(2)}%` 
+                  : new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyTicker }).format(selectedSlice.value)}
               </Text>
               {selectedSlice.image ? (
                 <Image
@@ -213,7 +220,7 @@ const getStyles = (isDark) => StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: isDark ? 'black' : 'white',
+    backgroundColor: isDark ? 'black' : 'rgba(147,112,219,1)',
   },
   selectedSliceContainer: {
     position: 'absolute',
