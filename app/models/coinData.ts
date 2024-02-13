@@ -7,5 +7,6 @@ export type Coin = {
 
 export type CoinAPI = {
     name: string;
-    change24: number;
+    price24: number;
+    ranking: number;
 };

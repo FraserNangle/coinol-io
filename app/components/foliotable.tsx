@@ -63,7 +63,7 @@ const getPriceDifferenceDisplay = (priceDifference: number) => {
 }
 
 export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
-  const [sortField, setSortField] = React.useState<'name' | 'price' | 'total'>('name');
+  const [sortField, setSortField] = React.useState<'name' | 'price' | 'total' | 'marketcap'>('marketcap');
   const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('asc');
 
   const colorScheme = useColorScheme();
@@ -88,14 +88,18 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
         case 'total':
           comparison = (a.quantity * a.price) - (b.quantity * b.price);
           break;
+        case 'marketcap':
+          const aApiItemMarketCap = apiData.find(apiItem => apiItem.name.toLowerCase() === a.name.toLowerCase());
+          const bApiItemMarketCap = apiData.find(apiItem => apiItem.name.toLowerCase() === b.name.toLowerCase());
+          comparison = (bApiItemMarketCap ? bApiItemMarketCap.ranking : 0) - (aApiItemMarketCap ? aApiItemMarketCap.ranking : 0);
+          break;
       }
 
       return sortOrder === 'asc' ? comparison : -comparison;
     });
   }, [data, apiData, sortField, sortOrder]);
 
-  const handleSort = (field: 'name' | 'price' | 'total') => {
-    // Configure the animation
+  const handleSort = (field: 'name' | 'price' | 'total' | 'marketcap') => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     if (sortField === field) {
@@ -106,7 +110,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
     }
   };
 
-  const getSortIndicator = (field: 'name' | 'price' | 'total') => {
+  const getSortIndicator = (field: 'name' | 'price' | 'total' | 'marketcap') => {
     if (sortField !== field) {
       return '';
     }
@@ -118,8 +122,8 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
     <PaperProvider>
       <DataTable>
         <DataTable.Header>
-          <DataTable.Title onPress={() => handleSort('name')}>
-            <Text style={styles.mainDataTableTitle}>Coins{getSortIndicator('name')}</Text>
+          <DataTable.Title onPress={() => handleSort('marketcap')}>
+            <Text style={styles.mainDataTableTitle}>Coins{getSortIndicator('marketcap')}</Text>
           </DataTable.Title>
           <DataTable.Title numeric onPress={() => handleSort('price')}>
             <Text style={styles.dataTableTitle}>Price (24h %){getSortIndicator('price')}</Text>

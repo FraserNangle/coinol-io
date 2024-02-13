@@ -43,25 +43,31 @@ export const mockCoinAPI: CoinAPI[] = [
   {
     name: "BTC",
     price24: 55000,
+    ranking: 1,
   },
   {
     name: "ETH",
     price24: 2800,
+    ranking: 2,
   },
   {
     name: "LTC",
     price24: 170,
+    ranking: 21,
   },
   {
     name: "XRP",
     price24: 0.7,
+    ranking: 6,
   },
   {
     name: "ADA",
     price24: 1.7,
+    ranking: 9,
   },
   {
     name: "XLM",
     price24: 0.3,
+    ranking: 34,
   },
 ];
