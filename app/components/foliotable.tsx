@@ -14,6 +14,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
           <DataTable.Title>Token</DataTable.Title>
           <DataTable.Title numeric>Quantity</DataTable.Title>
           <DataTable.Title numeric>Price (USD)</DataTable.Title>
+          <DataTable.Title numeric>Value (USD)</DataTable.Title>
         </DataTable.Header>
 
         {data.map((item) => (
@@ -21,6 +22,9 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
             <DataTable.Cell>{item.name}</DataTable.Cell>
             <DataTable.Cell numeric>{item.quantity}</DataTable.Cell>
             <DataTable.Cell numeric>{item.price}</DataTable.Cell>
+            <DataTable.Cell numeric>
+              {item.quantity * item.price}
+            </DataTable.Cell>
           </DataTable.Row>
         ))}
       </DataTable>
