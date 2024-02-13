@@ -4,3 +4,8 @@ export type Coin = {
     quantity: number;
     price: number;
 };
+
+export type CoinAPI = {
+    name: string;
+    change24: number;
+};
