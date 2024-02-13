@@ -6,13 +6,21 @@ import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
 import { mockCoins } from "../mocks/chartData";
 
+// Define the currency type
+const CURRENCY_TYPE = 'USD';
+
+// Define a mapping from currency codes to symbols
+const CURRENCY_SYMBOLS = {
+  'USD': '$',
+  // Add more currencies as needed
+};
+
 export default function TabOneScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const currencySymbol = "$";
   const totalPortfolioValue = mockCoins.reduce((total, item) => total + (item.quantity * item.price), 0);
-  const formattedTotalPortfolioValue = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalPortfolioValue);
+  const formattedTotalPortfolioValue = new Intl.NumberFormat('en-US', { style: 'currency', currency: CURRENCY_TYPE }).format(totalPortfolioValue);
 
   const styles = StyleSheet.create({
     container: {
@@ -50,7 +58,7 @@ export default function TabOneScreen() {
             value: quantity * price,
           }))}
           backgroundColor={isDark ? 'black' : 'white'}
-          Symbol={currencySymbol}
+          Symbol={CURRENCY_SYMBOLS[CURRENCY_TYPE]}
         />
       </View>
       <View style={styles.tableContainer}>
