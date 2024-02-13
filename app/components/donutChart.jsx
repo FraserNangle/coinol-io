@@ -184,10 +184,8 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
           <Circle cx="0" cy="0" r={outerRadius - thickness} fill={backgroundColor} onPressIn={toggleShowPercentage} />
           {selectedSlice && (
             <View style={styles.selectedSliceContainer}>
-              <Text
-                style={styles.selectedSliceValue}
-              >
-                {showPercentage ? `${(selectedSlice.value / totalMoney * 100).toFixed(2)}%` : `${Symbol}${selectedSlice.value.toLocaleString()}`}
+              <Text style={styles.selectedSliceValue}>
+                {showPercentage ? `${(selectedSlice.value / totalMoney * 100).toFixed(2)}%` : `${Symbol}${parseFloat(selectedSlice.value).toFixed(2).toLocaleString()}`}
               </Text>
               {selectedSlice.image ? (
                 <Image
@@ -199,9 +197,7 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
                   <Circle cx="-3" cy="0" r={circleSize} fill={selectedSlice.color} />
                 </G>
               )}
-              <Text
-                style={styles.selectedSliceName}
-              >
+              <Text style={styles.selectedSliceName}>
                 {selectedSlice.name}
               </Text>
             </View>

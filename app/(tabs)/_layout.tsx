@@ -21,7 +21,7 @@ function TabBarIcon(props: {
 }
 
 const percentageIncrease = 10; // Replace this with your calculation
-const titleColor = percentageIncrease >= 0 ? '#00ff00' : '#ff69b4'; // Use a lighter green color for positive increase and pinkish color for negative
+const titleColor = percentageIncrease >= 0 ? '#00ff00' : 'red'; // Use a lighter green color for positive increase and pinkish color for negative
 const titleShadowColor = percentageIncrease >= 0 ? 'rgba(0, 255, 0, 0.5)' : 'rgba(255, 105, 180, 0.5)';
 
 const styles = StyleSheet.create({

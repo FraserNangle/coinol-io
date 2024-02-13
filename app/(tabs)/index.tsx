@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, useColorScheme, RefreshControl, Dimension
 import { View } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
-import { mockCoins } from "../mocks/chartData";
+import { mockCoinAPI, mockCoins } from "../mocks/chartData";
 
 // Define the currency type
 const CURRENCY_TYPE = 'USD';
@@ -93,13 +93,16 @@ export default function TabOneScreen() {
             name,
             value: quantity * price,
           }))}
-          width={screenWidth}
+          width={screenWidth * 0.95}
           backgroundColor={isDark ? 'black' : 'white'}
           Symbol={CURRENCY_SYMBOLS[CURRENCY_TYPE]}
         />
       </View>
       <View style={styles.tableContainer}>
-        <FolioTable data={mockCoins} />
+        <FolioTable 
+        data={mockCoins}
+        apiData={mockCoinAPI} 
+      />
       </View>
     </ScrollView>
   );
