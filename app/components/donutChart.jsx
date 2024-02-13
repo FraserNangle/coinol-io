@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useState, useCallback, useMemo, useEffect } fro
 import { View, StyleSheet, Image } from 'react-native';
 import Svg, { Path, G, Text, Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedProps, withTiming, useDerivedValue, interpolate, useAnimatedStyle } from 'react-native-reanimated';
+import { useColorScheme } from 'react-native';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -70,6 +71,10 @@ const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex
     setSelectedIndex(index);
   }, [setSelectedSlice, setSelectedIndex, slice, color, index]);
 
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+
   return (
     <G>
       <AnimatedPath
@@ -91,15 +96,10 @@ export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [outerRadius, setOuterRadius] = useState(150);
   const [thickness, setThickness] = useState(30);
-  const [showPercentage, setShowPercentage] = useState(true); // New state variable
+  const [showPercentage, setShowPercentage] = useState(true);
 
-  // Calculate the total money of all items
   const totalMoney = data.reduce((acc, slice) => acc + slice.value, 0);
-
-  // Filter out items that are less than 5% of the total value
   const significantItems = data.filter(slice => slice.value / totalMoney >= 0.05);
-
-  // Combine the remaining items into one "Other" item
   const otherItemValue = data.reduce((acc, slice) => {
     if (slice.value / totalMoney < 0.05) {
       return acc + slice.value;
@@ -111,19 +111,16 @@ export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 
     significantItems.push({ name: 'Other', value: otherItemValue });
   }
 
-  // Now use significantItems instead of data to create the slices
   const sortedData = useMemo(() => {
     return [...significantItems].sort((a, b) => b.value - a.value);
   }, [significantItems]);
 
-  const minSliceAngle = 2 * Math.PI * 0.05; // Minimum slice angle is 5% of the donut chart
-
+  const minSliceAngle = 2 * Math.PI * 0.05;
   let startAngle = -Math.PI / 2;
   let accumulatedValue = 0;
 
-  // First, calculate the slices without considering the minimum slice angle
   let slices = sortedData.map((slice) => {
-    const gapSize = 2 / outerRadius; // Adjust this value to increase or decrease the gap size
+    const gapSize = 2 / outerRadius;
     const sliceAngle = Math.max(2 * Math.PI * (slice.value / totalMoney), minSliceAngle);
     const startAngleGap = startAngle + gapSize;
     const endAngle = startAngleGap + sliceAngle - 2 * gapSize;
@@ -133,16 +130,14 @@ export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 
     return s;
   });
 
-  // Calculate the total angle of all slices
   const totalAngle = slices.reduce((total, slice) => total + (slice.endAngle - slice.startAngle), 0);
 
-  // If the total angle exceeds 2 * Math.PI, scale down the angle of each slice proportionally
   if (totalAngle > 2 * Math.PI) {
     const scale = 2 * Math.PI / totalAngle;
     let startAngle = -Math.PI / 2;
 
     slices = slices.map(slice => {
-      const gapSize = 2 / outerRadius; // Adjust this value to increase or decrease the gap size
+      const gapSize = 2 / outerRadius;
       const sliceAngle = (slice.endAngle - slice.startAngle) * scale;
       const startAngleGap = startAngle + gapSize * scale;
       const endAngle = startAngleGap + sliceAngle - 2 * gapSize * scale;
@@ -153,19 +148,23 @@ export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 
   }
 
   useEffect(() => {
-    setThickness(outerRadius * 0.3); // adjust the factor as needed
+    setThickness(outerRadius * 0.3);
   }, [outerRadius]);
 
   const toggleShowPercentage = useCallback(() => {
     setShowPercentage(prevShowPercentage => !prevShowPercentage);
   }, []);
 
-  const circleSize = 10; // Fixed size of the circle
+  const circleSize = 10;
+
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
 
   return (
     <View style={styles.container} onLayout={(event) => {
       const { width, height } = event.nativeEvent.layout;
-      setOuterRadius(Math.min(width, height) / 2 / 1.1); // consider the scale factor
+      setOuterRadius(Math.min(width, height) / 2 / 1.1);
     }}>
       <Svg width={width} height={height}>
         <G x={width / 2} y={height / 2}>
@@ -193,7 +192,7 @@ export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 
               {selectedSlice.image ? (
                 <Image
                   source={{ uri: selectedSlice.image }}
-                  style={[styles.selectedSliceImage, { width: circleSize * 2, height: circleSize * 2 }]} // Set the size of the image to be the same as the circle
+                  style={[styles.selectedSliceImage, { width: circleSize * 2, height: circleSize * 2 }]}
                 />
               ) : (
                 <G style={styles.selectedSliceCircle}>
@@ -213,11 +212,12 @@ export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (isDark) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: isDark ? 'black' : 'white',
   },
   selectedSliceContainer: {
     position: 'absolute',
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     x: "0",
     y: "-10",
     textAnchor: "middle",
-    fill: "black",
+    fill: isDark ? 'white' : 'black',
     fontSize: 24,
   },
   selectedSliceImage: {
@@ -242,6 +242,6 @@ const styles = StyleSheet.create({
     x: "0",
     y: "10",
     textAnchor: "middle",
-    fill: "rgba(0, 0, 0, 0.5)",
+    fill: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
   },
 });
