@@ -18,6 +18,7 @@ export default function TabOneScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const screenHeight = Dimensions.get('window').height;
+  const screenWidth = Dimensions.get('window').width;
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -43,20 +44,26 @@ export default function TabOneScreen() {
       minHeight: screenHeight + 1,
       flex: 1,
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent: "flex-start", // Align items to the start of the screen
       backgroundColor: isDark ? 'black' : 'white',
     },
-    container: {
+    donutContainer: {
       flex: 1,
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent: "flex-start", // Align items to the start of the container
+      height: screenWidth,
       backgroundColor: isDark ? 'black' : 'white',
+    },
+    seperator: {
+      marginVertical: 30,
+      height: 1,
+      width: '80%',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     },
     textStyle: {
       color: isDark ? 'white' : 'black',
       fontSize: 24,
       fontWeight: 'bold',
-      padding: 10,
       backgroundColor: isDark ? 'black' : 'white',
     },
     tableContainer: {
@@ -79,14 +86,14 @@ export default function TabOneScreen() {
       fadingEdgeLength={50}
       removeClippedSubviews={true}
     >
-      <Text style={styles.textStyle}>{formattedTotalPortfolioValue}</Text>
-      <View style={styles.container}>
+      <View style={styles.donutContainer}>
         <DonutChart
           key={refreshKey}
           data={mockCoins.map(({ name, quantity, price }) => ({
             name,
             value: quantity * price,
           }))}
+          width={screenWidth}
           backgroundColor={isDark ? 'black' : 'white'}
           Symbol={CURRENCY_SYMBOLS[CURRENCY_TYPE]}
         />

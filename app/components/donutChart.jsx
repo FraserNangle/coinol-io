@@ -91,7 +91,7 @@ const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex
   );
 };
 
-export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 'white', Symbol = '$' }) => {
+export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 'white', Symbol = '$' }) => {
   const [selectedSlice, setSelectedSlice] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [outerRadius, setOuterRadius] = useState(150);
