@@ -50,7 +50,7 @@ export default function TabOneScreen() {
             value: quantity * price,
           }))}
           backgroundColor={isDark ? 'black' : 'white'}
-          currencySymbol={currencySymbol}
+          Symbol={currencySymbol}
         />
       </View>
       <View style={styles.tableContainer}>

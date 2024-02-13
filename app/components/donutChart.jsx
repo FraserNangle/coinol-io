@@ -91,7 +91,7 @@ const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex
   );
 };
 
-export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 'white', currencySymbol = '$' }) => {
+export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 'white', Symbol = '$' }) => {
   const [selectedSlice, setSelectedSlice] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [outerRadius, setOuterRadius] = useState(150);
@@ -187,7 +187,7 @@ export const DonutChart = ({ data, width = 300, height = 300, backgroundColor = 
               <Text
                 style={styles.selectedSliceValue}
               >
-                {showPercentage ? `${(selectedSlice.value / totalMoney * 100).toFixed(2)}%` : `${currencySymbol}${selectedSlice.value.toLocaleString()}`}
+                {showPercentage ? `${(selectedSlice.value / totalMoney * 100).toFixed(2)}%` : `${Symbol}${selectedSlice.value.toLocaleString()}`}
               </Text>
               {selectedSlice.image ? (
                 <Image
