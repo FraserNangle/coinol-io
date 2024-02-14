@@ -1,21 +1,68 @@
-import React, { useLayoutEffect, useState, useCallback, useMemo, useEffect } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
-import Svg, { Path, G, Text, Circle } from 'react-native-svg';
-import Animated, { useSharedValue, useAnimatedProps, withTiming, useDerivedValue, interpolate, useAnimatedStyle } from 'react-native-reanimated';
-import { useColorScheme } from 'react-native';
+import React, {
+  useLayoutEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
+import { View, StyleSheet, Image, useColorScheme } from "react-native";
+import Svg, { Path, G, Text, Circle } from "react-native-svg";
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withTiming,
+  useDerivedValue,
+  interpolate,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-const colors = ['#FF7F00', '#FF6E1A', '#FF5D34', '#FF4C4E', '#FF3B68', '#FF2A82', '#FF199C', '#FF08B6', '#F000D2', '#E400E0', '#D800EE', '#CC00FC', '#C000FA', '#B400F8', '#A800F6', '#9C00F4', '#9000F2', '#8400F0', '#7800EE', '#6C00EC'];
+const colors = [
+  "#FF7F00",
+  "#FF6E1A",
+  "#FF5D34",
+  "#FF4C4E",
+  "#FF3B68",
+  "#FF2A82",
+  "#FF199C",
+  "#FF08B6",
+  "#F000D2",
+  "#E400E0",
+  "#D800EE",
+  "#CC00FC",
+  "#C000FA",
+  "#B400F8",
+  "#A800F6",
+  "#9C00F4",
+  "#9000F2",
+  "#8400F0",
+  "#7800EE",
+  "#6C00EC",
+];
 const totalAnimationTime = 1000;
 
-const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex, accumulatedValue, totalValue, outerRadius, totalSlices }) => {
+const Slice = ({
+  slice,
+  index,
+  setSelectedSlice,
+  setSelectedIndex,
+  selectedIndex,
+  accumulatedValue,
+  totalValue,
+  outerRadius,
+  totalSlices,
+}) => {
   const { value, startAngle, endAngle } = slice;
   const animation = useSharedValue(0);
   const scale = useSharedValue(1);
 
   const color = useMemo(() => {
-    const colorIndex = interpolate(index, [0, totalSlices - 1], [0, colors.length - 1]);
+    const colorIndex = interpolate(
+      index,
+      [0, totalSlices - 1],
+      [0, colors.length - 1]
+    );
     const roundedColorIndex = Math.round(colorIndex);
     return colors[roundedColorIndex];
   }, [index, totalSlices]);
@@ -62,11 +109,13 @@ const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex
   }, [slice.value, accumulatedValue, totalValue, totalAnimationTime]);
 
   useLayoutEffect(() => {
-    scale.value = withTiming(selectedIndex === index ? 1.1 : 1, { duration: 200 });
+    scale.value = withTiming(selectedIndex === index ? 1.1 : 1, {
+      duration: 200,
+    });
 
     // Cleanup function
     return () => {
-        scale.value = 1;
+      scale.value = 1;
     };
   }, [selectedIndex]);
 
@@ -76,7 +125,7 @@ const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex
   }, [setSelectedSlice, setSelectedIndex, slice, color, index]);
 
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = colorScheme === "dark";
   const styles = getStyles(isDark);
 
   return (
@@ -95,7 +144,13 @@ const Slice = ({ slice, index, setSelectedSlice, setSelectedIndex, selectedIndex
   );
 };
 
-export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 'white', currencyTicker = 'USD' }) => {
+export const DonutChart = ({
+  data,
+  width = 300,
+  height = 500,
+  backgroundColor = "white",
+  currencyTicker = "USD",
+}) => {
   const [selectedSlice, setSelectedSlice] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [outerRadius, setOuterRadius] = useState(150);
@@ -103,7 +158,9 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
   const [showPercentage, setShowPercentage] = useState(true);
 
   const totalMoney = data.reduce((acc, slice) => acc + slice.value, 0);
-  const significantItems = data.filter(slice => slice.value / totalMoney >= 0.05);
+  const significantItems = data.filter(
+    (slice) => slice.value / totalMoney >= 0.05
+  );
   const otherItemValue = data.reduce((acc, slice) => {
     if (slice.value / totalMoney < 0.05) {
       return acc + slice.value;
@@ -112,7 +169,7 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
   }, 0);
 
   if (otherItemValue > 0) {
-    significantItems.push({ name: 'Other', value: otherItemValue });
+    significantItems.push({ name: "Other", value: otherItemValue });
   }
 
   const sortedData = useMemo(() => {
@@ -125,22 +182,33 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
 
   let slices = sortedData.map((slice) => {
     const gapSize = 2 / outerRadius;
-    const sliceAngle = Math.max(2 * Math.PI * (slice.value / totalMoney), minSliceAngle);
+    const sliceAngle = Math.max(
+      2 * Math.PI * (slice.value / totalMoney),
+      minSliceAngle
+    );
     const startAngleGap = startAngle + gapSize;
     const endAngle = startAngleGap + sliceAngle - 2 * gapSize;
-    const s = { ...slice, startAngle: startAngleGap, endAngle, accumulatedValue };
+    const s = {
+      ...slice,
+      startAngle: startAngleGap,
+      endAngle,
+      accumulatedValue,
+    };
     startAngle = endAngle + gapSize;
     accumulatedValue += slice.value;
     return s;
   });
 
-  const totalAngle = slices.reduce((total, slice) => total + (slice.endAngle - slice.startAngle), 0);
+  const totalAngle = slices.reduce(
+    (total, slice) => total + (slice.endAngle - slice.startAngle),
+    0
+  );
 
   if (totalAngle > 2 * Math.PI) {
-    const scale = 2 * Math.PI / totalAngle;
+    const scale = (2 * Math.PI) / totalAngle;
     let startAngle = -Math.PI / 2;
 
-    slices = slices.map(slice => {
+    slices = slices.map((slice) => {
       const gapSize = 2 / outerRadius;
       const sliceAngle = (slice.endAngle - slice.startAngle) * scale;
       const startAngleGap = startAngle + gapSize * scale;
@@ -155,24 +223,35 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
     setThickness(outerRadius * 0.3);
   }, [outerRadius]);
 
+  useLayoutEffect(() => {
+    if (slices.length > 0) {
+      slices[0].color = colors[0];
+      setSelectedIndex(0);
+      setSelectedSlice(slices[0]);
+    }
+  }, []);
+
   const toggleShowPercentage = useCallback(() => {
-    setShowPercentage(prevShowPercentage => !prevShowPercentage);
+    setShowPercentage((prevShowPercentage) => !prevShowPercentage);
   }, []);
 
   const circleSize = 10;
 
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = colorScheme === "dark";
   const styles = getStyles(isDark);
 
   return (
-    <View style={styles.container} onLayout={(event) => {
-      const { width, height } = event.nativeEvent.layout;
-      setOuterRadius(Math.min(width, height) / 2 / 1.1);
-    }}>
+    <View
+      style={styles.container}
+      onLayout={(event) => {
+        const { width, height } = event.nativeEvent.layout;
+        setOuterRadius(Math.min(width, height) / 2.5 / 1.1);
+      }}
+    >
       <Svg width={width} height={height}>
         <G x={width / 2} y={height / 2}>
-          { slices.map((slice, index) => (
+          {slices.map((slice, index) => (
             <Slice
               key={index}
               slice={slice}
@@ -186,27 +265,35 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
               totalSlices={slices.length}
             />
           ))}
-          <Circle cx="0" cy="0" r={outerRadius - thickness} fill={backgroundColor} onPressIn={toggleShowPercentage} />
+          <Circle
+            r={outerRadius - thickness}
+            fill={backgroundColor}
+            onPressIn={toggleShowPercentage}
+          />
           {selectedSlice && (
-            <View style={styles.selectedSliceContainer}>
+            <View>
               <Text style={styles.selectedSliceValue}>
-                {showPercentage 
-                  ? `${(selectedSlice.value / totalMoney * 100).toFixed(2)}%` 
-                  : new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyTicker }).format(selectedSlice.value)}
+                {showPercentage
+                  ? `${((selectedSlice.value / totalMoney) * 100).toFixed(2)}%`
+                  : new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: currencyTicker,
+                    }).format(selectedSlice.value)}
               </Text>
               {selectedSlice.image ? (
                 <Image
                   source={{ uri: selectedSlice.image }}
-                  style={[styles.selectedSliceImage, { width: circleSize * 2, height: circleSize * 2 }]}
+                  style={[
+                    styles.selectedSliceImage,
+                    { width: circleSize * 2, height: circleSize * 2 },
+                  ]}
                 />
               ) : (
                 <G style={styles.selectedSliceCircle}>
-                  <Circle cx="-3" cy="0" r={circleSize} fill={selectedSlice.color} />
+                  <Circle r={circleSize} fill={selectedSlice.color} />
                 </G>
               )}
-              <Text style={styles.selectedSliceName}>
-                {selectedSlice.name}
-              </Text>
+              <Text style={styles.selectedSliceName}>{selectedSlice.name}</Text>
             </View>
           )}
         </G>
@@ -215,36 +302,33 @@ export const DonutChart = ({ data, width = 300, height = 500, backgroundColor = 
   );
 };
 
-const getStyles = (isDark) => StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: isDark ? 'black' : 'rgba(147,112,219,1)',
-  },
-  selectedSliceContainer: {
-    position: 'absolute',
-    right: 10,
-  },
-  selectedSliceValue: {
-    x: "0",
-    y: "-10",
-    textAnchor: "middle",
-    fill: isDark ? 'white' : 'black',
-    fontSize: 24,
-  },
-  selectedSliceImage: {
-    width: 20,
-    height: 20,
-  },
-  selectedSliceCircle: {
-    x: "-25",
-    y: "5",
-  },
-  selectedSliceName: {
-    x: "0",
-    y: "10",
-    textAnchor: "middle",
-    fill: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
-  },
-});
+const getStyles = (isDark) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      flexDirection: "row",
+      backgroundColor: isDark ? "black" : "rgba(147,112,219,1)",
+    },
+    selectedSliceValue: {
+      y: -10,
+      textAnchor: "middle",
+      fill: isDark ? "white" : "black",
+      fontSize: 24,
+    },
+    selectedSliceImage: {
+      width: 20,
+      height: 20,
+    },
+    selectedSliceCircle: {
+      y: 10,
+      x: -13,
+    },
+    selectedSliceName: {
+      y: 10,
+      x: 2,
+      dy: "0.35em",
+      fill: isDark ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
+    },
+  });
