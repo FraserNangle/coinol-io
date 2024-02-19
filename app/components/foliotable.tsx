@@ -77,9 +77,9 @@ const getPriceDifferenceDisplay = (priceDifference: number) => {
 };
 
 export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
-  const [sortField, setSortField] = React.useState<
-    "name" | "price" | "total" | "marketcap"
-  >("marketcap");
+  type SortField = "name" | "price" | "total" | "marketcap";
+
+  const [sortField, setSortField] = React.useState<SortField>("marketcap");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc");
 
   const colorScheme = useColorScheme();
@@ -94,7 +94,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
         case "name":
           comparison = a.name.localeCompare(b.name);
           break;
-        case "price":
+        case "price": {
           const aApiItem = apiData.find((apiItem) => apiItem.name === a.name);
           const bApiItem = apiData.find((apiItem) => apiItem.name === b.name);
           const aPriceDifference = aApiItem
@@ -105,10 +105,12 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
             : 0;
           comparison = aPriceDifference - bPriceDifference;
           break;
-        case "total":
+        }
+        case "total": {
           comparison = a.quantity * a.price - b.quantity * b.price;
           break;
-        case "marketcap":
+        }
+        case "marketcap": {
           const aApiItemMarketCap = apiData.find(
             (apiItem) => apiItem.name.toLowerCase() === a.name.toLowerCase()
           );
@@ -119,6 +121,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
             (bApiItemMarketCap ? bApiItemMarketCap.ranking : 0) -
             (aApiItemMarketCap ? aApiItemMarketCap.ranking : 0);
           break;
+        }
       }
 
       return sortOrder === "asc" ? comparison : -comparison;

@@ -237,10 +237,6 @@ export const DonutChart = ({
 
   const circleSize = 10;
 
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const styles = getStyles(isDark);
-
   return (
     <View
       style={styles.container}
