@@ -124,10 +124,6 @@ const Slice = ({
     setSelectedIndex(index);
   }, [setSelectedSlice, setSelectedIndex, slice, color, index]);
 
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const styles = getStyles(isDark);
-
   return (
     <G>
       <AnimatedPath
@@ -151,6 +147,10 @@ export const DonutChart = ({
   backgroundColor = "white",
   currencyTicker = "USD",
 }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const styles = getStyles(isDark);
+
   const [selectedSlice, setSelectedSlice] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [outerRadius, setOuterRadius] = useState(150);
