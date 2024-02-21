@@ -10,6 +10,7 @@ import {
   UIManager,
   Platform,
 } from "react-native";
+import { useSelector } from "react-redux";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -68,6 +69,10 @@ const getStyles = (isDarkMode: boolean) =>
     row: {
       flexDirection: "row",
     },
+    highlightedRow: {
+      backgroundColor: isDarkMode ? "#222" : "#999",
+      flexDirection: "row",
+    },
   });
 
 const getPriceDifferenceDisplay = (priceDifference: number) => {
@@ -81,6 +86,10 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
 
   const [sortField, setSortField] = React.useState<SortField>("marketcap");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc");
+
+  const selectedSection = useSelector(
+    (state: any) => state.selectedSlice.value
+  );
 
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -179,7 +188,14 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
             getPriceDifferenceDisplay(priceDifference);
 
           return (
-            <DataTable.Row key={item.key}>
+            <DataTable.Row
+              key={item.key}
+              style={
+                selectedSection?.name == item?.name
+                  ? styles.highlightedRow
+                  : styles.row
+              }
+            >
               <DataTable.Cell>
                 <View style={styles.column}>
                   <View style={styles.row}>
