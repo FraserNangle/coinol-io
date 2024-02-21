@@ -98,6 +98,7 @@ export const DonutChart = ({
 
   useLayoutEffect(() => {
     if (sections.length > 0) {
+      sections[0].color = donutChartColors[0];
       dispatch(
         setSelectedSection({ ...sections[0], ...donutChartColors[0], index: 0 })
       );
