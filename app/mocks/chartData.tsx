@@ -1,40 +1,73 @@
-import { Coin } from "../models/coinData";
+import { Coin, CoinAPI } from "../models/coinData";
 
 export const mockCoins: Coin[] = [
   {
     key: 1,
-    name: "Bitcoin",
-    quantity: 10,
+    name: "BTC",
+    quantity: 4,
     price: 50000,
   },
   {
     key: 2,
-    name: "Ethereum",
-    quantity: 20,
+    name: "ETH",
+    quantity: 32,
     price: 3000,
   },
   {
     key: 3,
-    name: "Litecoin",
-    quantity: 30,
+    name: "LTC",
+    quantity: 26,
     price: 150,
   },
   {
     key: 4,
-    name: "Ripple",
-    quantity: 40,
+    name: "XRP",
+    quantity: 32467,
     price: 0.8,
   },
   {
     key: 5,
-    name: "Cardano",
-    quantity: 50,
+    name: "ADA",
+    quantity: 100000,
     price: 1.5,
   },
   {
     key: 6,
-    name: "Stellar",
-    quantity: 60,
+    name: "XLM",
+    quantity: 98321,
     price: 0.4,
+  },
+];
+
+export const mockCoinAPI: CoinAPI[] = [
+  {
+    name: "BTC",
+    price24: 55000,
+    ranking: 1,
+  },
+  {
+    name: "ETH",
+    price24: 2800,
+    ranking: 2,
+  },
+  {
+    name: "LTC",
+    price24: 170,
+    ranking: 21,
+  },
+  {
+    name: "XRP",
+    price24: 0.7,
+    ranking: 6,
+  },
+  {
+    name: "ADA",
+    price24: 1.7,
+    ranking: 9,
+  },
+  {
+    name: "XLM",
+    price24: 0.3,
+    ranking: 34,
   },
 ];

@@ -1,0 +1,205 @@
+import React, {
+  useLayoutEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
+import { View, StyleSheet, Image, useColorScheme } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
+import { setSelectedSection } from "../slices/selectedSectionSlice";
+import { donutChartColors } from "../styling/donutChartColors";
+import Svg, { G, Text, Circle } from "react-native-svg";
+import { Section } from "./section";
+
+export const DonutChart = ({
+  data,
+  width = 300,
+  height = 500,
+  backgroundColor = "white",
+  currencyTicker = "USD",
+}) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const styles = getStyles(isDark);
+
+  const dispatch = useDispatch();
+  const selectedSection = useSelector((state) => state.selectedSlice.value);
+
+  const [outerRadius, setOuterRadius] = useState(150);
+  const [thickness, setThickness] = useState(30);
+  const [showPercentage, setShowPercentage] = useState(true);
+
+  const totalMoney = data.reduce((acc, section) => acc + section.value, 0);
+  const significantItems = data.filter(
+    (section) => section.value / totalMoney >= 0.05
+  );
+  const otherItemValue = data.reduce((acc, section) => {
+    if (section.value / totalMoney < 0.05) {
+      return acc + section.value;
+    }
+    return acc;
+  }, 0);
+
+  if (otherItemValue > 0) {
+    significantItems.push({ name: "Other", value: otherItemValue });
+  }
+
+  const sortedData = useMemo(() => {
+    return [...significantItems].sort((a, b) => b.value - a.value);
+  }, [significantItems]);
+
+  const minSliceAngle = 2 * Math.PI * 0.05;
+  let startAngle = -Math.PI / 2;
+  let accumulatedValue = 0;
+
+  let sections = sortedData.map((section) => {
+    const gapSize = 2 / outerRadius;
+    const sliceAngle = Math.max(
+      2 * Math.PI * (section.value / totalMoney),
+      minSliceAngle
+    );
+    const startAngleGap = startAngle + gapSize;
+    const endAngle = startAngleGap + sliceAngle - 2 * gapSize;
+    const s = {
+      ...section,
+      startAngle: startAngleGap,
+      endAngle,
+      accumulatedValue,
+    };
+    startAngle = endAngle + gapSize;
+    accumulatedValue += section.value;
+    return s;
+  });
+
+  const totalAngle = sections.reduce(
+    (total, section) => total + (section.endAngle - section.startAngle),
+    0
+  );
+
+  if (totalAngle > 2 * Math.PI) {
+    const scale = (2 * Math.PI) / totalAngle;
+    let startAngle = -Math.PI / 2;
+
+    sections = sections.map((section) => {
+      const gapSize = 2 / outerRadius;
+      const sliceAngle = (section.endAngle - section.startAngle) * scale;
+      const startAngleGap = startAngle + gapSize * scale;
+      const endAngle = startAngleGap + sliceAngle - 2 * gapSize * scale;
+      const s = { ...section, startAngle: startAngleGap, endAngle };
+      startAngle = endAngle + gapSize * scale;
+      return s;
+    });
+  }
+
+  useEffect(() => {
+    setThickness(outerRadius * 0.3);
+  }, [outerRadius]);
+
+  useLayoutEffect(() => {
+    if (sections.length > 0) {
+      sections[0].color = donutChartColors[0];
+      dispatch(
+        setSelectedSection({ ...sections[0], ...donutChartColors[0], index: 0 })
+      );
+    }
+  }, []);
+
+  const toggleShowPercentage = useCallback(() => {
+    setShowPercentage((prevShowPercentage) => !prevShowPercentage);
+  }, []);
+
+  const circleSize = 10;
+
+  return (
+    <View
+      style={styles.container}
+      onLayout={(event) => {
+        const { width, height } = event.nativeEvent.layout;
+        setOuterRadius(Math.min(width, height) / 2.5 / 1.1);
+      }}
+    >
+      <Svg width={width} height={height}>
+        <G x={width / 2} y={height / 2}>
+          {sections.map((section, index) => (
+            <Section
+              key={index}
+              section={section}
+              index={index}
+              accumulatedValue={section.accumulatedValue}
+              totalValue={totalMoney}
+              outerRadius={outerRadius}
+              totalSections={sections.length}
+            />
+          ))}
+          <Circle
+            r={outerRadius - thickness}
+            fill={backgroundColor}
+            onPressIn={toggleShowPercentage}
+          />
+          {selectedSection && (
+            <View>
+              <Text style={styles.selectedSliceValue}>
+                {showPercentage
+                  ? `${((selectedSection.value / totalMoney) * 100).toFixed(
+                      2
+                    )}%`
+                  : new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: currencyTicker,
+                    }).format(selectedSection.value)}
+              </Text>
+              {selectedSection.image ? (
+                <Image
+                  source={{ uri: selectedSection.image }}
+                  style={[
+                    styles.selectedSliceImage,
+                    { width: circleSize * 2, height: circleSize * 2 },
+                  ]}
+                />
+              ) : (
+                <G style={styles.selectedSliceCircle}>
+                  <Circle r={circleSize} fill={selectedSection.color} />
+                </G>
+              )}
+              <Text style={styles.selectedSliceName}>
+                {selectedSection.name}
+              </Text>
+            </View>
+          )}
+        </G>
+      </Svg>
+    </View>
+  );
+};
+
+const getStyles = (isDark) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      flexDirection: "row",
+      backgroundColor: isDark ? "black" : "rgba(147,112,219,1)",
+    },
+    selectedSliceValue: {
+      y: -10,
+      textAnchor: "middle",
+      fill: isDark ? "white" : "black",
+      fontSize: 24,
+    },
+    selectedSliceImage: {
+      width: 20,
+      height: 20,
+    },
+    selectedSliceCircle: {
+      y: 10,
+      x: -13,
+    },
+    selectedSliceName: {
+      y: 10,
+      x: 2,
+      dy: "0.35em",
+      fill: isDark ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
+    },
+  });
