@@ -28,7 +28,7 @@ export const DonutChart = ({
 
   const [outerRadius, setOuterRadius] = useState(150);
   const [thickness, setThickness] = useState(30);
-  const [showPercentage, setShowPercentage] = useState(true);
+  const [displayMode, setDisplayMode] = useState('percentage');
 
   const totalMoney = data.reduce((acc, section) => acc + section.value, 0);
   const significantItems = data.filter(
@@ -96,6 +96,14 @@ export const DonutChart = ({
     setThickness(outerRadius * 0.3);
   }, [outerRadius]);
 
+  useEffect(() => {
+    if (displayMode === 'percentage' && !((selectedSection.value / totalMoney) * 100) ||
+        displayMode === 'value' && !selectedSection.value ||
+        displayMode === 'quantity' && !selectedSection.quantity) {
+      toggleDisplayMode();
+    }
+  }, [selectedSection, displayMode, toggleDisplayMode]);
+
   useLayoutEffect(() => {
     if (sections.length > 0) {
       sections[0].color = donutChartColors[0];
@@ -105,9 +113,50 @@ export const DonutChart = ({
     }
   }, []);
 
-  const toggleShowPercentage = useCallback(() => {
-    setShowPercentage((prevShowPercentage) => !prevShowPercentage);
-  }, []);
+  const toggleDisplayMode = useCallback(() => {
+    setDisplayMode((prevMode) => {
+      let newMode;
+      switch (prevMode) {
+        case 'percentage':
+          newMode = selectedSection.value ? 'value' : 'quantity';
+          break;
+        case 'value':
+          newMode = selectedSection.quantity ? 'quantity' : 'percentage';
+          break;
+        case 'quantity':
+        default:
+          newMode = ((selectedSection.value / totalMoney) * 100) ? 'percentage' : 'value';
+          break;
+      }
+      return newMode;
+    });
+  }, [selectedSection]);
+
+  const formatNumber = (num) => {
+    if (num >= 1e9) {
+      return (num / 1e9).toFixed(2) + 'B';
+    } else if (num >= 1e6) {
+      return (num / 1e6).toFixed(2) + 'M';
+    } else if (num >= 1e3) {
+      return (num / 1e3).toFixed(2) + 'K';
+    } else {
+      return num.toString();
+    }
+  }
+  
+  const getText = () => {
+    if (displayMode === 'percentage' && ((selectedSection.value / totalMoney) * 100)) {
+      return `${((selectedSection.value / totalMoney) * 100).toFixed(2)}%`;
+    } else if (displayMode === 'value' && selectedSection.value) {
+      return formatNumber(selectedSection.value);
+    } else if (displayMode === 'quantity' && selectedSection.quantity) {
+      return formatNumber(selectedSection.quantity);
+    } else {
+      return null;
+    }
+  }
+  
+  const text = getText();
 
   const circleSize = 10;
 
@@ -135,19 +184,22 @@ export const DonutChart = ({
           <Circle
             r={outerRadius - thickness}
             fill={backgroundColor}
-            onPressIn={toggleShowPercentage}
+            onPressIn={toggleDisplayMode}
           />
           {selectedSection && (
             <View>
               <Text style={styles.selectedSliceValue}>
-                {showPercentage
-                  ? `${((selectedSection.value / totalMoney) * 100).toFixed(
-                      2
-                    )}%`
-                  : new Intl.NumberFormat("en-US", {
+                {displayMode === 'percentage' && ((selectedSection.value / totalMoney) * 100)
+                  ? `${((selectedSection.value / totalMoney) * 100).toFixed(2)}%`
+                  : displayMode === 'value' && selectedSection.value
+                  ? new Intl.NumberFormat("en-US", {
                       style: "currency",
                       currency: currencyTicker,
-                    }).format(selectedSection.value)}
+                    }).format(selectedSection.value)
+                  : displayMode === 'quantity' && selectedSection.quantity
+                  ? Number(selectedSection.quantity).toFixed(2)
+                  : null
+                }
               </Text>
               {selectedSection.image ? (
                 <Image
