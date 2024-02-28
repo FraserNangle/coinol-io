@@ -70,7 +70,6 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
@@ -83,6 +82,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          title: "My Folio",
           headerTitle: () => (
             <View style={styles.titleContainer}>
               <Text style={styles.headerTitle}>
@@ -93,13 +93,17 @@ export default function TabLayout() {
               </Text>
             </View>
           ),
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="pie-chart" color={color} />
+          ),
+          tabBarBadge: mockCoins.length,
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
                 {({ pressed }) => (
                   <FontAwesome
-                    name="info-circle"
+                    name="user"
                     size={25}
                     color={Colors[colorScheme ?? "light"].text}
                     style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
@@ -108,6 +112,13 @@ export default function TabLayout() {
               </Pressable>
             </Link>
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="addToken"
+        options={{
+          title: "",
+          tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -120,7 +131,10 @@ export default function TabLayout() {
               </Text>
             </View>
           ),
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="handshake-o" color={color} />
+          ),
         }}
       />
     </Tabs>
