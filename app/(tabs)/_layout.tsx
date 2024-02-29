@@ -15,6 +15,7 @@ const CURRENCY_TYPE = "USD";
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
+  size?: number;
 }) {
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 }
@@ -77,12 +78,14 @@ export default function TabLayout() {
           backgroundColor: Colors[colorScheme ?? "light"].background,
         },
         headerTitleAlign: "center",
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "My Folio",
+          title: "Portfolio",
+          tabBarShowLabel: true,
           headerTitle: () => (
             <View style={styles.titleContainer}>
               <Text style={styles.headerTitle}>
@@ -93,11 +96,9 @@ export default function TabLayout() {
               </Text>
             </View>
           ),
-          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="pie-chart" color={color} />
+            <TabBarIcon name="briefcase" color={color} />
           ),
-          tabBarBadge: mockCoins.length,
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
@@ -117,13 +118,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="addToken"
         options={{
-          title: "",
-          tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} />,
+          headerTitle: () => null,
+          tabBarLabel: () => null,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="plus-circle" color={color} size={40} />
+          ),
+          tabBarIconStyle: { justifyContent: "center" },
         }}
       />
       <Tabs.Screen
         name="two"
         options={{
+          tabBarShowLabel: true,
           headerTitle: () => (
             <View style={styles.titleContainer}>
               <Text style={styles.headerTitle}>
@@ -131,7 +137,6 @@ export default function TabLayout() {
               </Text>
             </View>
           ),
-          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="handshake-o" color={color} />
           ),

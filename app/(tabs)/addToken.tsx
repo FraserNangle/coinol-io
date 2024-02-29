@@ -6,12 +6,19 @@ import React from "react";
 export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Add</Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>Add a Transaction</Text>
+      </View>
       <View
-        style={styles.separator}
-        lightColor="#eee"
-        darkColor="rgba(255,255,255,0.1)"
+        style={{
+          borderWidth: 0.5,
+          borderColor: "white",
+          width: "70%",
+        }}
       />
+      <View style={styles.container}>
+        <Text style={styles.title}>Connect a Wallet</Text>
+      </View>
     </View>
   );
 }
