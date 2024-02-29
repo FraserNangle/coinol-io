@@ -11,7 +11,7 @@ export default function TabTwoScreen() {
       </View>
       <View
         style={{
-          borderWidth: 0.5,
+          borderTopWidth: 1,
           borderColor: "white",
           width: "70%",
         }}
