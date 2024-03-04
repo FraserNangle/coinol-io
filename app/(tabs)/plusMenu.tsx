@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React from "react";
 
-export default function TabTwoScreen() {
+export default function PlusMenuScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.container}>

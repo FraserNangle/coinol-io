@@ -116,7 +116,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="addToken"
+        name="plusMenu"
         options={{
           headerTitle: () => null,
           tabBarLabel: () => null,
