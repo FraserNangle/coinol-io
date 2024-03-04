@@ -129,6 +129,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="two"
         options={{
+          tabBarLabel: "Alerts",
           tabBarShowLabel: true,
           headerTitle: () => (
             <View style={styles.titleContainer}>
@@ -137,9 +138,7 @@ export default function TabLayout() {
               </Text>
             </View>
           ),
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="handshake-o" color={color} />
-          ),
+          tabBarIcon: ({ color }) => <TabBarIcon name="bell" color={color} />,
         }}
       />
     </Tabs>
