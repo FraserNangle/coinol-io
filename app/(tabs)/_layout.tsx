@@ -15,6 +15,7 @@ const CURRENCY_TYPE = "USD";
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
+  size?: number;
 }) {
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 }
@@ -70,7 +71,6 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
@@ -78,11 +78,14 @@ export default function TabLayout() {
           backgroundColor: Colors[colorScheme ?? "light"].background,
         },
         headerTitleAlign: "center",
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
+          title: "Portfolio",
+          tabBarShowLabel: true,
           headerTitle: () => (
             <View style={styles.titleContainer}>
               <Text style={styles.headerTitle}>
@@ -93,13 +96,15 @@ export default function TabLayout() {
               </Text>
             </View>
           ),
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="briefcase" color={color} />
+          ),
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
                 {({ pressed }) => (
                   <FontAwesome
-                    name="info-circle"
+                    name="user"
                     size={25}
                     color={Colors[colorScheme ?? "light"].text}
                     style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
@@ -111,8 +116,21 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="addToken"
+        options={{
+          headerTitle: () => null,
+          tabBarLabel: () => null,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="plus-circle" color={color} size={40} />
+          ),
+          tabBarIconStyle: { justifyContent: "center" },
+        }}
+      />
+      <Tabs.Screen
         name="two"
         options={{
+          tabBarLabel: "Alerts",
+          tabBarShowLabel: true,
           headerTitle: () => (
             <View style={styles.titleContainer}>
               <Text style={styles.headerTitle}>
@@ -120,7 +138,7 @@ export default function TabLayout() {
               </Text>
             </View>
           ),
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="bell" color={color} />,
         }}
       />
     </Tabs>

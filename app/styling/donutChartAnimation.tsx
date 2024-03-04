@@ -3,4 +3,4 @@ import { Path } from "react-native-svg";
 
 export const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-export const totalAnimationTime = 1000;
+export const totalAnimationTime = 5000;

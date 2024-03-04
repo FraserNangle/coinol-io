@@ -103,6 +103,7 @@ export default function TabOneScreen() {
           key={refreshKey}
           data={mockCoins.map(({ name, quantity, price }) => ({
             name,
+            quantity,
             value: quantity * price,
           }))}
           width={screenWidth * 0.95}
