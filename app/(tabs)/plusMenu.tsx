@@ -1,13 +1,22 @@
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 
 import { Text, View } from "@/components/Themed";
 import React from "react";
+import { Link } from "expo-router";
 
 export default function PlusMenuScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.container}>
-        <Text style={styles.title}>Add a Transaction</Text>
+        <Link href="/pages/addTransaction" asChild>
+          <Pressable>
+            {({ pressed }) => (
+              <Text style={[styles.title, { opacity: pressed ? 0.5 : 1 }]}>
+                Add a Transaction
+              </Text>
+            )}
+          </Pressable>
+        </Link>
       </View>
       <View
         style={{
