@@ -19,9 +19,7 @@ export const DonutChart = ({
   backgroundColor = "white",
   currencyTicker = "USD",
 }) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const styles = getStyles(isDark);
+  const styles = getStyles();
 
   const dispatch = useDispatch();
   const selectedSection = useSelector((state) => state.selectedSlice.value);
@@ -236,19 +234,19 @@ export const DonutChart = ({
   );
 };
 
-const getStyles = (isDark) =>
+const getStyles = () =>
   StyleSheet.create({
     container: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
       flexDirection: "row",
-      backgroundColor: isDark ? "black" : "rgba(147,112,219,1)",
+      backgroundColor: "black",
     },
     selectedSliceValue: {
       y: -10,
       textAnchor: "middle",
-      fill: isDark ? "white" : "black",
+      fill: "white",
       fontSize: 24,
     },
     selectedSliceImage: {
@@ -263,6 +261,6 @@ const getStyles = (isDark) =>
       y: 10,
       x: 2,
       dy: "0.35em",
-      fill: isDark ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
+      fill: "rgba(255, 255, 255, 0.5)",
     },
   });
