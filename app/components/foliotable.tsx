@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Text,
   View,
-  useColorScheme,
   LayoutAnimation,
   UIManager,
   Platform,

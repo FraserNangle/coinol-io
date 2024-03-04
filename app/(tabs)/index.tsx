@@ -2,7 +2,6 @@ import React, { useState, useCallback } from "react";
 import {
   ScrollView,
   StyleSheet,
-  useColorScheme,
   RefreshControl,
   Dimensions,
 } from "react-native";
