@@ -8,7 +8,7 @@ import { DataTable, PaperProvider } from "react-native-paper";
 
 export default function AddTransactionScreen() {
   return (
-    <View style={styles.screenContainer}>
+    <View style={styles.tableContainer}>
       <CurrenciesTable apiData={mockCoinAPI} />
     </View>
   );
