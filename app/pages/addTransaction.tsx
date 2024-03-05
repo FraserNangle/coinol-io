@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 
 import { Text, View } from "@/components/Themed";
 import React from "react";
@@ -8,9 +8,15 @@ import { DataTable, PaperProvider } from "react-native-paper";
 
 export default function AddTransactionScreen() {
   return (
-    <View style={styles.tableContainer}>
-      <CurrenciesTable apiData={mockCoinAPI} />
-    </View>
+    <ScrollView
+      contentContainerStyle={styles.screenContainer}
+      removeClippedSubviews={true}
+      fadingEdgeLength={25}
+    >
+      <View style={styles.tableContainer}>
+        <CurrenciesTable apiData={mockCoinAPI} />
+      </View>
+    </ScrollView>
   );
 }
 
@@ -22,23 +28,11 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
     paddingBottom: 20,
   },
-  donutContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-start", // Align items to the start of the container
-    backgroundColor: "black",
-  },
   tableContainer: {
     flex: 1,
     justifyContent: "center",
     width: "100%",
     backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 10, // Rounded rectangle
-  },
-  tradeButtonContainer: {
-    justifyContent: "center",
-    width: "100%",
-    backgroundColor: "black",
   },
 });
 
