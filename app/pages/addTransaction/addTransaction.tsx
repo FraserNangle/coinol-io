@@ -1,10 +1,9 @@
-import { FlatList, ScrollView, StyleSheet } from "react-native";
+import { FlatList, StyleSheet } from "react-native";
 
 import { Text, View } from "@/components/Themed";
 import React, { useState } from "react";
-import { DataTable, PaperProvider, TextInput } from "react-native-paper";
+import { DataTable, TextInput } from "react-native-paper";
 import { mockCoinAPI } from "@/app/mocks/chartData";
-import { CoinAPI } from "@/app/models/coinData";
 
 export default function AddTransactionScreen() {
   const [query, setQuery] = useState("");
@@ -93,10 +92,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   row: {
-    flexDirection: "row",
-  },
-  highlightedRow: {
-    backgroundColor: "#222",
     flexDirection: "row",
   },
 });
