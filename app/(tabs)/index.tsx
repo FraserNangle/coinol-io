@@ -96,16 +96,6 @@ export default function TabOneScreen() {
       <View style={styles.tableContainer}>
         <FolioTable data={mockCoins} apiData={mockCoinAPI} />
       </View>
-      {/*       <View style={styles.tradeButtonContainer}>
-        <TradeButtons
-          onBuy={() => {
-            // Add your buy logic here
-          }}
-          onSell={() => {
-            // Add your sell logic here
-          }}
-        />
-      </View> */}
     </ScrollView>
   );
 }
