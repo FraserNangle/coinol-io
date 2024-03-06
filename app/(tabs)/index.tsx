@@ -50,7 +50,6 @@ export default function TabOneScreen() {
       alignItems: "center",
       justifyContent: "flex-start", // Align items to the start of the screen
       backgroundColor: "black",
-      paddingBottom: 20,
     },
     donutContainer: {
       flex: 1,

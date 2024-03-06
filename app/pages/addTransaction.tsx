@@ -22,11 +22,9 @@ export default function AddTransactionScreen() {
 
 const styles = StyleSheet.create({
   screenContainer: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "flex-start", // Align items to the start of the screen
     backgroundColor: "black",
-    paddingBottom: 20,
   },
   tableContainer: {
     flex: 1,
