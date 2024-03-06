@@ -53,7 +53,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
           <Stack.Screen
-            name="pages/addTransaction"
+            name="pages/addTransaction/addTransaction"
             options={{ presentation: "modal", title: "Currency" }}
           />
         </Stack>

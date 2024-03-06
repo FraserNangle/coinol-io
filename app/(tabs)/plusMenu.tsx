@@ -8,7 +8,7 @@ export default function PlusMenuScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.container}>
-        <Link href="/pages/addTransaction" asChild>
+        <Link href="/pages/addTransaction/addTransaction" asChild>
           <Pressable>
             {({ pressed }) => (
               <Text style={[styles.title, { opacity: pressed ? 0.5 : 1 }]}>

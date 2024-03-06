@@ -9,7 +9,6 @@ import { View } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
 import { mockCoinAPI, mockCoins } from "../mocks/chartData";
-import { TradeButtons } from "../components/tradeButtons";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
