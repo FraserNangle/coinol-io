@@ -1,13 +1,15 @@
-import { FlatList, StyleSheet } from "react-native";
+import { FlatList, StyleSheet, TouchableHighlight } from "react-native";
 
 import { Text, View } from "@/components/Themed";
 import React, { useState } from "react";
 import { DataTable, TextInput } from "react-native-paper";
 import { mockCoinAPI } from "@/app/mocks/chartData";
+import { useNavigation } from "@react-navigation/native";
 
-export default function AddTransactionScreen() {
+export default function AddTransactionCurrencyListScreen() {
   const [query, setQuery] = useState("");
   const [filteredData, setFilteredData] = useState(mockCoinAPI);
+  const navigation = useNavigation();
 
   const handleSearch = (text: string) => {
     setQuery(text);
@@ -37,15 +39,23 @@ export default function AddTransactionScreen() {
           data={filteredData}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
-            <DataTable.Row key={item.name}>
-              <DataTable.Cell>
-                <View style={styles.column}>
-                  <View style={styles.row}>
-                    <Text style={styles.ticker}>{item.name}</Text>
+            <TouchableHighlight
+              onPress={() =>
+                navigation.navigate("pages/addTransaction/addTransactionPage", {
+                  item,
+                })
+              }
+            >
+              <DataTable.Row key={item.name}>
+                <DataTable.Cell>
+                  <View style={styles.column}>
+                    <View style={styles.row}>
+                      <Text style={styles.ticker}>{item.name}</Text>
+                    </View>
                   </View>
-                </View>
-              </DataTable.Cell>
-            </DataTable.Row>
+                </DataTable.Cell>
+              </DataTable.Row>
+            </TouchableHighlight>
           )}
         />
       </View>
