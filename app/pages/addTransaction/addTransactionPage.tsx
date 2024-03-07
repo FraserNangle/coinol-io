@@ -1,21 +1,59 @@
-import { StyleSheet } from "react-native";
-
+import { Button, StyleSheet, useWindowDimensions } from "react-native";
 import { Text, View } from "@/components/Themed";
-import React from "react";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import React, { useState } from "react";
+import { useRoute } from "@react-navigation/native";
+import { SceneMap, TabBar, TabView } from "react-native-tab-view";
 
 export default function AddTransactionScreen() {
+  const [index, setIndex] = React.useState(0);
+  const [routes, setRoutes] = React.useState([
+    { key: "buy", title: "Buy" },
+    { key: "sell", title: "Sell" },
+    { key: "holding", title: "Holding" },
+  ]);
+
   const route = useRoute();
+  const layout = useWindowDimensions();
 
   // Retrieve the item parameter
   const { item } = route.params;
 
-  return (
-    <View style={styles.screenContainer}>
-      <View style={styles.tableContainer}>
-        <Text>{item.name}</Text>
-      </View>
+  const Buy = () => (
+    <View>
+      <Text>Buy {item.name}</Text>
     </View>
+  );
+  const Sell = () => (
+    <View>
+      <Text>Sell {item.name}</Text>
+    </View>
+  );
+  const Holding = () => (
+    <View>
+      <Text>Add {item.name} Holding</Text>
+    </View>
+  );
+
+  const renderScene = SceneMap({
+    buy: Buy,
+    sell: Sell,
+    holding: Holding,
+  });
+
+  return (
+    <TabView
+      navigationState={{ index, routes }}
+      renderScene={renderScene}
+      onIndexChange={setIndex}
+      renderTabBar={(props) => (
+        <TabBar
+          {...props}
+          indicatorStyle={{ backgroundColor: "white" }}
+          style={{ backgroundColor: "black" }}
+        />
+      )}
+      initialLayout={{ width: layout.width }}
+    />
   );
 }
 
@@ -24,13 +62,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-start", // Align items to the start of the screen
-    backgroundColor: "black",
+    backgroundColor: "blac",
   },
-  tableContainer: {
-    flex: 1,
-    justifyContent: "center",
-    width: "100%",
-    backgroundColor: "rgba(255,255,255,0.1)",
+  tabBar: {
+    flexDirection: "row",
+    justifyContent: "space-around",
   },
   searchBar: {
     backgroundColor: "black",
