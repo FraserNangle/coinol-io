@@ -1,8 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
-import * as Keychain from 'react-native-keychain';
-import { setAccessToken, getRefreshToken, setRefreshToken, setCredentials, logout, deleteLocalHoldings } from './keychainService';
-import { getHoldings } from './coinStorageService';
+import * as SecureStore from 'expo-secure-store';
+import { setAccessToken, getRefreshToken, setRefreshToken, setCredentials, logout, deleteLocalHoldings, getCredentials } from './secureStorageService';
 
 export interface IApiService {
   initiateGuestUser: () => Promise<string>;
@@ -64,12 +63,13 @@ api.interceptors.response.use(undefined, async (error) => {
       } catch (err) {
         const axiosError = err as AxiosError;
         if (axiosError.response && axiosError.response.status === 401) {
-          const credentials = await Keychain.getGenericPassword();
+          const credentials = await SecureStore.getItemAsync('user');
           if (credentials) {
+            const { username, password } = JSON.parse(credentials);
             try {
               const res = await api.post('/auth/token', {
-                username: credentials.username,
-                password: credentials.password,
+                username,
+                password,
               });
               const newToken = res.data.accessToken;
               const newRefreshToken = res.data.refreshToken;
@@ -101,7 +101,14 @@ api.interceptors.response.use(undefined, async (error) => {
 // Function to get a guest token and set it in the Keychain and set guest credentials
 export const initiateGuestUser = async () => {
   try {
-    const response = await api.get('/auth/guest');
+    // Mock the API response
+    const response = {
+      data: {
+        accessToken: 'mockAccessToken',
+        refreshToken: 'mockRefreshToken',
+      },
+    };
+    // const response = await api.get('/auth/guest');
     const { accessToken, refreshToken } = response.data;
     await setAccessToken(accessToken);
     await setRefreshToken(refreshToken);
@@ -131,11 +138,40 @@ export const getUserToken = async (username: string, password: string) => {
   }
 }
 
+// Function to check if the user is a guest
+export const isGuest = async () => {
+  const credentials = await getCredentials();
+  return credentials?.isGuest ?? false;
+};
+
+// Retrieve the user's holdings (Read)
+export const getRemoteHoldings = async () => {
+  const credentials = await SecureStore.getItemAsync('user');
+  if (credentials) {
+    if (await isGuest()) {
+      // If the user is not a guest, retrieve the holdings from the server
+      try {
+        const response = await api.get('/holdings');
+        return response.data;
+      } catch (error) {
+        // Handle error or provide fallback data here
+      }
+    } else {
+      // If the user is a guest, retrieve the holdings from the local storage
+      const holdingsCredentials = await SecureStore.getItemAsync('holdings');
+      if (holdingsCredentials) {
+        return JSON.parse(holdingsCredentials);
+      }
+      return [];
+    }
+  }
+};
+
 // When a user signs up
 export const onSignUp = async (username: string, password: string) => {
   try {
     // Retrieve the locally stored coin data
-    const localHoldings = await getHoldings();
+    const localHoldings = await getRemoteHoldings();
 
     // Post the local holdings to the API
     const response = await api.post('/holdings', {

@@ -1,7 +1,5 @@
-import * as Keychain from 'react-native-keychain';
-import { encryptData, decryptData } from './keychainService';
-import api from './apiService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import api, { isGuest } from './apiService';
+import * as SecureStore from 'expo-secure-store';
 
 export interface ICoinStorageService {
   addCoinData: (coinId: string, quantity: number) => Promise<void>;
@@ -11,14 +9,9 @@ export interface ICoinStorageService {
   removeCoinData: (coinId: string) => Promise<void>;
 }
 
-const getDeviceId = async () => {
-  return await AsyncStorage.getItem('deviceId');
-}
-
   // Function to add coin data to the local store (Create)
   export const addCoinData = async (coinId: string, ticker: string, quantity: number) => {
-    const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== await getDeviceId()) {
+    if (!isGuest()) {
       // If the user is not a guest, update the holdings on the server
       const response = await api.post('/holdings', {
         coinId,
@@ -31,30 +24,27 @@ const getDeviceId = async () => {
       }
     } else {
       // If the user is a guest, update the local holdings
-      let holdings = [];
-      if (credentials && typeof credentials !== 'boolean') {
-        holdings = JSON.parse(await decryptData(credentials.password));
+      const holdings = await SecureStore.getItemAsync('holdings');
+      let holdingsArray = [];
+      if (holdings) {
+        holdingsArray = JSON.parse(holdings);
       }
-      holdings.push({ coinId, ticker, quantity });
-      const encryptedHoldings = await encryptData(JSON.stringify(holdings));
-      if (credentials && typeof credentials !== 'boolean') {
-        await Keychain.setGenericPassword(credentials.username, encryptedHoldings, { service: 'holdings' });
-      }
+      holdingsArray.push({ coinId, ticker, quantity });
+      await SecureStore.setItemAsync('holdings', JSON.stringify(holdingsArray));
     }
   };
   
   // Retrieve the user's holdings (Read)
   export const getHoldings = async () => {
-    const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== await getDeviceId()) {
+    if (!isGuest()) {
       // If the user is not a guest, retrieve the holdings from the server
       const response = await api.get('/holdings');
       return response.data;
     } else {
       // If the user is a guest, retrieve the holdings from the local storage
-      const holdingsCredentials = await Keychain.getGenericPassword({ service: 'holdings' });
+      const holdingsCredentials = await SecureStore.getItemAsync('holdings');
       if (holdingsCredentials) {
-        return JSON.parse(await decryptData(holdingsCredentials.password));
+        return JSON.parse(holdingsCredentials);
       }
       return [];
     }
@@ -62,30 +52,24 @@ const getDeviceId = async () => {
   
   // Function to get the quantity of a specific coin in the local store (Read)
   export const getCoinQuantity = async (coinId: string) => {
-    const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== await getDeviceId()) {
+    if (!isGuest()) {
       // If the user is not a guest, retrieve the coin quantity from the server
       const response = await api.get(`/holdings/${coinId}`);
       return response.data.quantity;
     } else {
       // If the user is a guest, retrieve the coin quantity from the local storage
-      const holdingsCredentials = await Keychain.getGenericPassword({ service: 'holdings' });
-      let holdings = [];
+      const holdingsCredentials = await SecureStore.getItemAsync('holdings');
       if (holdingsCredentials) {
-        holdings = JSON.parse(await decryptData(holdingsCredentials.password));
+        const holdings = JSON.parse(holdingsCredentials);
+        const coin = holdings.find((coin: { coinId: string }) => coin.coinId === coinId);
+        return coin ? coin.quantity : 0;
       }
-      const coin = holdings.find((coin: { coinId: string }) => coin.coinId === coinId);
-      if (coin) {
-        return coin.quantity;
-      }
-      return 0;
     }
   };
 
   // Function to update coin data in the local store (Update)
   export const updateCoinData = async (coinId: string, newQuantity: number) => {
-    const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== await getDeviceId()) {
+    if (!isGuest()) {
       // If the user is not a guest, update the coin data on the server
       const response = await api.put(`/holdings/${coinId}`, {
         quantity: newQuantity,
@@ -97,25 +81,21 @@ const getDeviceId = async () => {
     } else {
       // If the user is a guest, update the coin data in the local storage
       let holdings = [];
-      const holdingsCredentials = await Keychain.getGenericPassword({ service: 'holdings' });
-      if (holdingsCredentials && typeof holdingsCredentials !== 'boolean') {
-        holdings = JSON.parse(await decryptData(holdingsCredentials.password));
+      const holdingsCredentials = await SecureStore.getItemAsync('holdings');
+      if (holdingsCredentials) {
+        holdings = JSON.parse(holdingsCredentials);
       }
       const coinIndex = holdings.findIndex((coin: { coinId: string }) => coin.coinId === coinId);
       if (coinIndex !== -1) {
         holdings[coinIndex].quantity = newQuantity;
       }
-      const encryptedHoldings = await encryptData(JSON.stringify(holdings));
-      if (holdingsCredentials && typeof holdingsCredentials !== 'boolean') {
-        await Keychain.setGenericPassword(holdingsCredentials.username, encryptedHoldings, { service: 'holdings' });
-      }
+      await SecureStore.setItemAsync('holdings', JSON.stringify(holdings));
     }
   };
   
   // Function to remove coin data from the local store (Delete)
   export const removeCoinData = async (coinId: string) => {
-    const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== await getDeviceId()) {
+    if (!isGuest()) {
       // If the user is not a guest, remove the coin data from the server
       const response = await api.delete(`/holdings/${coinId}`);
   
@@ -125,14 +105,11 @@ const getDeviceId = async () => {
     } else {
       // If the user is a guest, remove the coin data from the local storage
       let holdings = [];
-      const holdingsCredentials = await Keychain.getGenericPassword({ service: 'holdings' });
-      if (holdingsCredentials && typeof holdingsCredentials !== 'boolean') {
-        holdings = JSON.parse(await decryptData(holdingsCredentials.password));
+      const holdingsCredentials = await SecureStore.getItemAsync('holdings');
+      if (holdingsCredentials) {
+        holdings = JSON.parse(holdingsCredentials);
       }
       holdings = holdings.filter((coin: { coinId: string }) => coin.coinId !== coinId);
-      const encryptedHoldings = await encryptData(JSON.stringify(holdings));
-      if (holdingsCredentials && typeof holdingsCredentials !== 'boolean') {
-        await Keychain.setGenericPassword(holdingsCredentials.username, encryptedHoldings, { service: 'holdings' });
-      }
+      await SecureStore.setItemAsync('holdings', JSON.stringify(holdings));
     }
   };
