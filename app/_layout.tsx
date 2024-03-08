@@ -8,7 +8,7 @@ import { useEffect ,useState } from "react";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import { getCredentials} from "./services/keychainService";
-import { getGuestToken } from "./services/apiService";
+import { initiateGuestUser } from "./services/apiService";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -42,20 +42,21 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  useEffect(() => {
-    async function setupUser() {
-      const credentials = await getCredentials();
+  // Check if the user is a guest or not CURRENTLY NOT WORKING
+  // useEffect(() => {
+  //   async function setupUser() {
+  //     const credentials = await getCredentials();
 
-      if (!credentials) {
-        // The user is new, get a guest token
-        await getGuestToken();
-      }
+  //     if (!credentials) {
+  //       // The user is new, get a guest token
+  //       await initiateGuestUser();
+  //     }
 
-      setIsUserSetupComplete(true);
-    }
+  //     setIsUserSetupComplete(true);
+  //   }
 
-    setupUser();
-  }, []);
+  //   setupUser();
+  // }, []);
 
   if (!loaded || !isUserSetupComplete) {
     return null;

@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain';
 import { encryptData, decryptData } from './keychainService';
 import api from './apiService';
-import { getDeviceId } from 'react-native-device-info';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface ICoinStorageService {
   addCoinData: (coinId: string, quantity: number) => Promise<void>;
@@ -11,10 +11,14 @@ export interface ICoinStorageService {
   removeCoinData: (coinId: string) => Promise<void>;
 }
 
+const getDeviceId = async () => {
+  return await AsyncStorage.getItem('deviceId');
+}
+
   // Function to add coin data to the local store (Create)
   export const addCoinData = async (coinId: string, ticker: string, quantity: number) => {
     const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== getDeviceId()) {
+    if (credentials && credentials.username !== await getDeviceId()) {
       // If the user is not a guest, update the holdings on the server
       const response = await api.post('/holdings', {
         coinId,
@@ -42,7 +46,7 @@ export interface ICoinStorageService {
   // Retrieve the user's holdings (Read)
   export const getHoldings = async () => {
     const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== getDeviceId()) {
+    if (credentials && credentials.username !== await getDeviceId()) {
       // If the user is not a guest, retrieve the holdings from the server
       const response = await api.get('/holdings');
       return response.data;
@@ -59,7 +63,7 @@ export interface ICoinStorageService {
   // Function to get the quantity of a specific coin in the local store (Read)
   export const getCoinQuantity = async (coinId: string) => {
     const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== getDeviceId()) {
+    if (credentials && credentials.username !== await getDeviceId()) {
       // If the user is not a guest, retrieve the coin quantity from the server
       const response = await api.get(`/holdings/${coinId}`);
       return response.data.quantity;
@@ -81,7 +85,7 @@ export interface ICoinStorageService {
   // Function to update coin data in the local store (Update)
   export const updateCoinData = async (coinId: string, newQuantity: number) => {
     const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== getDeviceId()) {
+    if (credentials && credentials.username !== await getDeviceId()) {
       // If the user is not a guest, update the coin data on the server
       const response = await api.put(`/holdings/${coinId}`, {
         quantity: newQuantity,
@@ -111,7 +115,7 @@ export interface ICoinStorageService {
   // Function to remove coin data from the local store (Delete)
   export const removeCoinData = async (coinId: string) => {
     const credentials = await Keychain.getGenericPassword({ service: 'user' });
-    if (credentials && credentials.username !== getDeviceId()) {
+    if (credentials && credentials.username !== await getDeviceId()) {
       // If the user is not a guest, remove the coin data from the server
       const response = await api.delete(`/holdings/${coinId}`);
   

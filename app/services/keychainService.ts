@@ -1,5 +1,6 @@
 import * as Keychain from 'react-native-keychain';
-import DeviceInfo from 'react-native-device-info';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { v4 as uuidv4 } from 'uuid';
 import CryptoJS from 'crypto-js';
 
 export interface IKeychainService {
@@ -17,7 +18,17 @@ export interface IKeychainService {
 let deviceId: string;
 let encryptionKey: string;
 
-DeviceInfo.getUniqueId().then(id => {
+// Function to get or generate a unique identifier
+const getDeviceId = async () => {
+  let id = await AsyncStorage.getItem('deviceId');
+  if (!id) {
+    id = uuidv4();
+    await AsyncStorage.setItem('deviceId', id);
+  }
+  return id;
+};
+
+getDeviceId().then(id => {
   deviceId = id;
   const randomString = generateUniqueToken();
   encryptionKey = deviceId + randomString;
