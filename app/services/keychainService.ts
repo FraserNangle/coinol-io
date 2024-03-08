@@ -19,7 +19,7 @@ DeviceInfo.getUniqueId().then(id => {
   deviceId = id;
   const randomString = generateUniqueToken();
   encryptionKey = deviceId + randomString;
-  Keychain.setGenericPassword('encryptionKey', encryptionKey);
+  Keychain.setGenericPassword('encryptionKey', encryptionKey, { service: 'encryptionKey' });
 });
 
 // Function to encrypt data
@@ -135,15 +135,24 @@ export const login = async (username: string, password: string) => {
   }
 };
 
-// Function to log out, removes the user's credentials and holdings data from the Keychain
+// Function to log out, removes the user's credentials from the Keychain
 export const logout = async () => {
   try {
     const credentials = await Keychain.getGenericPassword({ service: 'user' });
     if (credentials && credentials.username !== deviceId) {
       await Keychain.resetGenericPassword({ service: 'user' });
-      await Keychain.resetGenericPassword({ service: 'holdings' });
+      await deleteLocalHoldings();
     }
   } catch (error) {
     console.error('Failed to log out:', error);
+  }
+};
+
+// Function to delete the holdings data from the Keychain
+export const deleteLocalHoldings = async () => {
+  try {
+    await Keychain.resetGenericPassword({ service: 'holdings' });
+  } catch (error) {
+    console.error('Failed to delete holdings:', error);
   }
 };
