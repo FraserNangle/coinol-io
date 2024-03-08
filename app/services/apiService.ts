@@ -1,15 +1,14 @@
 import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
 import * as Keychain from 'react-native-keychain';
-import { setAccessToken, getRefreshToken, setRefreshToken, setCredentials, logout } from './keychainService';
+import { setAccessToken, getRefreshToken, setRefreshToken, setCredentials, logout, deleteLocalHoldings } from './keychainService';
 import { getHoldings } from './coinStorageService';
 
 export interface IApiService {
   initiateGuestUser: () => Promise<string>;
   getUserToken: (username: string, password: string) => Promise<string>;
   onSignUp: (localHoldings: any) => Promise<any>;
-  getHoldings: () => Promise<any>;
-  updateRemoteHoldings: (holdings: any) => Promise<any>;
+  onLogout: () => Promise<void>;
 }
 
 // Create an axios instance
@@ -145,8 +144,8 @@ export const onSignUp = async (username: string, password: string) => {
 
     // If the request is successful, remove the local holdings
     if (response.status >= 200 && response.status < 300) {
-      // Logout to remove the guest user data
-      await logout();
+      // Remove the local holdings
+      await deleteLocalHoldings();
 
       // Set new credentials on the Keychain using the username and password that was used to sign up
       await setCredentials(username, password);
@@ -158,6 +157,16 @@ export const onSignUp = async (username: string, password: string) => {
     }
   } catch (e) {
     console.error('Could not sign up', e);
+    throw e;
+  }
+};
+
+// When a user logs out
+export const onLogout = async () => {
+  try {
+    await logout();
+  } catch (e) {
+    console.error('Could not log out', e);
     throw e;
   }
 };

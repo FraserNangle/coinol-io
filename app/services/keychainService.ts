@@ -106,7 +106,7 @@ export const generateUniqueToken = () => {
 export const setCredentials = async (username: string = deviceId, password: string = generateUniqueToken()) => {
   try {
     const encryptedPassword = await encryptData(password);
-    await Keychain.setGenericPassword(username, encryptedPassword);
+    await Keychain.setGenericPassword(username, encryptedPassword, { service: 'user' });
   } catch (error) {
     console.error('Failed to set credentials:', error);
   }
@@ -115,7 +115,7 @@ export const setCredentials = async (username: string = deviceId, password: stri
 // Function to get the user's credentials
 export const getCredentials = async () => {
   try {
-    const credentials = await Keychain.getGenericPassword();
+    const credentials = await Keychain.getGenericPassword({ service: 'user' });
     if (credentials) {
       return { username: credentials.username, password: credentials.password };
     }
@@ -129,18 +129,19 @@ export const getCredentials = async () => {
 export const login = async (username: string, password: string) => {
   try {
     const encryptedPassword = await encryptData(password);
-    await Keychain.setGenericPassword(username, encryptedPassword);
+    await Keychain.setGenericPassword(username, encryptedPassword, { service: 'user' });
   } catch (error) {
     console.error('Failed to log in:', error);
   }
 };
 
-// Function to log out, removes the user's credentials from the Keychain
+// Function to log out, removes the user's credentials and holdings data from the Keychain
 export const logout = async () => {
   try {
-    const credentials = await Keychain.getGenericPassword();
+    const credentials = await Keychain.getGenericPassword({ service: 'user' });
     if (credentials && credentials.username !== deviceId) {
-      await Keychain.resetGenericPassword();
+      await Keychain.resetGenericPassword({ service: 'user' });
+      await Keychain.resetGenericPassword({ service: 'holdings' });
     }
   } catch (error) {
     console.error('Failed to log out:', error);
