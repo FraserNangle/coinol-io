@@ -10,11 +10,6 @@ export interface IKeychainService {
   setCredentials: (username: string, password: string) => Promise<void>;
   getCredentials: () => Promise<{ username: string; password: string } | null>;
   logout: () => Promise<void>;
-  addCoinData: (coinId: string, quantity: number) => Promise<void>;
-  getLocalHoldings: () => Promise<any[]>;
-  removeCoinData: (coinId: string) => Promise<void>;
-  updateCoinData: (coinId: string, newQuantity: number) => Promise<void>;
-  getCoinQuantity: (coinId: string) => Promise<number>;
 }
 
 let deviceId: string;
@@ -28,7 +23,7 @@ DeviceInfo.getUniqueId().then(id => {
 });
 
 // Function to encrypt data
-const encryptData = async (data: string) => {
+export const encryptData = async (data: string) => {
   try {
     const credentials = await Keychain.getGenericPassword({ service: 'encryptionKey' });
     if (credentials) {
@@ -42,7 +37,7 @@ const encryptData = async (data: string) => {
 };
 
 // Function to decrypt data
-const decryptData = async (data: string) => {
+export const decryptData = async (data: string) => {
   try {
     const credentials = await Keychain.getGenericPassword({ service: 'encryptionKey' });
     if (credentials) {
@@ -140,72 +135,4 @@ export const logout = async () => {
   } catch (error) {
     console.error('Failed to log out:', error);
   }
-};
-
-// Function to add coin data to the local store
-export const addCoinData = async (coinId: string, quantity: number) => {
-  const credentials = await Keychain.getGenericPassword();
-  let holdings = [];
-  if (credentials && typeof credentials !== 'boolean') {
-    holdings = JSON.parse(await decryptData(credentials.password));
-  }
-  holdings.push({ coinId, quantity });
-  const encryptedHoldings = await encryptData(JSON.stringify(holdings));
-  if (credentials && typeof credentials !== 'boolean') {
-    await Keychain.setGenericPassword(credentials.username, encryptedHoldings);
-  }
-};
-
-// Retrieve the user's holdings
-export const getLocalHoldings = async () => {
-  const credentials = await Keychain.getGenericPassword();
-  if (credentials) {
-    return JSON.parse(await decryptData(credentials.password));
-  }
-  return [];
-};
-
-// Function to remove coin data from the local store
-export const removeCoinData = async (coinId: string) => {
-  const credentials = await Keychain.getGenericPassword();
-  let holdings = [];
-  if (credentials && typeof credentials !== 'boolean') {
-    holdings = JSON.parse(await decryptData(credentials.password));
-  }
-  holdings = holdings.filter((coin: { coinId: string }) => coin.coinId !== coinId);
-  const encryptedHoldings = await encryptData(JSON.stringify(holdings));
-  if (credentials && typeof credentials !== 'boolean') {
-    await Keychain.setGenericPassword(credentials.username, encryptedHoldings);
-  }
-};
-
-// Function to update coin data in the local store
-export const updateCoinData = async (coinId: string, newQuantity: number) => {
-  const credentials = await Keychain.getGenericPassword();
-  let holdings = [];
-  if (credentials && typeof credentials !== 'boolean') {
-    holdings = JSON.parse(await decryptData(credentials.password));
-  }
-  const coinIndex = holdings.findIndex((coin: { coinId: string }) => coin.coinId === coinId);
-  if (coinIndex !== -1) {
-    holdings[coinIndex].quantity = newQuantity;
-  }
-  const encryptedHoldings = await encryptData(JSON.stringify(holdings));
-  if (credentials && typeof credentials !== 'boolean') {
-    await Keychain.setGenericPassword(credentials.username, encryptedHoldings);
-  }
-};
-
-// Function to get the quantity of a specific coin in the local store
-export const getCoinQuantity = async (coinId: string) => {
-  const credentials = await Keychain.getGenericPassword();
-  let holdings = [];
-  if (credentials) {
-    holdings = JSON.parse(await decryptData(credentials.password));
-  }
-  const coin = holdings.find((coin: { coinId: string }) => coin.coinId === coinId);
-  if (coin) {
-    return coin.quantity;
-  }
-  return 0;
 };
