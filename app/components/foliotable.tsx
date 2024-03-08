@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Text,
   View,
-  useColorScheme,
   LayoutAnimation,
   UIManager,
   Platform,
@@ -29,27 +28,27 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
-const getStyles = (isDarkMode: boolean) =>
+const getStyles = () =>
   StyleSheet.create({
     ticker: {
       fontWeight: "200",
-      color: isDarkMode ? "#fff" : "#000",
+      color: "#fff",
     },
     bold: {
       fontWeight: "bold",
-      color: isDarkMode ? "#fff" : "#000",
+      color: "#fff",
     },
     normal: {
-      color: isDarkMode ? "#fff" : "#000",
+      color: "#fff",
     },
     mainDataTableTitle: {
       fontSize: 14,
       fontWeight: "bold",
-      color: isDarkMode ? "#fff" : "#000",
+      color: "#fff",
     },
     dataTableTitle: {
       fontWeight: "200",
-      color: isDarkMode ? "#fff" : "#000",
+      color: "#fff",
     },
     positive: {
       color: "#00ff00",
@@ -70,7 +69,7 @@ const getStyles = (isDarkMode: boolean) =>
       flexDirection: "row",
     },
     highlightedRow: {
-      backgroundColor: isDarkMode ? "#222" : "#999",
+      backgroundColor: "#222",
       flexDirection: "row",
     },
   });
@@ -91,9 +90,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
     (state: any) => state.selectedSlice.value
   );
 
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === "dark";
-  const styles = getStyles(isDarkMode);
+  const styles = getStyles();
 
   const sortedData = React.useMemo(() => {
     return [...data].sort((a, b) => {

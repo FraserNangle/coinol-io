@@ -19,9 +19,7 @@ export const DonutChart = ({
   backgroundColor = "white",
   currencyTicker = "USD",
 }) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const styles = getStyles(isDark);
+  const styles = getStyles();
 
   const dispatch = useDispatch();
   const selectedSection = useSelector((state) => state.selectedSlice.value);
@@ -169,6 +167,35 @@ export const DonutChart = ({
 
   const circleSize = 10;
 
+  function formatQuantity(quantity) {
+    if (quantity >= 1e9) {
+      return (quantity / 1e9).toFixed(2) + 'B';
+    } else if (quantity >= 1e6) {
+      return (quantity / 1e6).toFixed(2) + 'M';
+    } else {
+      return new Intl.NumberFormat().format(quantity);
+    }
+  }
+
+  function formatCurrency(value, currencyTicker) {
+    if (value >= 1e9) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currencyTicker,
+      }).format(value / 1e9) + 'B';
+    } else if (value >= 1e6) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currencyTicker,
+      }).format(value / 1e6) + 'M';
+    } else {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currencyTicker,
+      }).format(value);
+    }
+  }
+
   return (
     <View
       style={styles.container}
@@ -200,16 +227,11 @@ export const DonutChart = ({
               <Text style={styles.selectedSliceValue}>
                 {displayMode === "percentage" &&
                 (selectedSection.value / totalMoney) * 100
-                  ? `${((selectedSection.value / totalMoney) * 100).toFixed(
-                      2
-                    )}%`
+                  ? `${((selectedSection.value / totalMoney) * 100).toFixed(2)}%`
                   : displayMode === "value" && selectedSection.value
-                  ? new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: currencyTicker,
-                    }).format(selectedSection.value)
+                  ? formatCurrency(selectedSection.value, currencyTicker)
                   : displayMode === "quantity" && selectedSection.quantity
-                  ? Number(selectedSection.quantity).toFixed(2)
+                  ? formatQuantity(Number(selectedSection.quantity))
                   : null}
               </Text>
               {selectedSection.image ? (
@@ -236,19 +258,19 @@ export const DonutChart = ({
   );
 };
 
-const getStyles = (isDark) =>
+const getStyles = () =>
   StyleSheet.create({
     container: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
       flexDirection: "row",
-      backgroundColor: isDark ? "black" : "rgba(147,112,219,1)",
+      backgroundColor: "black",
     },
     selectedSliceValue: {
       y: -10,
       textAnchor: "middle",
-      fill: isDark ? "white" : "black",
+      fill: "white",
       fontSize: 24,
     },
     selectedSliceImage: {
@@ -263,6 +285,6 @@ const getStyles = (isDark) =>
       y: 10,
       x: 2,
       dy: "0.35em",
-      fill: isDark ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
+      fill: "rgba(255, 255, 255, 0.5)",
     },
   });

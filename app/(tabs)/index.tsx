@@ -2,7 +2,6 @@ import React, { useState, useCallback } from "react";
 import {
   ScrollView,
   StyleSheet,
-  useColorScheme,
   RefreshControl,
   Dimensions,
 } from "react-native";
@@ -10,14 +9,11 @@ import { View } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
 import { mockCoinAPI, mockCoins } from "../mocks/chartData";
-import { TradeButtons } from "../components/tradeButtons";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
 
 export default function TabOneScreen() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
   const screenHeight = Dimensions.get("window").height;
   const screenWidth = Dimensions.get("window").width;
   const [refreshing, setRefreshing] = useState(false);
@@ -52,40 +48,25 @@ export default function TabOneScreen() {
       flex: 1,
       alignItems: "center",
       justifyContent: "flex-start", // Align items to the start of the screen
-      backgroundColor: isDark ? "black" : "rgba(147,112,219,1)",
-      paddingBottom: 20,
+      backgroundColor: "black",
     },
     donutContainer: {
       flex: 1,
       alignItems: "center",
       justifyContent: "flex-start", // Align items to the start of the container
-      backgroundColor: isDark ? "black" : "rgba(147,112,219,1)",
-    },
-    seperator: {
-      marginVertical: 30,
-      height: 1,
-      width: "80%",
-      backgroundColor: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)",
-    },
-    textStyle: {
-      color: isDark ? "white" : "black",
-      fontSize: 24,
-      fontWeight: "bold",
-      backgroundColor: isDark ? "black" : "white",
+      backgroundColor: "black",
     },
     tableContainer: {
       flex: 1,
       justifyContent: "center",
       width: "100%",
-      backgroundColor: isDark
-        ? "rgba(255,255,255,0.1)"
-        : "rgba(173,216,230,0.5)", // Brighter for dark mode, darker for light mode
+      backgroundColor: "rgba(255,255,255,0.1)",
       borderRadius: 10, // Rounded rectangle
     },
     tradeButtonContainer: {
       justifyContent: "center",
       width: "100%",
-      backgroundColor: isDark ? "black" : "rgba(147,112,219,1)",
+      backgroundColor: "black",
     },
   });
 
@@ -107,22 +88,12 @@ export default function TabOneScreen() {
             value: quantity * price,
           }))}
           width={screenWidth * 0.95}
-          backgroundColor={isDark ? "black" : "rgba(147,112,219,1)"}
+          backgroundColor={"black"}
           currencyTicker={CURRENCY_TYPE}
         />
       </View>
       <View style={styles.tableContainer}>
         <FolioTable data={mockCoins} apiData={mockCoinAPI} />
-      </View>
-      <View style={styles.tradeButtonContainer}>
-        <TradeButtons
-          onBuy={() => {
-            // Add your buy logic here
-          }}
-          onSell={() => {
-            // Add your sell logic here
-          }}
-        />
       </View>
     </ScrollView>
   );

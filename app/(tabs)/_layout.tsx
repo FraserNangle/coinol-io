@@ -25,7 +25,7 @@ const titleColor = percentageIncrease >= 0 ? "#00ff00" : "red"; // Use a lighter
 const titleShadowColor =
   percentageIncrease >= 0 ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 105, 180, 0.5)";
 
-const getStyles = (isDark) =>
+const getStyles = () =>
   StyleSheet.create({
     titleContainer: {
       display: "flex",
@@ -37,7 +37,7 @@ const getStyles = (isDark) =>
       fontSize: 24,
       fontWeight: "bold",
       textAlign: "center",
-      color: isDark ? "white" : "black",
+      color: "white",
     },
     percentageContainer: {
       color: titleColor,
@@ -56,8 +56,7 @@ const getStyles = (isDark) =>
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const styles = getStyles(isDark);
+  const styles = getStyles();
 
   const totalPortfolioValue = mockCoins.reduce(
     (total, item) => total + item.quantity * item.price,
@@ -116,7 +115,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="addToken"
+        name="plusMenu"
         options={{
           headerTitle: () => null,
           tabBarLabel: () => null,

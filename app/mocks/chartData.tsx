@@ -70,4 +70,64 @@ export const mockCoinAPI: CoinAPI[] = [
     price24: 0.3,
     ranking: 34,
   },
+  {
+    name: "DOGE",
+    price24: 0.5,
+    ranking: 5,
+  },
+  {
+    name: "BCH",
+    price24: 600,
+    ranking: 10,
+  },
+  {
+    name: "LINK",
+    price24: 30,
+    ranking: 15,
+  },
+  {
+    name: "DOT",
+    price24: 20,
+    ranking: 8,
+  },
+  {
+    name: "UNI",
+    price24: 25,
+    ranking: 11,
+  },
+  {
+    name: "USDT",
+    price24: 1,
+    ranking: 3,
+  },
+  {
+    name: "SOL",
+    price24: 40,
+    ranking: 16,
+  },
+  {
+    name: "AVAX",
+    price24: 50,
+    ranking: 12,
+  },
+  {
+    name: "BNB",
+    price24: 350,
+    ranking: 4,
+  },
+  {
+    name: "USDC",
+    price24: 1,
+    ranking: 13,
+  },
+  {
+    name: "XEM",
+    price24: 0.2,
+    ranking: 25,
+  },
+  {
+    name: "ATOM",
+    price24: 20,
+    ranking: 20,
+  },
 ];
