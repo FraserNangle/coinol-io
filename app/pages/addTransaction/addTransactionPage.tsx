@@ -3,6 +3,8 @@ import { Text, View } from "@/components/Themed";
 import React, { useState } from "react";
 import { useRoute } from "@react-navigation/native";
 import { SceneMap, TabBar, TabView } from "react-native-tab-view";
+import DatePicker from "react-native-date-picker";
+import { TextInput } from "react-native-paper";
 
 export default function AddTransactionScreen() {
   const [index, setIndex] = React.useState(0);
@@ -11,6 +13,9 @@ export default function AddTransactionScreen() {
     { key: "sell", title: "Sell" },
     { key: "holding", title: "Holding" },
   ]);
+  const [total, setTotal] = React.useState("");
+  const [date, setDate] = React.useState(new Date());
+  const [price, setPrice] = React.useState("");
 
   const route = useRoute();
   const layout = useWindowDimensions();
@@ -20,7 +25,25 @@ export default function AddTransactionScreen() {
 
   const Buy = () => (
     <View>
-      <Text>Buy {item.name}</Text>
+      <TextInput
+        textColor="white"
+        value={total}
+        onChangeText={setTotal}
+        placeholder={`Total ${item.name}`}
+      />
+      {/*       <DatePicker
+        date={date}
+        onDateChange={setDate}
+        mode="datetime"
+        placeholder="Select date and time"
+        format="YYYY-MM-DD HH:mm"
+      /> */}
+      <TextInput
+        value={price}
+        onChangeText={setPrice}
+        placeholder="Price"
+        keyboardType="numeric"
+      />
     </View>
   );
   const Sell = () => (
