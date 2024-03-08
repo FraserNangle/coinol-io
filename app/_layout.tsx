@@ -3,10 +3,12 @@ import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect ,useState } from "react";
 
 import { Provider } from "react-redux";
 import store from "./store/store";
+import { getCredentials} from "./services/keychainService";
+import { getGuestToken } from "./services/apiService";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -27,6 +29,8 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
+  const [isUserSetupComplete, setIsUserSetupComplete] = useState(false);
+
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
@@ -38,7 +42,22 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
+  useEffect(() => {
+    async function setupUser() {
+      const credentials = await getCredentials();
+
+      if (!credentials) {
+        // The user is new, get a guest token
+        await getGuestToken();
+      }
+
+      setIsUserSetupComplete(true);
+    }
+
+    setupUser();
+  }, []);
+
+  if (!loaded || !isUserSetupComplete) {
     return null;
   }
 
