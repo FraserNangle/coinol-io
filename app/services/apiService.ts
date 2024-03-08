@@ -1,9 +1,8 @@
 import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
 import * as Keychain from 'react-native-keychain';
-import { setAccessToken, getRefreshToken, setRefreshToken, setCredentials } from './keychainService';
-import { getLocalHoldings } from './coinStorageService';
-import { getDeviceId } from 'react-native-device-info';
+import { setAccessToken, getRefreshToken, setRefreshToken, setCredentials, logout } from './keychainService';
+import { getHoldings } from './coinStorageService';
 
 export interface IApiService {
   initiateGuestUser: () => Promise<string>;
@@ -134,51 +133,32 @@ export const getUserToken = async (username: string, password: string) => {
 }
 
 // When a user signs up
-export const onSignUp = async (localHoldings: any) => {
+export const onSignUp = async (username: string, password: string) => {
   try {
+    // Retrieve the locally stored coin data
+    const localHoldings = await getHoldings();
+
+    // Post the local holdings to the API
     const response = await api.post('/holdings', {
       holdings: localHoldings,
     });
 
     // If the request is successful, remove the local holdings
     if (response.status >= 200 && response.status < 300) {
+      // Logout to remove the guest user data
+      await logout();
+
+      // Set new credentials on the Keychain using the username and password that was used to sign up
+      await setCredentials(username, password);
+
       return response.data;
+    } else {
+      console.error('Failed to sync local holdings with server', response.status, response.data);
+      throw new Error('Failed to sync local holdings with server');
     }
   } catch (e) {
     console.error('Could not sign up', e);
     throw e;
-  }
-}
-
-// Helper function to check if the user is a guest
-const isGuest = async () => {
-  const credentials = await Keychain.getGenericPassword();
-  return !(credentials && credentials.username !== getDeviceId());
-};
-
-// When you need to display the user's holdings
-export const getHoldings = async () => {
-  if (await isGuest()) {
-    // If the user is a guest, retrieve the holdings from the local storage
-    return await getLocalHoldings();
-  } else {
-    // If the user is not a guest, retrieve the holdings from the server
-    const response = await api.get('/holdings');
-    return response.data;
-  }
-};
-
-// Update the user's holdings on the server when they make a change to their local holdings and save
-export const updateRemoteHoldings = async (holdings: any) => {
-  if (!await isGuest()) {
-    // If the user is not a guest, update the holdings on the server
-    const response = await api.post('/holdings', {
-      holdings,
-    });
-
-    if (response.status >= 200 && response.status < 300) {
-      return response.data;
-    }
   }
 };
 

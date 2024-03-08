@@ -125,7 +125,17 @@ export const getCredentials = async () => {
   return null;
 };
 
-// Function to log out
+// Function to log in, stores the user's credentials in the Keychain
+export const login = async (username: string, password: string) => {
+  try {
+    const encryptedPassword = await encryptData(password);
+    await Keychain.setGenericPassword(username, encryptedPassword);
+  } catch (error) {
+    console.error('Failed to log in:', error);
+  }
+};
+
+// Function to log out, removes the user's credentials from the Keychain
 export const logout = async () => {
   try {
     const credentials = await Keychain.getGenericPassword();
