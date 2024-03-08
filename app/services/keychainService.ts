@@ -9,7 +9,9 @@ export interface IKeychainService {
   getRefreshToken: () => Promise<string | null>;
   setCredentials: (username: string, password: string) => Promise<void>;
   getCredentials: () => Promise<{ username: string; password: string } | null>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteLocalHoldings: () => Promise<void>;
 }
 
 let deviceId: string;
