@@ -4,7 +4,7 @@ import * as Keychain from 'react-native-keychain';
 import { setAccessToken, getRefreshToken, setRefreshToken, setCredentials, getLocalHoldings } from './keychainService';
 
 export interface IApiService {
-  getGuestToken: () => Promise<string>;
+  initiateGuestUser: () => Promise<string>;
   getUserToken: (username: string, password: string) => Promise<string>;
   onSignUp: (localHoldings: any) => Promise<any>;
   getHoldings: () => Promise<any>;
@@ -98,13 +98,14 @@ api.interceptors.response.use(undefined, async (error) => {
   return Promise.reject(error);
 });
 
-// Function to get a guest token
-export const getGuestToken = async () => {
+// Function to get a guest token and set it in the Keychain and set guest credentials
+export const initiateGuestUser = async () => {
   try {
     const response = await api.get('/auth/guest');
     const { accessToken, refreshToken } = response.data;
     await setAccessToken(accessToken);
     await setRefreshToken(refreshToken);
+    await setCredentials();
     return accessToken;
   } catch (e) {
     console.error('Could not get guest token', e);
