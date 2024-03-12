@@ -1,10 +1,10 @@
 import { Button, StyleSheet, useWindowDimensions } from "react-native";
 import { Text, View } from "@/components/Themed";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRoute } from "@react-navigation/native";
 import { SceneMap, TabBar, TabView } from "react-native-tab-view";
-import DatePicker from "react-native-date-picker";
 import { TextInput } from "react-native-paper";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function AddTransactionScreen() {
   const [index, setIndex] = React.useState(0);
@@ -15,7 +15,10 @@ export default function AddTransactionScreen() {
   ]);
   const [total, setTotal] = React.useState("");
   const [date, setDate] = React.useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
   const [price, setPrice] = React.useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const route = useRoute();
   const layout = useWindowDimensions();
@@ -23,27 +26,75 @@ export default function AddTransactionScreen() {
   // Retrieve the item parameter
   const { item } = route.params;
 
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setSelectedDate(currentDate);
+  };
+
+  useEffect(() => {
+    if (selectedDate) {
+      setDate(selectedDate);
+      setShowDatePicker(false);
+    }
+  }, [selectedDate]);
+
+  const handleDatePickerFocus = () => {
+    setShowDatePicker(true);
+  };
+
+  const handleTimePickerFocus = () => {
+    setShowTimePicker(true);
+  };
+
   const Buy = () => (
-    <View>
-      <TextInput
-        textColor="white"
-        value={total}
-        onChangeText={setTotal}
-        placeholder={`Total ${item.name}`}
-      />
-      {/*       <DatePicker
-        date={date}
-        onDateChange={setDate}
-        mode="datetime"
-        placeholder="Select date and time"
-        format="YYYY-MM-DD HH:mm"
-      /> */}
-      <TextInput
-        value={price}
-        onChangeText={setPrice}
-        placeholder="Price"
-        keyboardType="numeric"
-      />
+    <View style={styles.screenContainer}>
+      <View>
+        <View style={styles.row}>
+          <Text>Total {item.name}</Text>
+          <TextInput
+            textColor="white"
+            value={total}
+            onChangeText={setTotal}
+            placeholder="0"
+          />
+        </View>
+        <View style={styles.row}>
+          <Text>Date & Time</Text>
+          <TextInput
+            value={date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
+            onFocus={handleDatePickerFocus}
+          />
+          <TextInput
+            value={date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            onFocus={handleTimePickerFocus}
+          />
+        </View>
+        <View style={styles.row}>
+          <Text>Price</Text>
+          <TextInput
+            value={price}
+            onChangeText={setPrice}
+            placeholder={`${item.price24} USD`}
+            keyboardType="numeric"
+          />
+        </View>
+      </View>
+      {showDatePicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={onDateChange}
+        />
+      )}
+      {showTimePicker && (
+        <DateTimePicker
+          value={date}
+          mode="time"
+          display="clock"
+          onChange={onDateChange}
+        />
+      )}
     </View>
   );
   const Sell = () => (
@@ -85,7 +136,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-start", // Align items to the start of the screen
-    backgroundColor: "blac",
+    backgroundColor: "black",
   },
   tabBar: {
     flexDirection: "row",
