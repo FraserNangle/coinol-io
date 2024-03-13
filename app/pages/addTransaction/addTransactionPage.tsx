@@ -1,173 +1,230 @@
-import { Button, StyleSheet, useWindowDimensions } from "react-native";
+import { StyleSheet, TouchableHighlight, useWindowDimensions } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute } from "@react-navigation/native";
 import { SceneMap, TabBar, TabView } from "react-native-tab-view";
-import { TextInput } from "react-native-paper";
+import { Divider, TextInput, Button } from "react-native-paper";
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-export default function AddTransactionScreen() {
-  const [index, setIndex] = React.useState(0);
-  const [routes, setRoutes] = React.useState([
-    { key: "buy", title: "Buy" },
-    { key: "sell", title: "Sell" },
-    { key: "holding", title: "Holding" },
-  ]);
-  const [total, setTotal] = React.useState("");
-  const [date, setDate] = React.useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [price, setPrice] = React.useState("");
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
+export default function AddTransactionBuySellScreen() {
+    const [total, setTotal] = React.useState("");
+    const [price, setPrice] = React.useState("");
+    const [date, setDate] = React.useState(new Date());
+    const [notes, setNotes] = React.useState("");
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const route = useRoute();
-  const layout = useWindowDimensions();
+    // Retrieve the item parameter from the route page
+    const route = useRoute();
+    const { item } = route.params;
 
-  // Retrieve the item parameter
-  const { item } = route.params;
+    const onDatePicked = (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        setSelectedDate(currentDate);
+    };
 
-  const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setSelectedDate(currentDate);
-  };
+    useEffect(() => {
+        if (selectedDate) {
+            setDate(selectedDate);
+            setShowDatePicker(false);
+        }
+    }, [selectedDate]);
 
-  useEffect(() => {
-    if (selectedDate) {
-      setDate(selectedDate);
-      setShowDatePicker(false);
-    }
-  }, [selectedDate]);
+    const handleDatePickerFocus = () => {
+        setShowDatePicker(true);
+    };
+    const handleTimePickerFocus = () => {
+        setShowTimePicker(true);
+    };
 
-  const handleDatePickerFocus = () => {
-    setShowDatePicker(true);
-  };
-
-  const handleTimePickerFocus = () => {
-    setShowTimePicker(true);
-  };
-
-  const Buy = () => (
-    <View style={styles.screenContainer}>
-      <View>
-        <View style={styles.row}>
-          <Text>Total {item.name}</Text>
-          <TextInput
-            textColor="white"
-            value={total}
-            onChangeText={setTotal}
-            placeholder="0"
-          />
-        </View>
-        <View style={styles.row}>
-          <Text>Date & Time</Text>
-          <TextInput
-            value={date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
-            onFocus={handleDatePickerFocus}
-          />
-          <TextInput
-            value={date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-            onFocus={handleTimePickerFocus}
-          />
-        </View>
-        <View style={styles.row}>
-          <Text>Price</Text>
-          <TextInput
-            value={price}
-            onChangeText={setPrice}
-            placeholder={`${item.price24} USD`}
-            keyboardType="numeric"
-          />
-        </View>
-      </View>
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          onChange={onDateChange}
-        />
-      )}
-      {showTimePicker && (
-        <DateTimePicker
-          value={date}
-          mode="time"
-          display="clock"
-          onChange={onDateChange}
-        />
-      )}
-    </View>
-  );
-  const Sell = () => (
-    <View>
-      <Text>Sell {item.name}</Text>
-    </View>
-  );
-  const Holding = () => (
-    <View>
-      <Text>Add {item.name} Holding</Text>
-    </View>
-  );
-
-  const renderScene = SceneMap({
-    buy: Buy,
-    sell: Sell,
-    holding: Holding,
-  });
-
-  return (
-    <TabView
-      navigationState={{ index, routes }}
-      renderScene={renderScene}
-      onIndexChange={setIndex}
-      renderTabBar={(props) => (
-        <TabBar
-          {...props}
-          indicatorStyle={{ backgroundColor: "white" }}
-          style={{ backgroundColor: "black" }}
-        />
-      )}
-      initialLayout={{ width: layout.width }}
-    />
-  );
+    return (
+        <View style={styles.screenContainer}>
+            <View style={styles.buttonContainer}>
+                <Button
+                    buttonColor="hsl(0, 0%, 15%)"
+                    textColor="green"
+                    style={[styles.button, { borderColor: 'green', }]}
+                    compact
+                    mode="outlined"
+                    onPress={() => handleTransaction("BUY")}>
+                    BUY
+                </Button>
+                <Button
+                    buttonColor="hsl(0, 0%, 15%)"
+                    textColor="red"
+                    style={[styles.button, { borderColor: 'red', }]}
+                    compact
+                    mode="outlined"
+                    onPress={() => handleTransaction("SELL")}>
+                    SELL
+                </Button>
+                <Button
+                    buttonColor="hsl(0, 0%, 15%)"
+                    textColor="orange"
+                    style={[styles.button, { borderColor: 'orange', }]}
+                    compact
+                    mode="outlined"
+                    onPress={() => handleTransaction("HOLDING")}>
+                    HOLDING
+                </Button>
+            </View>
+            <View style={styles.tableContainer}>
+                <View style={styles.row}>
+                    <Text>Total</Text>
+                    <View style={styles.ticker}>
+                        <TextInput
+                            style={styles.textInput}
+                            textColor="white"
+                            underlineColor='hsl(0, 0%, 15%)'
+                            activeUnderlineColor='hsl(0, 0%, 15%)'
+                            dense={true}
+                            multiline={false}
+                            value={total}
+                            onChangeText={setTotal}
+                            placeholder="0"
+                            placeholderTextColor={'hsl(0, 0%, 60%)'}
+                            selectionColor="white"
+                            cursorColor="white"
+                            keyboardType="numeric"
+                        />
+                        <Text>{item.name}</Text>
+                    </View>
+                </View>
+                <Divider />
+                <View style={styles.row}>
+                    <Text>Price</Text>
+                    <View style={styles.ticker}>
+                        <TextInput
+                            style={styles.textInput}
+                            textColor="white"
+                            underlineColor='hsl(0, 0%, 15%)'
+                            activeUnderlineColor='hsl(0, 0%, 15%)'
+                            dense={true}
+                            multiline={false}
+                            value={price}
+                            onChangeText={setPrice}
+                            placeholder={`${item.price24}`}
+                            placeholderTextColor={'hsl(0, 0%, 60%)'}
+                            selectionColor="white"
+                            cursorColor="white"
+                            keyboardType="numeric"
+                        />
+                        <Text>USD</Text>
+                    </View>
+                </View>
+                <Divider />
+                <View style={styles.row}>
+                    <Text>Date & Time</Text>
+                    <TouchableHighlight
+                        onPress={handleDatePickerFocus}
+                    >
+                        <Text style={styles.textInput}>
+                            {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
+                            {" "}
+                            {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    </TouchableHighlight>
+                </View>
+            </View>
+            <View style={styles.notesContainer}>
+                <TextInput
+                    textColor="white"
+                    style={styles.textInput}
+                    underlineColor='hsl(0, 0%, 15%)'
+                    activeUnderlineColor='hsl(0, 0%, 15%)'
+                    value={notes}
+                    onChangeText={setNotes}
+                    placeholder="Notes"
+                    placeholderTextColor={'hsl(0, 0%, 60%)'}
+                    selectionColor="white"
+                    cursorColor="white"
+                />
+            </View>
+            <Button
+                buttonColor="hsl(0, 0%, 25%)"
+                style={styles.bigButton}
+                compact
+                mode="contained"
+                onPress={() => addTransaction()}>
+                ADD TRANSACTION
+            </Button>
+            {showDatePicker && (
+                <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="default"
+                    onChange={onDatePicked}
+                />
+            )}
+            {showTimePicker && (
+                <DateTimePicker
+                    value={date}
+                    mode="time"
+                    display="clock"
+                    onChange={onDatePicked}
+                />
+            )}
+        </View >
+    );
 }
 
 const styles = StyleSheet.create({
-  screenContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-start", // Align items to the start of the screen
-    backgroundColor: "black",
-  },
-  tabBar: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  searchBar: {
-    backgroundColor: "black",
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  ticker: {
-    fontWeight: "200",
-    color: "#fff",
-  },
-  bold: {
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  normal: {
-    color: "#fff",
-  },
-  rightAlign: {
-    textAlign: "right",
-  },
-  leftAlign: {
-    textAlign: "left",
-  },
-  column: {
-    flexDirection: "column",
-  },
-  row: {
-    flexDirection: "row",
-  },
+    screenContainer: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: 'hsl(0, 0%, 0%)',
+    },
+    tabBar: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+    },
+    tableContainer: {
+        width: "80%",
+        backgroundColor: 'hsl(0, 0%, 15%)',
+        borderRadius: 10,
+        padding: 10,
+    },
+    notesContainer: {
+        width: "80%",
+        backgroundColor: 'hsl(0, 0%, 15%)',
+        borderRadius: 10,
+        padding: 10,
+        marginTop: 10,
+        height: 150,
+    },
+    buttonContainer: {
+        flexDirection: "row",
+        justifyContent: "space-evenly",
+        width: "80%",
+        marginBottom: 10,
+        marginTop: 10,
+    },
+    button: {
+        width: "25%",
+    },
+    bigButton: {
+        width: "80%",
+        marginTop: 10,
+    },
+    textInput: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        backgroundColor: 'hsl(0, 0%, 15%)',
+    },
+    row: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        height: 80,
+        backgroundColor: 'hsl(0, 0%, 15%)',
+        padding: 10,
+    },
+    ticker: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'hsl(0, 0%, 15%)',
+    }
 });
