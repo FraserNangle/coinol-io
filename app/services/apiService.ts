@@ -106,13 +106,15 @@ export const initiateGuestUser = async () => {
       data: {
         accessToken: 'mockAccessToken',
         refreshToken: 'mockRefreshToken',
+        username: 'guest-123456789-date',
+        password: 'guest-password',
       },
     };
     // const response = await api.get('/auth/guest');
-    const { accessToken, refreshToken } = response.data;
+    const { accessToken, refreshToken, username, password } = response.data;
     await setAccessToken(accessToken);
     await setRefreshToken(refreshToken);
-    await setCredentials();
+    await setCredentials(username, password);
     return accessToken;
   } catch (e) {
     console.error('Could not get guest token', e);
