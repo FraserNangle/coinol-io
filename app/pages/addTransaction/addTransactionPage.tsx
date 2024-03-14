@@ -1,17 +1,16 @@
-import { StyleSheet, TouchableHighlight, useWindowDimensions } from "react-native";
+import { StyleSheet, TouchableHighlight } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute } from "@react-navigation/native";
-import { SceneMap, TabBar, TabView } from "react-native-tab-view";
 import { Divider, TextInput, Button } from "react-native-paper";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 
 export default function AddTransactionBuySellScreen() {
+    const [transactionType, setTransactionType] = React.useState("BUY");
     const [total, setTotal] = React.useState("");
     const [price, setPrice] = React.useState("");
     const [date, setDate] = React.useState(new Date());
     const [notes, setNotes] = React.useState("");
-    const [selectedDate, setSelectedDate] = useState(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -19,23 +18,26 @@ export default function AddTransactionBuySellScreen() {
     const route = useRoute();
     const { item } = route.params;
 
-    const onDatePicked = (event, selectedDate) => {
-        const currentDate = selectedDate || date;
-        setSelectedDate(currentDate);
-    };
-
-    useEffect(() => {
-        if (selectedDate) {
-            setDate(selectedDate);
-            setShowDatePicker(false);
-        }
-    }, [selectedDate]);
-
-    const handleDatePickerFocus = () => {
-        setShowDatePicker(true);
-    };
-    const handleTimePickerFocus = () => {
+    const changeDate = (event: DateTimePickerEvent, changedDate: Date | undefined) => {
+        setDate(changedDate ? changedDate : date);
+        setShowDatePicker(false);
         setShowTimePicker(true);
+    };
+
+    const changeTime = (event: DateTimePickerEvent, time: Date | undefined) => {
+        setDate(combineDateAndTime(date, time));
+        setShowTimePicker(false);
+    };
+
+    const combineDateAndTime = (date: Date, time: Date) => {
+        return new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            time.getHours(),
+            time.getMinutes(),
+            time.getSeconds()
+        );
     };
 
     return (
@@ -43,29 +45,29 @@ export default function AddTransactionBuySellScreen() {
             <View style={styles.buttonContainer}>
                 <Button
                     buttonColor="hsl(0, 0%, 15%)"
-                    textColor="green"
-                    style={[styles.button, { borderColor: 'green', }]}
+                    textColor={transactionType === "BUY" ? "green" : "hsl(0, 0%, 60%)"}
+                    style={[styles.button, transactionType === "BUY" ? { borderColor: 'green' } : { borderColor: 'hsl(0, 0%, 15%)' }]}
                     compact
                     mode="outlined"
-                    onPress={() => handleTransaction("BUY")}>
+                    onPress={() => setTransactionType("BUY")}>
                     BUY
                 </Button>
                 <Button
                     buttonColor="hsl(0, 0%, 15%)"
-                    textColor="red"
-                    style={[styles.button, { borderColor: 'red', }]}
+                    textColor={transactionType === "SELL" ? "red" : "hsl(0, 0%, 60%)"}
+                    style={[styles.button, transactionType === "SELL" ? { borderColor: 'red' } : { borderColor: 'hsl(0, 0%, 15%)' }]}
                     compact
                     mode="outlined"
-                    onPress={() => handleTransaction("SELL")}>
+                    onPress={() => setTransactionType("SELL")}>
                     SELL
                 </Button>
                 <Button
                     buttonColor="hsl(0, 0%, 15%)"
-                    textColor="orange"
-                    style={[styles.button, { borderColor: 'orange', }]}
+                    textColor={transactionType === "HOLDING" ? "orange" : "hsl(0, 0%, 60%)"}
+                    style={[styles.button, transactionType === "HOLDING" ? { borderColor: 'orange' } : { borderColor: 'hsl(0, 0%, 15%)' }]}
                     compact
                     mode="outlined"
-                    onPress={() => handleTransaction("HOLDING")}>
+                    onPress={() => setTransactionType("HOLDING")}>
                     HOLDING
                 </Button>
             </View>
@@ -117,7 +119,7 @@ export default function AddTransactionBuySellScreen() {
                 <View style={styles.row}>
                     <Text>Date & Time</Text>
                     <TouchableHighlight
-                        onPress={handleDatePickerFocus}
+                        onPress={() => setShowDatePicker(true)}
                     >
                         <Text style={styles.textInput}>
                             {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
@@ -130,7 +132,7 @@ export default function AddTransactionBuySellScreen() {
             <View style={styles.notesContainer}>
                 <TextInput
                     textColor="white"
-                    style={styles.textInput}
+                    style={styles.textBox}
                     underlineColor='hsl(0, 0%, 15%)'
                     activeUnderlineColor='hsl(0, 0%, 15%)'
                     value={notes}
@@ -139,6 +141,8 @@ export default function AddTransactionBuySellScreen() {
                     placeholderTextColor={'hsl(0, 0%, 60%)'}
                     selectionColor="white"
                     cursorColor="white"
+                    multiline={true}
+                    maxLength={2000}
                 />
             </View>
             <Button
@@ -150,19 +154,19 @@ export default function AddTransactionBuySellScreen() {
                 ADD TRANSACTION
             </Button>
             {showDatePicker && (
-                <DateTimePicker
+                <RNDateTimePicker
                     value={date}
                     mode="date"
                     display="default"
-                    onChange={onDatePicked}
+                    onChange={changeDate}
                 />
             )}
             {showTimePicker && (
-                <DateTimePicker
+                <RNDateTimePicker
                     value={date}
                     mode="time"
                     display="clock"
-                    onChange={onDatePicked}
+                    onChange={changeTime}
                 />
             )}
         </View >
@@ -173,7 +177,7 @@ const styles = StyleSheet.create({
     screenContainer: {
         flex: 1,
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         backgroundColor: 'hsl(0, 0%, 0%)',
     },
     tabBar: {
@@ -213,6 +217,11 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         backgroundColor: 'hsl(0, 0%, 15%)',
+    },
+    textBox: {
+        flex: 1,
+        backgroundColor: 'hsl(0, 0%, 15%)',
+        textAlignVertical: 'top'
     },
     row: {
         flexDirection: "row",
