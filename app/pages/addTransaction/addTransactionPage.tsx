@@ -44,6 +44,10 @@ export default function AddTransactionBuySellScreen() {
         );
     };
 
+    const sellAll = () => {
+        setTotal("2");
+    };
+
     return (
         <View style={styles.screenContainer}>
             <View style={styles.buttonContainer}>
@@ -99,6 +103,15 @@ export default function AddTransactionBuySellScreen() {
                             textAlign="right"
                         />
                         <Text>{' '}{item.name}</Text>
+                        {transactionType === "SELL" &&
+                            <TouchableHighlight
+                                onPress={() => sellAll()}
+                            >
+                                <Text style={{ color: 'red', paddingLeft: 10 }}>
+                                    SELL ALL
+                                </Text>
+                            </TouchableHighlight>
+                        }
                     </View>
                 </View>
                 <Divider />
@@ -127,19 +140,23 @@ export default function AddTransactionBuySellScreen() {
                         <Text>{' '}USD</Text>
                     </View>
                 </View>
-                <Divider />
-                <View style={styles.row}>
-                    <Text>Date & Time</Text>
-                    <TouchableHighlight
-                        onPress={() => setShowDatePicker(true)}
-                    >
-                        <Text style={styles.textInput}>
-                            {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
-                            {" "}
-                            {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                    </TouchableHighlight>
-                </View>
+                {transactionType !== "HOLDING" &&
+                    <View>
+                        <Divider />
+                        <View style={styles.row}>
+                            <Text>Date & Time</Text>
+                            <TouchableHighlight
+                                onPress={() => setShowDatePicker(true)}
+                            >
+                                <Text style={styles.textInput}>
+                                    {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
+                                    {" "}
+                                    {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                </Text>
+                            </TouchableHighlight>
+                        </View>
+                    </View>}
+
             </View>
             <View style={styles.notesContainer}>
                 <TextInput
@@ -151,7 +168,7 @@ export default function AddTransactionBuySellScreen() {
                     selectionColor="white"
                     cursorColor="white"
                     multiline={true}
-                    maxLength={2000}
+                    maxLength={1000}
                 />
             </View>
             <Button
