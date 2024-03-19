@@ -1,8 +1,8 @@
-import { StyleSheet, TouchableHighlight } from "react-native";
+import { StyleSheet, TouchableHighlight, TextInput } from "react-native";
 import { Text, View } from "@/components/Themed";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRoute } from "@react-navigation/native";
-import { Divider, TextInput, Button } from "react-native-paper";
+import { Divider, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 
 export default function AddTransactionBuySellScreen() {
@@ -19,14 +19,18 @@ export default function AddTransactionBuySellScreen() {
     const { item } = route.params;
 
     const changeDate = (event: DateTimePickerEvent, changedDate: Date | undefined) => {
-        setDate(changedDate ? changedDate : date);
         setShowDatePicker(false);
-        setShowTimePicker(true);
+        if (event.type === "dismissed") {
+            return;
+        } else if (event.type === "set") {
+            setDate(changedDate || date);
+            setShowTimePicker(true);
+        }
     };
 
     const changeTime = (event: DateTimePickerEvent, time: Date | undefined) => {
-        setDate(combineDateAndTime(date, time));
         setShowTimePicker(false);
+        setDate(combineDateAndTime(date, time));
     };
 
     const combineDateAndTime = (date: Date, time: Date) => {
@@ -73,46 +77,54 @@ export default function AddTransactionBuySellScreen() {
             </View>
             <View style={styles.tableContainer}>
                 <View style={styles.row}>
-                    <Text>Total</Text>
+                    <Text style={styles.tag}>Total</Text>
                     <View style={styles.ticker}>
                         <TextInput
                             style={styles.textInput}
-                            textColor="white"
-                            underlineColor='hsl(0, 0%, 15%)'
-                            activeUnderlineColor='hsl(0, 0%, 15%)'
-                            dense={true}
-                            multiline={false}
                             value={total}
-                            onChangeText={setTotal}
+                            multiline={false}
+                            numberOfLines={1}
+                            inputMode="decimal"
+                            onChangeText={(value) => {
+                                const isPositiveDecimal = /^\d*\.?\d*$/.test(value);
+                                if (isPositiveDecimal) {
+                                    setTotal(value);
+                                }
+                            }}
                             placeholder="0"
                             placeholderTextColor={'hsl(0, 0%, 60%)'}
                             selectionColor="white"
                             cursorColor="white"
-                            keyboardType="numeric"
+                            maxLength={60}
+                            textAlign="right"
                         />
-                        <Text>{item.name}</Text>
+                        <Text>{' '}{item.name}</Text>
                     </View>
                 </View>
                 <Divider />
                 <View style={styles.row}>
-                    <Text>Price</Text>
+                    <Text style={styles.tag}>Price</Text>
                     <View style={styles.ticker}>
                         <TextInput
                             style={styles.textInput}
-                            textColor="white"
-                            underlineColor='hsl(0, 0%, 15%)'
-                            activeUnderlineColor='hsl(0, 0%, 15%)'
-                            dense={true}
-                            multiline={false}
                             value={price}
-                            onChangeText={setPrice}
+                            multiline={false}
+                            numberOfLines={1}
+                            inputMode="decimal"
+                            onChangeText={(value) => {
+                                const isPositiveDecimal = /^\d*\.?\d{0,2}$/.test(value);
+                                if (isPositiveDecimal) {
+                                    setPrice(value);
+                                }
+                            }}
                             placeholder={`${item.price24}`}
                             placeholderTextColor={'hsl(0, 0%, 60%)'}
                             selectionColor="white"
                             cursorColor="white"
-                            keyboardType="numeric"
+                            maxLength={60}
+                            textAlign="right"
                         />
-                        <Text>USD</Text>
+                        <Text>{' '}USD</Text>
                     </View>
                 </View>
                 <Divider />
@@ -131,13 +143,10 @@ export default function AddTransactionBuySellScreen() {
             </View>
             <View style={styles.notesContainer}>
                 <TextInput
-                    textColor="white"
                     style={styles.textBox}
-                    underlineColor='hsl(0, 0%, 15%)'
-                    activeUnderlineColor='hsl(0, 0%, 15%)'
                     value={notes}
                     onChangeText={setNotes}
-                    placeholder="Notes"
+                    placeholder="Notes..."
                     placeholderTextColor={'hsl(0, 0%, 60%)'}
                     selectionColor="white"
                     cursorColor="white"
@@ -194,7 +203,7 @@ const styles = StyleSheet.create({
         width: "80%",
         backgroundColor: 'hsl(0, 0%, 15%)',
         borderRadius: 10,
-        padding: 10,
+        padding: 20,
         marginTop: 10,
         height: 150,
     },
@@ -213,6 +222,8 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     textInput: {
+        color: 'white',
+        textAlign: "right",
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
@@ -220,18 +231,28 @@ const styles = StyleSheet.create({
     },
     textBox: {
         flex: 1,
+        color: 'white',
         backgroundColor: 'hsl(0, 0%, 15%)',
         textAlignVertical: 'top'
+    },
+    tag: {
+        zIndex: 1,
+        backgroundColor: "hsl(0, 0%, 15%)",
+        paddingRight: 10
     },
     row: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        height: 80,
+        height: 60,
         backgroundColor: 'hsl(0, 0%, 15%)',
         padding: 10,
     },
     ticker: {
+        position: "relative",
+        zIndex: -1,
+        flex: 1,
+        justifyContent: "flex-end",
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'hsl(0, 0%, 15%)',
