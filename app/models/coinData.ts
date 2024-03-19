@@ -1,4 +1,4 @@
-export type Coin = {
+export type UserHolding = {
     key: number;
     name: string;
     quantity: number;

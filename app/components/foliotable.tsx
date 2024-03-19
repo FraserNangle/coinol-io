@@ -1,6 +1,6 @@
 import * as React from "react";
 import { DataTable, PaperProvider } from "react-native-paper";
-import { Coin, CoinAPI } from "../models/coinData";
+import { UserHolding, CoinAPI } from "../models/coinData";
 import {
   StyleSheet,
   Text,
@@ -19,7 +19,7 @@ if (Platform.OS === "android") {
 }
 
 interface FolioTableProps {
-  data: Coin[];
+  data: UserHolding[];
   apiData: CoinAPI[];
 }
 

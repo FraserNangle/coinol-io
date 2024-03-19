@@ -1,6 +1,6 @@
-import { Coin, CoinAPI } from "../models/coinData";
+import { UserHolding, CoinAPI } from "../models/coinData";
 
-export const mockCoins: Coin[] = [
+export const mockCoins: UserHolding[] = [
   {
     key: 1,
     name: "BTC",
