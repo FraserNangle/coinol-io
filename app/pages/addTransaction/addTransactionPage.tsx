@@ -44,8 +44,9 @@ export default function AddTransactionBuySellScreen() {
         );
     };
 
+    //TODO: Implement the sellAll function
     const sellAll = () => {
-        setTotal("2");
+        setTotal("PLACEHOLDER");
     };
 
     return (
@@ -125,7 +126,7 @@ export default function AddTransactionBuySellScreen() {
                             numberOfLines={1}
                             inputMode="decimal"
                             onChangeText={(value) => {
-                                const isPositiveDecimal = /^\d*\.?\d{0,2}$/.test(value);
+                                const isPositiveDecimal = /^\d*\.?\d*$/.test(value);
                                 if (isPositiveDecimal) {
                                     setPrice(value);
                                 }

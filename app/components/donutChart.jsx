@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useEffect,
 } from "react";
-import { View, StyleSheet, Image, useColorScheme } from "react-native";
+import { View, StyleSheet, Image } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "../slices/selectedSectionSlice";
 import { donutChartColors } from "../styling/donutChartColors";
