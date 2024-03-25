@@ -2,9 +2,10 @@ import { FlatList, StyleSheet, TouchableHighlight } from "react-native";
 
 import { Text, View } from "@/components/Themed";
 import React, { useState } from "react";
-import { DataTable, TextInput } from "react-native-paper";
+import { DataTable, Icon, TextInput } from "react-native-paper";
 import { mockCoinAPI } from "@/app/mocks/chartData";
 import { useNavigation } from "@react-navigation/native";
+import Circle, { G, Svg } from "react-native-svg";
 
 export default function AddTransactionCurrencyListScreen() {
   const [query, setQuery] = useState("");
@@ -29,11 +30,21 @@ export default function AddTransactionCurrencyListScreen() {
     <View style={styles.screenContainer}>
       <View style={styles.tableContainer}>
         <TextInput
+          multiline={false}
+          numberOfLines={1}
+          inputMode="search"
+          placeholderTextColor={'hsl(0, 0%, 60%)'}
+          selectionColor="white"
+          cursorColor="white"
+          maxLength={60}
+          textAlign="right"
           textColor="white"
           style={styles.searchBar}
           value={query}
           placeholder="Search..."
           onChangeText={handleSearch}
+          underlineColor="transparent"
+          activeUnderlineColor="transparent"
         />
         <FlatList
           data={filteredData}
@@ -48,11 +59,9 @@ export default function AddTransactionCurrencyListScreen() {
             >
               <DataTable.Row key={item.name}>
                 <DataTable.Cell>
-                  <View style={styles.column}>
-                    <View style={styles.row}>
-                      <Text style={styles.ticker}>{item.name}</Text>
-                    </View>
-                  </View>
+                  <Text>
+                    {item.name}
+                  </Text>
                 </DataTable.Cell>
               </DataTable.Row>
             </TouchableHighlight>
@@ -68,22 +77,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-start", // Align items to the start of the screen
-    backgroundColor: "black",
   },
   tableContainer: {
     flex: 1,
     justifyContent: "center",
     width: "100%",
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: 'hsl(0, 0%, 15%)',
   },
   searchBar: {
-    backgroundColor: "black",
+    backgroundColor: 'hsl(0, 0%, 5%)',
     fontWeight: "bold",
-    color: "#fff",
-  },
-  ticker: {
-    fontWeight: "200",
-    color: "#fff",
+    color: "white",
   },
   bold: {
     fontWeight: "bold",
@@ -103,5 +107,5 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-  },
+  }
 });
