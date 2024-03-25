@@ -6,6 +6,7 @@ export type UserHolding = {
 };
 
 export type CoinAPI = {
+    key: number;
     name: string;
     price24: number;
     ranking: number;
