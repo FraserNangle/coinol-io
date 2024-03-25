@@ -167,6 +167,35 @@ export const DonutChart = ({
 
   const circleSize = 10;
 
+  function formatQuantity(quantity) {
+    if (quantity >= 1e9) {
+      return (quantity / 1e9).toFixed(2) + 'B';
+    } else if (quantity >= 1e6) {
+      return (quantity / 1e6).toFixed(2) + 'M';
+    } else {
+      return new Intl.NumberFormat().format(quantity);
+    }
+  }
+
+  function formatCurrency(value, currencyTicker) {
+    if (value >= 1e9) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currencyTicker,
+      }).format(value / 1e9) + 'B';
+    } else if (value >= 1e6) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currencyTicker,
+      }).format(value / 1e6) + 'M';
+    } else {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currencyTicker,
+      }).format(value);
+    }
+  }
+
   return (
     <View
       style={styles.container}
@@ -198,16 +227,11 @@ export const DonutChart = ({
               <Text style={styles.selectedSliceValue}>
                 {displayMode === "percentage" &&
                 (selectedSection.value / totalMoney) * 100
-                  ? `${((selectedSection.value / totalMoney) * 100).toFixed(
-                      2
-                    )}%`
+                  ? `${((selectedSection.value / totalMoney) * 100).toFixed(2)}%`
                   : displayMode === "value" && selectedSection.value
-                  ? new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: currencyTicker,
-                    }).format(selectedSection.value)
+                  ? formatCurrency(selectedSection.value, currencyTicker)
                   : displayMode === "quantity" && selectedSection.quantity
-                  ? Number(selectedSection.quantity).toFixed(2)
+                  ? formatQuantity(Number(selectedSection.quantity))
                   : null}
               </Text>
               {selectedSection.image ? (
