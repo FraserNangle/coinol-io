@@ -4,11 +4,13 @@ import {
   StyleSheet,
   RefreshControl,
   Dimensions,
+  Pressable,
 } from "react-native";
-import { View } from "@/components/Themed";
+import { View, Text } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
-import { mockCoinAPI, mockCoins } from "../mocks/chartData";
+import { mockCoinAPI, mockUserHoldings } from "../mocks/chartData";
+import { Link } from "expo-router";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
@@ -19,7 +21,7 @@ export default function TabOneScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const totalPortfolioValue = mockCoins.reduce(
+  const totalPortfolioValue = mockUserHoldings.reduce(
     (total, item) => total + item.quantity * item.price,
     0
   );
@@ -68,33 +70,70 @@ export default function TabOneScreen() {
       width: "100%",
       backgroundColor: "black",
     },
+    container: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: {
+      fontSize: 20,
+      textAlign: "center",
+    },
   });
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.screenContainer}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+    <>
+      {
+        mockUserHoldings.length === 0 && (
+          <View style={styles.container}>
+            <Link href="/plusMenu" asChild>
+              <Pressable>
+                {({ pressed }) => (
+                  <>
+                    <Text style={[styles.title, { opacity: pressed ? 0.5 : 1 }]}>
+                      You have no holdings yet!
+                    </Text>
+                    <Text style={[styles.title, { opacity: pressed ? 0.5 : 1 }]}>
+                      Tap here to get started.
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            </Link>
+          </View>
+        )
       }
-      fadingEdgeLength={25}
-      removeClippedSubviews={true}
-    >
-      <View style={styles.donutContainer}>
-        <DonutChart
-          key={refreshKey}
-          data={mockCoins.map(({ name, quantity, price }) => ({
-            name,
-            quantity,
-            value: quantity * price,
-          }))}
-          width={screenWidth * 0.95}
-          backgroundColor={"black"}
-          currencyTicker={CURRENCY_TYPE}
-        />
-      </View>
-      <View style={styles.tableContainer}>
-        <FolioTable data={mockCoins} apiData={mockCoinAPI} />
-      </View>
-    </ScrollView>
+      {
+        mockUserHoldings.length > 0 && (
+          <>
+            <ScrollView
+              contentContainerStyle={styles.screenContainer}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+              fadingEdgeLength={25}
+              removeClippedSubviews={true}
+            >
+              <View style={styles.donutContainer}>
+                <DonutChart
+                  key={refreshKey}
+                  data={mockUserHoldings.map(({ name, quantity, price }) => ({
+                    name,
+                    quantity,
+                    value: quantity * price,
+                  }))}
+                  width={screenWidth * 0.95}
+                  backgroundColor={"black"}
+                  currencyTicker={CURRENCY_TYPE}
+                />
+              </View>
+              <View style={styles.tableContainer}>
+                <FolioTable data={mockUserHoldings} apiData={mockCoinAPI} />
+              </View>
+            </ScrollView>
+          </>
+        )
+      }
+    </>
   );
 }

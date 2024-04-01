@@ -5,7 +5,7 @@ export type UserHolding = {
     price: number;
 };
 
-export type CoinAPI = {
+export type Coin = {
     key: number;
     name: string;
     price24: number;

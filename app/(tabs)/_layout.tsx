@@ -8,7 +8,7 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 
 // Import or define mockCoins and CURRENCY_TYPE
-import { mockCoins } from "../mocks/chartData";
+import { mockUserHoldings } from "../mocks/chartData";
 const CURRENCY_TYPE = "USD";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -58,7 +58,7 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const styles = getStyles();
 
-  const totalPortfolioValue = mockCoins.reduce(
+  const totalPortfolioValue = mockUserHoldings.reduce(
     (total, item) => total + item.quantity * item.price,
     0
   );
