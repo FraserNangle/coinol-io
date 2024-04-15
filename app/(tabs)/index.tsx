@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -9,8 +9,9 @@ import {
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
-import { mockCoinAPI, mockUserHoldings } from "../mocks/chartData";
+import { mockCoinAPI } from "../mocks/chartData";
 import { Link } from "expo-router";
+import { getHoldings } from "@/app/services/coinStorageService";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
@@ -20,27 +21,31 @@ export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [userHoldings, setUserHoldings] = useState([]);
 
-  const totalPortfolioValue = mockUserHoldings.reduce(
-    (total, item) => total + item.quantity * item.price,
-    0
-  );
-  const formattedTotalPortfolioValue = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: CURRENCY_TYPE,
-  }).format(totalPortfolioValue);
+  /*   const totalPortfolioValue = userHoldings.reduce(
+      (total, item) => total + item.quantity * item.price,
+      0
+    );
+    const formattedTotalPortfolioValue = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: CURRENCY_TYPE,
+    }).format(totalPortfolioValue); */
+
+  /*   useEffect(() => {
+      getHoldings().then((holdings) => {
+        setUserHoldings(holdings);
+      });
+      console.log("User holdings: ", userHoldings);
+    }, [refreshKey]); */
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setRefreshKey(refreshKey + 1); // increment the refreshKey
 
-    // Replace this with your actual data fetching function
-    const fetchData = async () => {
-      return new Promise((resolve) => setTimeout(resolve, 2000));
-    };
-
-    fetchData().then(() => {
+    getHoldings().then((holdings) => {
       setRefreshing(false);
+      setUserHoldings(holdings);
     });
   }, [refreshKey]);
 
@@ -84,7 +89,7 @@ export default function TabOneScreen() {
   return (
     <>
       {
-        mockUserHoldings.length === 0 && (
+        userHoldings.length === 0 && (
           <View style={styles.container}>
             <Link href="/plusMenu" asChild>
               <Pressable>
@@ -104,7 +109,7 @@ export default function TabOneScreen() {
         )
       }
       {
-        mockUserHoldings.length > 0 && (
+        userHoldings.length > 0 && (
           <>
             <ScrollView
               contentContainerStyle={styles.screenContainer}
@@ -117,7 +122,7 @@ export default function TabOneScreen() {
               <View style={styles.donutContainer}>
                 <DonutChart
                   key={refreshKey}
-                  data={mockUserHoldings.map(({ name, quantity, price }) => ({
+                  data={userHoldings.map(({ name, quantity, price }) => ({
                     name,
                     quantity,
                     value: quantity * price,
@@ -128,7 +133,7 @@ export default function TabOneScreen() {
                 />
               </View>
               <View style={styles.tableContainer}>
-                <FolioTable data={mockUserHoldings} apiData={mockCoinAPI} />
+                <FolioTable data={userHoldings} apiData={mockCoinAPI} />
               </View>
             </ScrollView>
           </>

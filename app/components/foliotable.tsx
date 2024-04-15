@@ -118,10 +118,10 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
         }
         case "marketcap": {
           const aApiItemMarketCap = apiData.find(
-            (apiItem) => apiItem.name.toLowerCase() === a.name.toLowerCase()
+            (apiItem) => apiItem.name?.toLowerCase() === a.name?.toLowerCase()
           );
           const bApiItemMarketCap = apiData.find(
-            (apiItem) => apiItem.name.toLowerCase() === b.name.toLowerCase()
+            (apiItem) => apiItem.name?.toLowerCase() === b.name?.toLowerCase()
           );
           comparison =
             (bApiItemMarketCap ? bApiItemMarketCap.ranking : 0) -
