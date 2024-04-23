@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import { DataTable, Icon, TextInput } from "react-native-paper";
 import { mockCoinAPI } from "@/app/mocks/chartData";
 import { useNavigation } from "@react-navigation/native";
-import Circle, { G, Svg } from "react-native-svg";
 
 export default function AddTransactionCurrencyListScreen() {
   const [query, setQuery] = useState("");
@@ -52,9 +51,7 @@ export default function AddTransactionCurrencyListScreen() {
           renderItem={({ item }) => (
             <TouchableHighlight
               onPress={() =>
-                navigation.navigate("pages/addTransaction/addTransactionPage", {
-                  item,
-                })
+                navigation.navigate("pages/addTransaction/addTransactionPage", { item })
               }
             >
               <DataTable.Row key={item.name}>

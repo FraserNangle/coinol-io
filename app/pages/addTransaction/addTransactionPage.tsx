@@ -1,14 +1,16 @@
 import { StyleSheet, TouchableHighlight, TextInput } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useState } from "react";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { Divider, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { addCoinData } from "@/app/services/coinStorageService";
+import { UserHolding } from "@/app/models/coinData";
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
-    const [total, setTotal] = React.useState("");
-    const [price, setPrice] = React.useState("");
+    const [total, setTotal] = React.useState(0);
+    const [price, setPrice] = React.useState(0);
     const [date, setDate] = React.useState(new Date());
     const [notes, setNotes] = React.useState("");
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -17,6 +19,8 @@ export default function AddTransactionBuySellScreen() {
     // Retrieve the item parameter from the route page
     const route = useRoute();
     const { item } = route.params;
+
+    const navigation = useNavigation();
 
     const changeDate = (event: DateTimePickerEvent, changedDate: Date | undefined) => {
         setShowDatePicker(false);
@@ -46,8 +50,19 @@ export default function AddTransactionBuySellScreen() {
 
     //TODO: Implement the sellAll function
     const sellAll = () => {
-        setTotal("PLACEHOLDER");
+        setTotal(999);
     };
+
+    const addTransaction = (holding: UserHolding) => {
+        addCoinData(holding)
+            .then(() => {
+                console.log('Success:', holding);
+                navigation.navigate("index")
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
 
     return (
         <View style={styles.screenContainer}>
@@ -86,14 +101,14 @@ export default function AddTransactionBuySellScreen() {
                     <View style={styles.ticker}>
                         <TextInput
                             style={styles.textInput}
-                            value={total}
+                            value={total.toString()}
                             multiline={false}
                             numberOfLines={1}
                             inputMode="decimal"
                             onChangeText={(value) => {
                                 const isPositiveDecimal = /^\d*\.?\d*$/.test(value);
                                 if (isPositiveDecimal) {
-                                    setTotal(value);
+                                    setTotal(Number(value));
                                 }
                             }}
                             placeholder="0"
@@ -115,32 +130,6 @@ export default function AddTransactionBuySellScreen() {
                         }
                     </View>
                 </View>
-                <Divider />
-                <View style={styles.row}>
-                    <Text style={styles.tag}>Price</Text>
-                    <View style={styles.ticker}>
-                        <TextInput
-                            style={styles.textInput}
-                            value={price}
-                            multiline={false}
-                            numberOfLines={1}
-                            inputMode="decimal"
-                            onChangeText={(value) => {
-                                const isPositiveDecimal = /^\d*\.?\d*$/.test(value);
-                                if (isPositiveDecimal) {
-                                    setPrice(value);
-                                }
-                            }}
-                            placeholder={`${item.price24}`}
-                            placeholderTextColor={'hsl(0, 0%, 60%)'}
-                            selectionColor="white"
-                            cursorColor="white"
-                            maxLength={60}
-                            textAlign="right"
-                        />
-                        <Text>{' '}USD</Text>
-                    </View>
-                </View>
                 {transactionType !== "HOLDING" &&
                     <View>
                         <Divider />
@@ -157,6 +146,33 @@ export default function AddTransactionBuySellScreen() {
                             </TouchableHighlight>
                         </View>
                     </View>}
+                <Divider />
+                <View style={styles.row}>
+                    <Text style={styles.tag}>Price</Text>
+                    <View style={styles.ticker}>
+                        <TextInput
+                            style={styles.textInput}
+                            value={price.toString()}
+                            multiline={false}
+                            numberOfLines={1}
+                            inputMode="decimal"
+                            onChangeText={(value) => {
+                                const isPositiveDecimal = /^\d*\.?\d*$/.test(value);
+                                if (isPositiveDecimal) {
+                                    setPrice(Number(value));
+                                }
+                            }}
+                            //TODO: get the price from the API for the chosen date/time
+                            placeholder={`${item.price24}`}
+                            placeholderTextColor={'hsl(0, 0%, 60%)'}
+                            selectionColor="white"
+                            cursorColor="white"
+                            maxLength={60}
+                            textAlign="right"
+                        />
+                        <Text>{' '}USD</Text>
+                    </View>
+                </View>
 
             </View>
             <View style={styles.notesContainer}>
@@ -177,7 +193,15 @@ export default function AddTransactionBuySellScreen() {
                 style={styles.bigButton}
                 compact
                 mode="contained"
-                onPress={() => addTransaction()}>
+                onPress={() => {
+                    const newHolding: UserHolding = {
+                        coinId: item.key,
+                        date: date,
+                        quantity: total,
+                        type: transactionType,
+                    };
+                    addTransaction(newHolding)
+                }}>
                 ADD TRANSACTION
             </Button>
             {showDatePicker && (

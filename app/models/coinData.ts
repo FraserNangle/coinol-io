@@ -1,11 +1,11 @@
 export type UserHolding = {
-    key: number;
-    name: string;
+    coinId: number;
+    date: Date;
     quantity: number;
-    price: number;
+    type: string;
 };
 
-export type CoinAPI = {
+export type Coin = {
     key: number;
     name: string;
     price24: number;
