@@ -1,6 +1,7 @@
 import * as React from "react";
 import { DataTable, PaperProvider } from "react-native-paper";
-import { UserHolding, CoinAPI } from "../models/coinData";
+import { Coin } from "../models/Coin";
+import { UserHolding } from "../models/UserHolding";
 import {
   StyleSheet,
   Text,
@@ -20,59 +21,13 @@ if (Platform.OS === "android") {
 
 interface FolioTableProps {
   data: UserHolding[];
-  apiData: CoinAPI[];
+  apiData: Coin[];
 }
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 });
-
-const getStyles = () =>
-  StyleSheet.create({
-    ticker: {
-      fontWeight: "200",
-      color: "#fff",
-    },
-    bold: {
-      fontWeight: "bold",
-      color: "#fff",
-    },
-    normal: {
-      color: "#fff",
-    },
-    mainDataTableTitle: {
-      fontSize: 14,
-      fontWeight: "bold",
-      color: "#fff",
-    },
-    dataTableTitle: {
-      fontWeight: "200",
-      color: "#fff",
-    },
-    positive: {
-      color: "#00ff00",
-    },
-    negative: {
-      color: "red",
-    },
-    rightAlign: {
-      textAlign: "right",
-    },
-    leftAlign: {
-      textAlign: "left",
-    },
-    column: {
-      flexDirection: "column",
-    },
-    row: {
-      flexDirection: "row",
-    },
-    highlightedRow: {
-      backgroundColor: "#222",
-      flexDirection: "row",
-    },
-  });
 
 const getPriceDifferenceDisplay = (priceDifference: number) => {
   return priceDifference > 0
@@ -233,3 +188,49 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
     </PaperProvider>
   );
 };
+
+const getStyles = () =>
+  StyleSheet.create({
+    ticker: {
+      fontWeight: "200",
+      color: "#fff",
+    },
+    bold: {
+      fontWeight: "bold",
+      color: "#fff",
+    },
+    normal: {
+      color: "#fff",
+    },
+    mainDataTableTitle: {
+      fontSize: 14,
+      fontWeight: "bold",
+      color: "#fff",
+    },
+    dataTableTitle: {
+      fontWeight: "200",
+      color: "#fff",
+    },
+    positive: {
+      color: "#00ff00",
+    },
+    negative: {
+      color: "red",
+    },
+    rightAlign: {
+      textAlign: "right",
+    },
+    leftAlign: {
+      textAlign: "left",
+    },
+    column: {
+      flexDirection: "column",
+    },
+    row: {
+      flexDirection: "row",
+    },
+    highlightedRow: {
+      backgroundColor: "#222",
+      flexDirection: "row",
+    },
+  });

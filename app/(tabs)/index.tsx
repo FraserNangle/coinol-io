@@ -11,7 +11,7 @@ import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
 import { mockCoinAPI } from "../mocks/chartData";
 import { Link } from "expo-router";
-import { getHoldings } from "@/app/services/coinStorageService";
+import { deleteAllHoldings, getHoldings } from "@/app/services/coinStorageService";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";

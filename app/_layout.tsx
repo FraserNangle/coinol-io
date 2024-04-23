@@ -9,6 +9,7 @@ import { Provider } from "react-redux";
 import store from "./store/store";
 import { ActivityIndicator } from "react-native";
 import { initiateGuestUser } from "./services/apiService";
+import { View } from "@/components/Themed";
 
 
 export {
@@ -71,16 +72,19 @@ function RootLayoutNav() {
   return (
     <Provider store={store}>
       <ThemeProvider value={DarkTheme}>
-        <Stack>
+        <Stack
+          screenOptions={{
+            animation: "slide_from_right",
+          }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
           <Stack.Screen
-            name="pages/addTransaction/addTransactionCurrencyList"
-            options={{ presentation: "modal", title: "Select Currency" }}
+            name="pages/addTransaction/addTransactionCurrencyListScreen"
+            options={{ presentation: "fullScreenModal", title: "Select Currency" }}
           />
           <Stack.Screen
-            name="pages/addTransaction/addTransactionPage"
-            options={{ presentation: "modal", title: "Add Transaction" }}
+            name="pages/addTransaction/addTransactionScreen"
+            options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
           />
         </Stack>
       </ThemeProvider>

@@ -1,20 +1,20 @@
-import { UserHolding } from '../models/coinData';
+import { UserHolding } from "../models/UserHolding";
 import api, { isGuest } from './apiService';
 import * as SecureStore from 'expo-secure-store';
 
 export interface ICoinStorageService {
-  addCoinData: (holding: UserHolding) => Promise<void>;
+  addTransactionData: (transaction: UserHolding) => Promise<void>;
   getCoinQuantity: (coinId: string) => Promise<number>;
   updateCoinData: (coinId: string, newQuantity: number) => Promise<void>;
   removeCoinData: (coinId: string) => Promise<void>;
 }
 
 // Function to add coin data to the local store (Create)
-export const addCoinData = async (holding: UserHolding) => {
+export const addTransactionData = async (transaction: UserHolding) => {
   if (!isGuest()) {
     // If the user is not a guest, update the holdings on the server
     const response = await api.post('/holdings', {
-      holding
+      transaction
     });
 
     if (response.status >= 200 && response.status < 300) {
@@ -27,7 +27,7 @@ export const addCoinData = async (holding: UserHolding) => {
     if (holdings) {
       holdingsArray = JSON.parse(holdings);
     }
-    holdingsArray.push({ holding });
+    holdingsArray.push({ transaction });
     await SecureStore.setItemAsync('holdings', JSON.stringify(holdingsArray));
   }
 };

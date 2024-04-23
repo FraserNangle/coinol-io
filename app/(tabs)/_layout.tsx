@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, Pressable } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link, Tabs } from "expo-router";
 
-import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 
@@ -74,10 +73,10 @@ export default function TabLayout() {
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
         headerStyle: {
-          backgroundColor: Colors[colorScheme ?? "light"].background,
+          backgroundColor: "black",
         },
         headerTitleAlign: "center",
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: "white",
       }}
     >
       <Tabs.Screen
@@ -105,7 +104,7 @@ export default function TabLayout() {
                   <FontAwesome
                     name="user"
                     size={25}
-                    color={Colors[colorScheme ?? "light"].text}
+                    color={"white"}
                     style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
                   />
                 )}
