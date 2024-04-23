@@ -17,7 +17,6 @@ import { getHoldings } from "@/app/services/coinStorageService";
 const CURRENCY_TYPE = "USD";
 
 export default function TabOneScreen() {
-  const screenHeight = Dimensions.get("window").height;
   const screenWidth = Dimensions.get("window").width;
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -32,59 +31,22 @@ export default function TabOneScreen() {
       currency: CURRENCY_TYPE,
     }).format(totalPortfolioValue); */
 
-  /*   useEffect(() => {
-      getHoldings().then((holdings) => {
-        setUserHoldings(holdings);
-      });
-      console.log("User holdings: ", userHoldings);
-    }, [refreshKey]); */
+  useEffect(() => {
+    assignHoldingsState();
+  }, []);
+
+  async function assignHoldingsState() {
+    const holdings = await getHoldings();
+    console.log(holdings);
+    //setUserHoldings(holdings);
+  }
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setRefreshKey(refreshKey + 1); // increment the refreshKey
-
-    getHoldings().then((holdings) => {
-      setRefreshing(false);
-      setUserHoldings(holdings);
-    });
+    assignHoldingsState();
+    setRefreshing(false);
   }, [refreshKey]);
-
-  const styles = StyleSheet.create({
-    screenContainer: {
-      minHeight: screenHeight + 1,
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "flex-start", // Align items to the start of the screen
-      backgroundColor: "black",
-    },
-    donutContainer: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "flex-start", // Align items to the start of the container
-      backgroundColor: "black",
-    },
-    tableContainer: {
-      flex: 1,
-      justifyContent: "center",
-      width: "100%",
-      backgroundColor: "rgba(255,255,255,0.1)",
-      borderRadius: 10, // Rounded rectangle
-    },
-    tradeButtonContainer: {
-      justifyContent: "center",
-      width: "100%",
-      backgroundColor: "black",
-    },
-    container: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    title: {
-      fontSize: 20,
-      textAlign: "center",
-    },
-  });
 
   return (
     <>
@@ -110,35 +72,70 @@ export default function TabOneScreen() {
       }
       {
         userHoldings.length > 0 && (
-          <>
-            <ScrollView
-              contentContainerStyle={styles.screenContainer}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-              fadingEdgeLength={25}
-              removeClippedSubviews={true}
-            >
-              <View style={styles.donutContainer}>
-                <DonutChart
-                  key={refreshKey}
-                  data={userHoldings.map(({ name, quantity, price }) => ({
-                    name,
-                    quantity,
-                    value: quantity * price,
-                  }))}
-                  width={screenWidth * 0.95}
-                  backgroundColor={"black"}
-                  currencyTicker={CURRENCY_TYPE}
-                />
-              </View>
-              <View style={styles.tableContainer}>
-                <FolioTable data={userHoldings} apiData={mockCoinAPI} />
-              </View>
-            </ScrollView>
-          </>
+          <ScrollView
+            contentContainerStyle={styles.screenContainer}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            fadingEdgeLength={25}
+            removeClippedSubviews={true}
+          >
+            <View style={styles.donutContainer}>
+              <DonutChart
+                key={refreshKey}
+                data={userHoldings.map(({ name, quantity, price }) => ({
+                  name,
+                  quantity,
+                  value: quantity * price,
+                }))}
+                width={screenWidth * 0.95}
+                backgroundColor={"black"}
+                currencyTicker={CURRENCY_TYPE}
+              />
+            </View>
+            <View style={styles.tableContainer}>
+              <FolioTable data={userHoldings} apiData={mockCoinAPI} />
+            </View>
+          </ScrollView>
         )
       }
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  screenContainer: {
+    minHeight: Dimensions.get("window").height + 1,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start", // Align items to the start of the screen
+    backgroundColor: "black",
+  },
+  donutContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start", // Align items to the start of the container
+    backgroundColor: "black",
+  },
+  tableContainer: {
+    flex: 1,
+    justifyContent: "center",
+    width: "100%",
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 10, // Rounded rectangle
+  },
+  tradeButtonContainer: {
+    justifyContent: "center",
+    width: "100%",
+    backgroundColor: "black",
+  },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 20,
+    textAlign: "center",
+  },
+});

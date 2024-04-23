@@ -5,6 +5,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { Divider, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { addCoinData } from "@/app/services/coinStorageService";
+import { UserHolding } from "@/app/models/coinData";
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
@@ -52,10 +53,10 @@ export default function AddTransactionBuySellScreen() {
         setTotal(999);
     };
 
-    const addTransaction = (coinId: string, date: Date, quantity: number, type: string, notes: string) => {
-        addCoinData(coinId, date, quantity, type, notes)
+    const addTransaction = (holding: UserHolding) => {
+        addCoinData(holding)
             .then(() => {
-                console.log('Success:', coinId, date, quantity, type, notes);
+                console.log('Success:', holding);
                 navigation.navigate("index")
             })
             .catch(error => {
@@ -192,7 +193,15 @@ export default function AddTransactionBuySellScreen() {
                 style={styles.bigButton}
                 compact
                 mode="contained"
-                onPress={() => addTransaction(item.key, date, total, transactionType, notes)}>
+                onPress={() => {
+                    const newHolding: UserHolding = {
+                        coinId: item.key,
+                        date: date,
+                        quantity: total,
+                        type: transactionType,
+                    };
+                    addTransaction(newHolding)
+                }}>
                 ADD TRANSACTION
             </Button>
             {showDatePicker && (

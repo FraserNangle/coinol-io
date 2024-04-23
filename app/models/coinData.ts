@@ -1,8 +1,8 @@
 export type UserHolding = {
-    key: number;
-    name: string;
+    coinId: number;
+    date: Date;
     quantity: number;
-    price: number;
+    type: string;
 };
 
 export type Coin = {
