@@ -86,12 +86,17 @@ export default function TabLayout() {
           tabBarShowLabel: true,
           headerTitle: () => (
             <View style={styles.titleContainer}>
-              <Text style={styles.headerTitle}>
-                {formattedTotalPortfolioValue}
-              </Text>
-              <Text style={styles.percentageContainer}>
-                {percentageIncrease}%
-              </Text>
+              {totalPortfolioValue > 0 && (
+                <>
+                  <Text style={styles.headerTitle}>
+                    {formattedTotalPortfolioValue}
+                  </Text>
+
+                  <Text style={styles.percentageContainer}>
+                    {percentageIncrease}%
+                  </Text>
+                </>
+              )}
             </View>
           ),
           tabBarIcon: ({ color }) => (
