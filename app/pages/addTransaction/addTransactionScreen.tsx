@@ -4,15 +4,14 @@ import React, { useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Divider, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { addCoinData } from "@/app/services/coinStorageService";
-import { UserHolding } from "@/app/models/coinData";
+import { addTransactionData } from "@/app/services/coinStorageService";
+import { UserHolding } from "@/app/models/UserHolding";
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
     const [total, setTotal] = React.useState(0);
     const [price, setPrice] = React.useState(0);
     const [date, setDate] = React.useState(new Date());
-    const [notes, setNotes] = React.useState("");
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -53,11 +52,11 @@ export default function AddTransactionBuySellScreen() {
         setTotal(999);
     };
 
-    const addTransaction = (holding: UserHolding) => {
-        addCoinData(holding)
+    const addTransaction = (transaction: UserHolding) => {
+        addTransactionData(transaction)
             .then(() => {
-                console.log('Success:', holding);
-                navigation.navigate("index")
+                console.log('Success:', transaction);
+                navigation.navigate("index");
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -175,19 +174,6 @@ export default function AddTransactionBuySellScreen() {
                 </View>
 
             </View>
-            <View style={styles.notesContainer}>
-                <TextInput
-                    style={styles.textBox}
-                    value={notes}
-                    onChangeText={setNotes}
-                    placeholder="Notes..."
-                    placeholderTextColor={'hsl(0, 0%, 60%)'}
-                    selectionColor="white"
-                    cursorColor="white"
-                    multiline={true}
-                    maxLength={1000}
-                />
-            </View>
             <Button
                 buttonColor="hsl(0, 0%, 25%)"
                 style={styles.bigButton}
@@ -228,7 +214,7 @@ const styles = StyleSheet.create({
     screenContainer: {
         flex: 1,
         alignItems: "center",
-        justifyContent: "flex-start",
+        justifyContent: "center",
         backgroundColor: 'hsl(0, 0%, 0%)',
     },
     tabBar: {
@@ -240,14 +226,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'hsl(0, 0%, 15%)',
         borderRadius: 10,
         padding: 10,
-    },
-    notesContainer: {
-        width: "80%",
-        backgroundColor: 'hsl(0, 0%, 15%)',
-        borderRadius: 10,
-        padding: 20,
-        marginTop: 10,
-        height: 150,
     },
     buttonContainer: {
         flexDirection: "row",

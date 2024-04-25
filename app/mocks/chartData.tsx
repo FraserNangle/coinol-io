@@ -1,4 +1,5 @@
-import { UserHolding, Coin } from "../models/coinData";
+import { Coin } from "../models/Coin";
+import { UserHolding } from "../models/UserHolding";
 
 export const mockUserHoldings: UserHolding[] = [
   /* {
