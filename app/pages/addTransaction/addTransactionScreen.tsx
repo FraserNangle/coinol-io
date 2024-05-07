@@ -84,15 +84,6 @@ export default function AddTransactionBuySellScreen() {
                     onPress={() => setTransactionType("SELL")}>
                     SELL
                 </Button>
-                <Button
-                    buttonColor="hsl(0, 0%, 15%)"
-                    textColor={transactionType === "HOLDING" ? "orange" : "hsl(0, 0%, 60%)"}
-                    style={[styles.button, transactionType === "HOLDING" ? { borderColor: 'orange' } : { borderColor: 'hsl(0, 0%, 15%)' }]}
-                    compact
-                    mode="outlined"
-                    onPress={() => setTransactionType("HOLDING")}>
-                    HOLDING
-                </Button>
             </View>
             <View style={styles.tableContainer}>
                 <View style={styles.row}>
@@ -129,50 +120,21 @@ export default function AddTransactionBuySellScreen() {
                         }
                     </View>
                 </View>
-                {transactionType !== "HOLDING" &&
-                    <View>
-                        <Divider />
-                        <View style={styles.row}>
-                            <Text>Date & Time</Text>
-                            <TouchableHighlight
-                                onPress={() => setShowDatePicker(true)}
-                            >
-                                <Text style={styles.textInput}>
-                                    {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
-                                    {" "}
-                                    {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                                </Text>
-                            </TouchableHighlight>
-                        </View>
-                    </View>}
-                <Divider />
-                <View style={styles.row}>
-                    <Text style={styles.tag}>Price</Text>
-                    <View style={styles.ticker}>
-                        <TextInput
-                            style={styles.textInput}
-                            value={price.toString()}
-                            multiline={false}
-                            numberOfLines={1}
-                            inputMode="decimal"
-                            onChangeText={(value) => {
-                                const isPositiveDecimal = /^\d*\.?\d*$/.test(value);
-                                if (isPositiveDecimal) {
-                                    setPrice(Number(value));
-                                }
-                            }}
-                            //TODO: get the price from the API for the chosen date/time
-                            placeholder={`${item.price24}`}
-                            placeholderTextColor={'hsl(0, 0%, 60%)'}
-                            selectionColor="white"
-                            cursorColor="white"
-                            maxLength={60}
-                            textAlign="right"
-                        />
-                        <Text>{' '}USD</Text>
+                <View>
+                    <Divider />
+                    <View style={styles.row}>
+                        <Text>Date & Time</Text>
+                        <TouchableHighlight
+                            onPress={() => setShowDatePicker(true)}
+                        >
+                            <Text style={styles.textInput}>
+                                {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
+                                {" "}
+                                {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </Text>
+                        </TouchableHighlight>
                     </View>
                 </View>
-
             </View>
             <Button
                 buttonColor="hsl(0, 0%, 25%)"
