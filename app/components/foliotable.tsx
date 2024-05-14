@@ -1,7 +1,5 @@
 import * as React from "react";
 import { DataTable, PaperProvider } from "react-native-paper";
-import { Coin } from "../models/Coin";
-import { UserHolding } from "../models/UserHolding";
 import {
   StyleSheet,
   Text,
@@ -11,6 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { useSelector } from "react-redux";
+import { FolioEntry } from "../models/FolioEntry";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -20,8 +19,7 @@ if (Platform.OS === "android") {
 }
 
 interface FolioTableProps {
-  data: UserHolding[];
-  apiData: Coin[];
+  data: FolioEntry[];
 }
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -35,11 +33,11 @@ const getPriceDifferenceDisplay = (priceDifference: number) => {
     : `${priceDifference.toFixed(2)}%`;
 };
 
-export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
-  type SortField = "name" | "price" | "total" | "marketcap";
+export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
+  type SortField = "name" | "price" | "total";
 
-  const [sortField, setSortField] = React.useState<SortField>("marketcap");
-  const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = React.useState<SortField>("total");
+  const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
 
   const selectedSection = useSelector(
     (state: any) => state.selectedSlice.value
@@ -56,40 +54,20 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
           comparison = a.name.localeCompare(b.name);
           break;
         case "price": {
-          const aApiItem = apiData.find((apiItem) => apiItem.name === a.name);
-          const bApiItem = apiData.find((apiItem) => apiItem.name === b.name);
-          const aPriceDifference = aApiItem
-            ? ((a.price - aApiItem.price24) / aApiItem.price24) * 100
-            : 0;
-          const bPriceDifference = bApiItem
-            ? ((b.price - bApiItem.price24) / bApiItem.price24) * 100
-            : 0;
-          comparison = aPriceDifference - bPriceDifference;
+          comparison = a.currentPrice - b.currentPrice;
           break;
         }
         case "total": {
-          comparison = a.quantity * a.price - b.quantity * b.price;
-          break;
-        }
-        case "marketcap": {
-          const aApiItemMarketCap = apiData.find(
-            (apiItem) => apiItem.name?.toLowerCase() === a.name?.toLowerCase()
-          );
-          const bApiItemMarketCap = apiData.find(
-            (apiItem) => apiItem.name?.toLowerCase() === b.name?.toLowerCase()
-          );
-          comparison =
-            (bApiItemMarketCap ? bApiItemMarketCap.ranking : 0) -
-            (aApiItemMarketCap ? aApiItemMarketCap.ranking : 0);
+          comparison = a.quantity * a.currentPrice - b.quantity * b.currentPrice;
           break;
         }
       }
 
       return sortOrder === "asc" ? comparison : -comparison;
     });
-  }, [data, apiData, sortField, sortOrder]);
+  }, [data, sortField, sortOrder]);
 
-  const handleSort = (field: "name" | "price" | "total" | "marketcap") => {
+  const handleSort = (field: "name" | "price" | "total") => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     if (sortField === field) {
@@ -101,7 +79,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
   };
 
   const getSortIndicator = (
-    field: "name" | "price" | "total" | "marketcap"
+    field: "name" | "price" | "total"
   ) => {
     if (sortField !== field) {
       return "";
@@ -114,9 +92,9 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
     <PaperProvider>
       <DataTable>
         <DataTable.Header>
-          <DataTable.Title onPress={() => handleSort("marketcap")}>
+          <DataTable.Title onPress={() => handleSort("name")}>
             <Text style={styles.mainDataTableTitle}>
-              Coins{getSortIndicator("marketcap")}
+              Coins{getSortIndicator("name")}
             </Text>
           </DataTable.Title>
           <DataTable.Title numeric onPress={() => handleSort("price")}>
@@ -132,10 +110,11 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
         </DataTable.Header>
 
         {sortedData.map((item) => {
-          const apiItem = apiData.find((apiItem) => apiItem.name === item.name);
-          const priceDifference = apiItem
-            ? ((item.price - apiItem.price24) / apiItem.price24) * 100
-            : 0;
+          /*           const apiItem = apiData.find((apiItem) => apiItem.name === item.name);
+                    const priceDifference = apiItem
+                      ? ((item.price - apiItem.price24) / apiItem.price24) * 100
+                      : 0; */
+          const priceDifference = 0;
           const priceDifferenceDisplay =
             getPriceDifferenceDisplay(priceDifference);
 
@@ -155,7 +134,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
                     <Text style={styles.bold}> {item.quantity}</Text>
                   </View>
                   <Text style={[styles.leftAlign, styles.bold]}>
-                    {currencyFormatter.format(item.price)}
+                    {currencyFormatter.format(item.currentPrice)}
                   </Text>
                 </View>
               </DataTable.Cell>
@@ -178,7 +157,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data, apiData }) => {
                   ] */
                   }
                 >
-                  {currencyFormatter.format(item.quantity * item.price)}
+                  {currencyFormatter.format(item.quantity * item.currentPrice)}
                 </Text>
               </DataTable.Cell>
             </DataTable.Row>

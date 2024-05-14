@@ -9,9 +9,9 @@ import {
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
-import { mockCoinAPI } from "../mocks/chartData";
 import { Link } from "expo-router";
-import { deleteAllHoldings, getHoldings } from "@/app/services/coinStorageService";
+import { FolioEntry } from "../models/FolioEntry";
+import { fetchUserFolio } from "../services/folioService";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
@@ -20,7 +20,11 @@ export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [userHoldings, setUserHoldings] = useState([]);
+  const [userFolio, setUserFolio] = useState<FolioEntry[]>([]);
+
+  useEffect(() => {
+    fetchUserFolio().then(data => setUserFolio(data));
+  }, []);
 
   /*   const totalPortfolioValue = userHoldings.reduce(
       (total, item) => total + item.quantity * item.price,
@@ -31,27 +35,17 @@ export default function TabOneScreen() {
       currency: CURRENCY_TYPE,
     }).format(totalPortfolioValue); */
 
-  useEffect(() => {
-    assignHoldingsState();
-  }, []);
-
-  async function assignHoldingsState() {
-    const holdings = await getHoldings();
-    console.log(holdings);
-    //setUserHoldings(holdings);
-  }
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setRefreshKey(refreshKey + 1); // increment the refreshKey
-    assignHoldingsState();
     setRefreshing(false);
   }, [refreshKey]);
 
   return (
     <>
       {
-        userHoldings.length === 0 && (
+        userFolio.length === 0 && (
           <View style={styles.container}>
             <Link href="/plusMenu" asChild>
               <Pressable>
@@ -71,7 +65,7 @@ export default function TabOneScreen() {
         )
       }
       {
-        userHoldings.length > 0 && (
+        userFolio.length > 0 && (
           <ScrollView
             contentContainerStyle={styles.screenContainer}
             refreshControl={
@@ -83,10 +77,10 @@ export default function TabOneScreen() {
             <View style={styles.donutContainer}>
               <DonutChart
                 key={refreshKey}
-                data={userHoldings.map(({ name, quantity, price }) => ({
+                data={userFolio.map(({ name, quantity, currentPrice }) => ({
                   name,
                   quantity,
-                  value: quantity * price,
+                  value: quantity * currentPrice,
                 }))}
                 width={screenWidth * 0.95}
                 backgroundColor={"black"}
@@ -94,7 +88,7 @@ export default function TabOneScreen() {
               />
             </View>
             <View style={styles.tableContainer}>
-              <FolioTable data={userHoldings} apiData={mockCoinAPI} />
+              <FolioTable data={userFolio} />
             </View>
           </ScrollView>
         )
