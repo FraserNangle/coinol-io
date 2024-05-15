@@ -5,9 +5,8 @@ import { Link, Tabs } from "expo-router";
 
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
+import { useSelector } from "react-redux";
 
-// Import or define mockCoins and CURRENCY_TYPE
-import { mockUserHoldings } from "../mocks/chartData";
 const CURRENCY_TYPE = "USD";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -54,13 +53,12 @@ const getStyles = () =>
   });
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const styles = getStyles();
 
-  const totalPortfolioValue = mockUserHoldings.reduce(
-    (total, item) => total + item.quantity * item.price,
-    0
+  const totalPortfolioValue = useSelector(
+    (state: any) => state?.totalPortfolioValue?.value
   );
+
   const formattedTotalPortfolioValue = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: CURRENCY_TYPE,

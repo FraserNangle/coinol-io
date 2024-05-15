@@ -34,7 +34,7 @@ const getPriceDifferenceDisplay = (priceDifference: number) => {
 };
 
 export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
-  type SortField = "name" | "price" | "total";
+  type SortField = "ticker" | "price" | "total";
 
   const [sortField, setSortField] = React.useState<SortField>("total");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
@@ -50,8 +50,8 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
       let comparison = 0;
 
       switch (sortField) {
-        case "name":
-          comparison = a.name.localeCompare(b.name);
+        case "ticker":
+          comparison = a.ticker.localeCompare(b.ticker);
           break;
         case "price": {
           comparison = a.currentPrice - b.currentPrice;
@@ -67,7 +67,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
     });
   }, [data, sortField, sortOrder]);
 
-  const handleSort = (field: "name" | "price" | "total") => {
+  const handleSort = (field: "ticker" | "price" | "total") => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     if (sortField === field) {
@@ -79,7 +79,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
   };
 
   const getSortIndicator = (
-    field: "name" | "price" | "total"
+    field: "ticker" | "price" | "total"
   ) => {
     if (sortField !== field) {
       return "";
@@ -92,9 +92,9 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
     <PaperProvider>
       <DataTable>
         <DataTable.Header>
-          <DataTable.Title onPress={() => handleSort("name")}>
+          <DataTable.Title onPress={() => handleSort("ticker")}>
             <Text style={styles.mainDataTableTitle}>
-              Coins{getSortIndicator("name")}
+              Coins{getSortIndicator("ticker")}
             </Text>
           </DataTable.Title>
           <DataTable.Title numeric onPress={() => handleSort("price")}>
@@ -130,7 +130,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
               <DataTable.Cell>
                 <View style={styles.column}>
                   <View style={styles.row}>
-                    <Text style={styles.ticker}>{item.name}</Text>
+                    <Text style={styles.ticker}>{item.ticker}</Text>
                     <Text style={styles.bold}> {item.quantity}</Text>
                   </View>
                   <Text style={[styles.leftAlign, styles.bold]}>

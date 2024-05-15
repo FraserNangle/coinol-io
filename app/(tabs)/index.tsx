@@ -12,6 +12,8 @@ import { DonutChart } from "../components/donutChart";
 import { Link } from "expo-router";
 import { FolioEntry } from "../models/FolioEntry";
 import { fetchUserFolio } from "../services/folioService";
+import { useDispatch } from "react-redux";
+import { setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
@@ -22,19 +24,20 @@ export default function TabOneScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [userFolio, setUserFolio] = useState<FolioEntry[]>([]);
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     fetchUserFolio().then(data => setUserFolio(data));
   }, []);
 
-  /*   const totalPortfolioValue = userHoldings.reduce(
-      (total, item) => total + item.quantity * item.price,
-      0
-    );
-    const formattedTotalPortfolioValue = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: CURRENCY_TYPE,
-    }).format(totalPortfolioValue); */
+  const totalPortfolioValue = userFolio.reduce(
+    (total, item) => total + item.quantity * item.currentPrice,
+    0
+  );
 
+  dispatch(
+    setTotalPortfolioValue(totalPortfolioValue)
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -99,8 +102,6 @@ export default function TabOneScreen() {
 
 const styles = StyleSheet.create({
   screenContainer: {
-    minHeight: Dimensions.get("window").height + 1,
-    flex: 1,
     alignItems: "center",
     justifyContent: "flex-start", // Align items to the start of the screen
     backgroundColor: "black",

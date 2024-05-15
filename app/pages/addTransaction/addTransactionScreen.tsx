@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Divider, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { addTransactionData } from "@/app/services/coinStorageService";
+import { addTransactionData } from "@/app/services/transactionService";
 import { UserHolding } from "@/app/models/UserHolding";
 
 export default function AddTransactionBuySellScreen() {
