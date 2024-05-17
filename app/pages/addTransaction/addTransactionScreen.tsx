@@ -10,7 +10,6 @@ import { UserHolding } from "@/app/models/UserHolding";
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
     const [total, setTotal] = React.useState(0);
-    const [price, setPrice] = React.useState(0);
     const [date, setDate] = React.useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
