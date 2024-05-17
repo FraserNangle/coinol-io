@@ -30,14 +30,13 @@ export default function TabOneScreen() {
     fetchUserFolio().then(data => setUserFolio(data));
   }, []);
 
-  const totalPortfolioValue = userFolio.reduce(
-    (total, item) => total + item.quantity * item.currentPrice,
-    0
-  );
-
-  dispatch(
-    setTotalPortfolioValue(totalPortfolioValue)
-  );
+  useEffect(() => {
+    const totalPortfolioValue = userFolio.reduce(
+      (total, item) => total + item.quantity * item.currentPrice,
+      0
+    );
+    dispatch(setTotalPortfolioValue(totalPortfolioValue));
+  }, [userFolio, dispatch]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
