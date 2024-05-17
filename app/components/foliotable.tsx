@@ -110,11 +110,9 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
         </DataTable.Header>
 
         {sortedData.map((item) => {
-          /*           const apiItem = apiData.find((apiItem) => apiItem.name === item.name);
-                    const priceDifference = apiItem
-                      ? ((item.price - apiItem.price24) / apiItem.price24) * 100
-                      : 0; */
-          const priceDifference = 0;
+          const priceDifference = item
+            ? ((item.currentPrice - item.price24h) / item.price24h) * 100
+            : 0;
           const priceDifferenceDisplay =
             getPriceDifferenceDisplay(priceDifference);
 
