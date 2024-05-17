@@ -1,23 +1,28 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface TotalPortfolioValueSliceState {
-    value: string | null;
+    totalPortfolioValue: number | null;
+    totalPortfolioValue24h: number | null;
 }
 
 const initialState: TotalPortfolioValueSliceState = {
-    value: null,
+    totalPortfolioValue: null,
+    totalPortfolioValue24h: null,
 };
 
 const totalPortfolioValueSlice = createSlice({
     name: "totalPortfolioValue",
     initialState,
     reducers: {
-        setTotalPortfolioValue: (state, action) => {
-            state.value = action.payload;
+        setTotalPortfolioValue: (state, action: PayloadAction<number | null>) => {
+            state.totalPortfolioValue = action.payload;
+        },
+        setTotalPortfolioValue24h: (state, action: PayloadAction<number | null>) => {
+            state.totalPortfolioValue24h = action.payload;
         },
     },
 });
 
-export const { setTotalPortfolioValue } = totalPortfolioValueSlice.actions;
+export const { setTotalPortfolioValue, setTotalPortfolioValue24h } = totalPortfolioValueSlice.actions;
 
 export default totalPortfolioValueSlice.reducer;

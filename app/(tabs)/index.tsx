@@ -13,7 +13,7 @@ import { Link } from "expo-router";
 import { FolioEntry } from "../models/FolioEntry";
 import { fetchUserFolio } from "../services/folioService";
 import { useDispatch } from "react-redux";
-import { setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
+import { setTotalPortfolioValue, setTotalPortfolioValue24h } from "../slices/totalPortfolioValueSlice";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
@@ -35,7 +35,12 @@ export default function TabOneScreen() {
       (total, item) => total + item.quantity * item.currentPrice,
       0
     );
+    const totalPortfolioValue24hr = userFolio.reduce(
+      (total, item) => total + item.quantity * item.price24h,
+      0
+    );
     dispatch(setTotalPortfolioValue(totalPortfolioValue));
+    dispatch(setTotalPortfolioValue24h(totalPortfolioValue24hr));
   }, [userFolio, dispatch]);
 
   const onRefresh = useCallback(() => {

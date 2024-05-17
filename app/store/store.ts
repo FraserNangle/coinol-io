@@ -7,7 +7,7 @@ const store = configureStore({
     reducer: {
         counter: counterReducer,
         selectedSlice: selectedSectionReducer,
-        totalPortfolioValue: totalPortfolioValueReducer
+        totalPortfolioValue: totalPortfolioValueReducer,
     },
 });
 
