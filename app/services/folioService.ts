@@ -1,7 +1,7 @@
 import { FolioEntry } from "../models/FolioEntry";
 import { folioEntryMock } from "../mocks/folioEntryMock";
 
-export function fetchUserFolio() {
+export async function fetchUserFolio() {
     if (process.env.NODE_ENV === 'development') {
         // Mock the data in development environment
         return new Promise<FolioEntry[]>((resolve) => {
@@ -12,6 +12,7 @@ export function fetchUserFolio() {
     } else {
         // Fetch the data from backend in other environments
         // TODO: Replace this with our actual API call
-        return fetch('/api/userHoldings').then(response => response.json());
+        const response = await fetch('/api/userHoldings');
+        return await response.json();
     }
 }

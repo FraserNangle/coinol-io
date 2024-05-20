@@ -10,10 +10,12 @@ import { View, Text } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
 import { Link } from "expo-router";
-import { FolioEntry } from "../models/FolioEntry";
 import { fetchUserFolio } from "../services/folioService";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setTotalPortfolioValue, setTotalPortfolioValue24h } from "../slices/totalPortfolioValueSlice";
+import { setUserFolio } from "../slices/userFolioSlice";
+import { FolioEntry } from "../models/FolioEntry";
+import { RootState } from "../store/store";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
@@ -22,12 +24,13 @@ export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [userFolio, setUserFolio] = useState<FolioEntry[]>([]);
 
   const dispatch = useDispatch();
 
+  const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
+
   useEffect(() => {
-    fetchUserFolio().then(data => setUserFolio(data));
+    fetchUserFolio().then(data => dispatch(setUserFolio(data)));
   }, []);
 
   useEffect(() => {

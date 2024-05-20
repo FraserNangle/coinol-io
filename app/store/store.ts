@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import counterReducer from '../slices/exampleSlice';
 import selectedSectionReducer from '../slices/selectedSectionSlice';
 import totalPortfolioValueReducer from '../slices/totalPortfolioValueSlice';
+import userFolioReducer from '../slices/userFolioSlice';
 
 const store = configureStore({
     reducer: {
         counter: counterReducer,
         selectedSlice: selectedSectionReducer,
         totalPortfolioValue: totalPortfolioValueReducer,
+        userFolio: userFolioReducer,
     },
 });
 
