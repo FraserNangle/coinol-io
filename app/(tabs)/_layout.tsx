@@ -3,11 +3,9 @@ import { StyleSheet, Text, View, Pressable } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link, Tabs } from "expo-router";
 
-import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
+import { useSelector } from "react-redux";
 
-// Import or define mockCoins and CURRENCY_TYPE
-import { mockUserHoldings } from "../mocks/chartData";
 const CURRENCY_TYPE = "USD";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -19,48 +17,24 @@ function TabBarIcon(props: {
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 }
 
-const percentageIncrease = 10; // Replace this with your calculation
-const titleColor = percentageIncrease >= 0 ? "#00ff00" : "red"; // Use a lighter green color for positive increase and pinkish color for negative
-const titleShadowColor =
-  percentageIncrease >= 0 ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 105, 180, 0.5)";
-
-const getStyles = () =>
-  StyleSheet.create({
-    titleContainer: {
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-evenly",
-    },
-    headerTitle: {
-      fontSize: 24,
-      fontWeight: "bold",
-      textAlign: "center",
-      color: "white",
-    },
-    percentageContainer: {
-      color: titleColor,
-      textShadowColor: titleShadowColor,
-      textShadowOffset: { width: -1, height: 1 },
-      textShadowRadius: 1,
-      backgroundColor:
-        percentageIncrease >= 0
-          ? "rgba(0, 255, 0, 0.2)"
-          : "rgba(255, 105, 180, 0.2)", // Adjust the color based on the increase
-      borderRadius: 3,
-      marginLeft: 10,
-      padding: 3,
-    },
-  });
-
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const styles = getStyles();
 
-  const totalPortfolioValue = mockUserHoldings.reduce(
-    (total, item) => total + item.quantity * item.price,
-    0
+  const totalPortfolioValue = useSelector(
+    (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
   );
+
+  const totalPortfolioValue24h = useSelector(
+    (state: any) => state?.totalPortfolioValue?.totalPortfolioValue24h
+  );
+
+  const percentageChange = (totalPortfolioValue - totalPortfolioValue24h) / totalPortfolioValue24h * 100;
+
+  const getPercentageChangeDisplay = (percentageChange: number) => {
+    return percentageChange > 0
+      ? `+${percentageChange.toFixed(2)}`
+      : `${percentageChange.toFixed(2)}`;
+  };
+
   const formattedTotalPortfolioValue = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: CURRENCY_TYPE,
@@ -92,8 +66,12 @@ export default function TabLayout() {
                     {formattedTotalPortfolioValue}
                   </Text>
 
-                  <Text style={styles.percentageContainer}>
-                    {percentageIncrease}%
+                  <Text style={[
+                    styles.percentageContainer,
+                    percentageChange > 0 ? styles.positive : styles.negative,
+                  ]}
+                  >
+                    {getPercentageChangeDisplay(percentageChange)}%
                   </Text>
                 </>
               )}
@@ -137,7 +115,7 @@ export default function TabLayout() {
           headerTitle: () => (
             <View style={styles.titleContainer}>
               <Text style={styles.headerTitle}>
-                {formattedTotalPortfolioValue} ({percentageIncrease}%)
+                {formattedTotalPortfolioValue} ({percentageChange}%)
               </Text>
             </View>
           ),
@@ -147,3 +125,33 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  titleContainer: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "white",
+  },
+  percentageContainer: {
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 1,
+    borderRadius: 10,
+    marginLeft: 10,
+    padding: 5,
+  },
+  positive: {
+    color: "#00ff00",
+    backgroundColor: "rgba(0, 255, 0, 0.2)",
+  },
+  negative: {
+    color: "red",
+    backgroundColor: "rgba(255, 105, 180, 0.2)",
+  },
+});

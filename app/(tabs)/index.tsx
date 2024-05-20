@@ -9,9 +9,12 @@ import {
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "../components/foliotable";
 import { DonutChart } from "../components/donutChart";
-import { mockCoinAPI } from "../mocks/chartData";
 import { Link } from "expo-router";
-import { deleteAllHoldings, getHoldings } from "@/app/services/coinStorageService";
+import { fetchUserFolio } from "../services/folioService";
+import { useDispatch, useSelector } from "react-redux";
+import { setTotalPortfolioValue, setTotalPortfolioValue24h } from "../slices/totalPortfolioValueSlice";
+import { setUserFolio } from "../slices/userFolioSlice";
+import { RootState } from "../store/store";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
@@ -20,38 +23,38 @@ export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [userHoldings, setUserHoldings] = useState([]);
 
-  /*   const totalPortfolioValue = userHoldings.reduce(
-      (total, item) => total + item.quantity * item.price,
-      0
-    );
-    const formattedTotalPortfolioValue = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: CURRENCY_TYPE,
-    }).format(totalPortfolioValue); */
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    assignHoldingsState();
+    fetchUserFolio().then(data => dispatch(setUserFolio(data)));
   }, []);
 
-  async function assignHoldingsState() {
-    const holdings = await getHoldings();
-    console.log(holdings);
-    //setUserHoldings(holdings);
-  }
+  const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
+
+  useEffect(() => {
+    const totalPortfolioValue = userFolio.reduce(
+      (total, item) => total + item.quantity * item.currentPrice,
+      0
+    );
+    const totalPortfolioValue24hr = userFolio.reduce(
+      (total, item) => total + item.quantity * item.price24h,
+      0
+    );
+    dispatch(setTotalPortfolioValue(totalPortfolioValue));
+    dispatch(setTotalPortfolioValue24h(totalPortfolioValue24hr));
+  }, [userFolio, dispatch]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setRefreshKey(refreshKey + 1); // increment the refreshKey
-    assignHoldingsState();
     setRefreshing(false);
   }, [refreshKey]);
 
   return (
     <>
       {
-        userHoldings.length === 0 && (
+        userFolio.length === 0 && (
           <View style={styles.container}>
             <Link href="/plusMenu" asChild>
               <Pressable>
@@ -71,7 +74,7 @@ export default function TabOneScreen() {
         )
       }
       {
-        userHoldings.length > 0 && (
+        userFolio.length > 0 && (
           <ScrollView
             contentContainerStyle={styles.screenContainer}
             refreshControl={
@@ -83,10 +86,10 @@ export default function TabOneScreen() {
             <View style={styles.donutContainer}>
               <DonutChart
                 key={refreshKey}
-                data={userHoldings.map(({ name, quantity, price }) => ({
+                data={userFolio.map(({ name, quantity, currentPrice }) => ({
                   name,
                   quantity,
-                  value: quantity * price,
+                  value: quantity * currentPrice,
                 }))}
                 width={screenWidth * 0.95}
                 backgroundColor={"black"}
@@ -94,7 +97,7 @@ export default function TabOneScreen() {
               />
             </View>
             <View style={styles.tableContainer}>
-              <FolioTable data={userHoldings} apiData={mockCoinAPI} />
+              <FolioTable data={userFolio} />
             </View>
           </ScrollView>
         )
@@ -105,8 +108,6 @@ export default function TabOneScreen() {
 
 const styles = StyleSheet.create({
   screenContainer: {
-    minHeight: Dimensions.get("window").height + 1,
-    flex: 1,
     alignItems: "center",
     justifyContent: "flex-start", // Align items to the start of the screen
     backgroundColor: "black",
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
     backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 10, // Rounded rectangle
+    borderRadius: 10, // Rounded corners
   },
   tradeButtonContainer: {
     justifyContent: "center",
