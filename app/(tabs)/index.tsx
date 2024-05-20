@@ -14,7 +14,6 @@ import { fetchUserFolio } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";
 import { setTotalPortfolioValue, setTotalPortfolioValue24h } from "../slices/totalPortfolioValueSlice";
 import { setUserFolio } from "../slices/userFolioSlice";
-import { FolioEntry } from "../models/FolioEntry";
 import { RootState } from "../store/store";
 
 // Define the currency type
@@ -27,11 +26,11 @@ export default function TabOneScreen() {
 
   const dispatch = useDispatch();
 
-  const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
-
   useEffect(() => {
     fetchUserFolio().then(data => dispatch(setUserFolio(data)));
   }, []);
+
+  const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
 
   useEffect(() => {
     const totalPortfolioValue = userFolio.reduce(
@@ -124,7 +123,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
     backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 10, // Rounded rectangle
+    borderRadius: 10, // Rounded corners
   },
   tradeButtonContainer: {
     justifyContent: "center",

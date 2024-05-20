@@ -6,6 +6,8 @@ import { Divider, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { addTransactionData } from "@/app/services/transactionService";
 import { UserHolding } from "@/app/models/UserHolding";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
@@ -19,6 +21,8 @@ export default function AddTransactionBuySellScreen() {
     const { item } = route.params;
 
     const navigation = useNavigation();
+
+    const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
 
     const changeDate = (event: DateTimePickerEvent, changedDate: Date | undefined) => {
         setShowDatePicker(false);
@@ -46,9 +50,12 @@ export default function AddTransactionBuySellScreen() {
         );
     };
 
-    //TODO: Implement the sellAll function
     const sellAll = () => {
-        setTotal(999);
+        userFolio.forEach((folioEntry) => {
+            if (folioEntry.key === item.key) {
+                setTotal(folioEntry.quantity);
+            }
+        });
     };
 
     const addTransaction = (transaction: UserHolding) => {
