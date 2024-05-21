@@ -118,7 +118,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
 
           return (
             <DataTable.Row
-              key={item.key}
+              key={item.coinId}
               style={
                 selectedSection?.name == item?.name
                   ? styles.highlightedRow

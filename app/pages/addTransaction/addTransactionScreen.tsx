@@ -5,7 +5,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { Divider, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { addTransactionData } from "@/app/services/transactionService";
-import { UserHolding } from "@/app/models/UserHolding";
+import { UserTransaction } from "@/app/models/UserTransaction";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 
@@ -52,13 +52,13 @@ export default function AddTransactionBuySellScreen() {
 
     const sellAll = () => {
         userFolio.forEach((folioEntry) => {
-            if (folioEntry.key === item.key) {
+            if (folioEntry.coinId === item.key) {
                 setTotal(folioEntry.quantity);
             }
         });
     };
 
-    const addTransaction = (transaction: UserHolding) => {
+    const addTransaction = (transaction: UserTransaction) => {
         addTransactionData(transaction)
             .then(() => {
                 console.log('Success:', transaction);
@@ -148,7 +148,7 @@ export default function AddTransactionBuySellScreen() {
                 compact
                 mode="contained"
                 onPress={() => {
-                    const newHolding: UserHolding = {
+                    const newHolding: UserTransaction = {
                         coinId: item.key,
                         date: date,
                         quantity: total,
