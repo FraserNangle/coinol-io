@@ -7,8 +7,8 @@ import {
   Pressable,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
-import { FolioTable } from "../components/foliotable";
-import { DonutChart } from "../components/donutChart";
+import { FolioTable } from "@/components/index/folioTable/foliotable";
+import { DonutChart } from "@/components/index/donutChart/donutChart";
 import { Link } from "expo-router";
 import { fetchUserFolio } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";

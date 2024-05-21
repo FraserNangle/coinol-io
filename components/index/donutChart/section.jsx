@@ -12,9 +12,9 @@ import {
 import {
   totalAnimationTime,
   AnimatedPath,
-} from "../styling/donutChartAnimation";
-import { setSelectedSection } from "../slices/selectedSectionSlice";
-import { donutChartColors } from "../styling/donutChartColors";
+} from "../../../app/styling/donutChartAnimation";
+import { setSelectedSection } from "../../../app/slices/selectedSectionSlice";
+import { donutChartColors } from "../../../app/styling/donutChartColors";
 
 export const Section = ({
   section,
