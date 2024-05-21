@@ -7,8 +7,8 @@ import React, {
 } from "react";
 import { View, StyleSheet, Image } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { setSelectedSection } from "../slices/selectedSectionSlice";
-import { donutChartColors } from "../styling/donutChartColors";
+import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
+import { donutChartColors } from "@/app/styling/donutChartColors";
 import Svg, { G, Text, Circle } from "react-native-svg";
 import { Section } from "./section";
 

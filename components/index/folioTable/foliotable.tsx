@@ -9,7 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { FolioEntry } from "../models/FolioEntry";
+import { FolioEntry } from "@/app/models/FolioEntry";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
