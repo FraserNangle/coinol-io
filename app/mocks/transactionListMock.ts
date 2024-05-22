@@ -4,13 +4,13 @@ export const transactionListMock: UserTransaction[] = [
     {
         id: "bitcoin",
         date: new Date(),
-        quantity: .1,
+        quantity: .11,
         type: 'buy',
     },
     {
         id: "bitcoin",
         date: new Date(),
-        quantity: .1,
+        quantity: .05,
         type: 'buy',
     },
     {
@@ -28,7 +28,7 @@ export const transactionListMock: UserTransaction[] = [
     {
         id: "ripple",
         date: new Date(),
-        quantity: 15,
+        quantity: 125.3758768,
         type: 'buy',
     },
     {
@@ -52,7 +52,7 @@ export const transactionListMock: UserTransaction[] = [
     {
         id: "bitcoin-cash",
         date: new Date(),
-        quantity: 3,
+        quantity: .5,
         type: 'buy',
     },
     {
@@ -70,7 +70,7 @@ export const transactionListMock: UserTransaction[] = [
     {
         id: "binance-coin",
         date: new Date(),
-        quantity: 50,
+        quantity: 50.1238761236,
         type: 'sell',
     },
     {

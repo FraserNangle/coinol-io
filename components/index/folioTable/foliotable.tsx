@@ -27,6 +27,10 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
+const numberFormatter = new Intl.NumberFormat("en-US", {
+  style: "decimal",
+});
+
 const getPriceDifferenceDisplay = (priceDifference: number) => {
   return priceDifference > 0
     ? `+${priceDifference.toFixed(2)}%`
@@ -54,7 +58,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
           comparison = a.ticker.localeCompare(b.ticker);
           break;
         case "price": {
-          comparison = a.currentPrice - b.currentPrice;
+          comparison = a.priceChangePercentage24h - b.priceChangePercentage24h;
           break;
         }
         case "total": {
@@ -124,10 +128,10 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
               <DataTable.Cell>
                 <View style={styles.column}>
                   <View style={styles.row}>
-                    <Text style={styles.ticker}>{item.ticker}</Text>
-                    <Text style={styles.bold}> {item.quantity}</Text>
+                    <Text style={styles.ticker}>{item.ticker.toUpperCase()}</Text>
+                    <Text style={styles.bold}> {numberFormatter.format(item.quantity)}</Text>
                   </View>
-                  <Text style={[styles.leftAlign, styles.bold]}>
+                  <Text style={[styles.leftAlign, styles.normal]}>
                     {currencyFormatter.format(item.currentPrice)}
                   </Text>
                 </View>
@@ -145,10 +149,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
               <DataTable.Cell numeric>
                 <Text
                   style={
-                    styles.normal /* [
-                    styles.bold,
-                    priceDifference > 0 ? styles.positive : styles.negative,
-                  ] */
+                    styles.normal
                   }
                 >
                   {currencyFormatter.format(item.quantity * item.currentPrice)}
