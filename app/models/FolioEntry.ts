@@ -3,7 +3,6 @@ export type FolioEntry = {
     ticker: string;
     name: string;
     currentPrice: number;
-    priceChange24h: number;
     priceChangePercentage24h: number;
     ranking: number;
     quantity: number;

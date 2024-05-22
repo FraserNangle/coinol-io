@@ -37,7 +37,6 @@ export async function fetchUserFolio() {
                     ticker: coinMarket ? coinMarket.symbol : "",
                     name: coinMarket ? coinMarket.name : "",
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
-                    priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,
                     ranking: coinMarket ? coinMarket.market_cap_rank : 0
                 });
