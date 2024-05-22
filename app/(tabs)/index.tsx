@@ -12,7 +12,7 @@ import { DonutChart } from "@/components/index/donutChart/donutChart";
 import { Link } from "expo-router";
 import { fetchUserFolio } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";
-import { setTotalPortfolioValue, setTotalPortfolioValue24h } from "../slices/totalPortfolioValueSlice";
+import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
 import { setUserFolio } from "../slices/userFolioSlice";
 import { RootState } from "../store/store";
 
@@ -22,12 +22,19 @@ const CURRENCY_TYPE = "USD";
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
   const [refreshing, setRefreshing] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
     fetchUserFolio().then(data => dispatch(setUserFolio(data)));
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchUserFolio().then((data) => {
+      dispatch(setUserFolio(data));
+      setRefreshing(false);
+    });
   }, []);
 
   const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
@@ -37,19 +44,12 @@ export default function TabOneScreen() {
       (total, item) => total + item.quantity * item.currentPrice,
       0
     );
-    const totalPortfolioValue24hr = userFolio.reduce(
-      (total, item) => total + item.quantity * item.price24h,
-      0
-    );
+    const totalPortfolioPercentageChange24hr = userFolio.reduce(
+      (sum, folioEntry) => sum + folioEntry.priceChangePercentage24h, 0
+    ) / userFolio.length;
     dispatch(setTotalPortfolioValue(totalPortfolioValue));
-    dispatch(setTotalPortfolioValue24h(totalPortfolioValue24hr));
+    dispatch(setTotalPortfolioPercentageChange24hr(totalPortfolioPercentageChange24hr));
   }, [userFolio, dispatch]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setRefreshKey(refreshKey + 1); // increment the refreshKey
-    setRefreshing(false);
-  }, [refreshKey]);
 
   return (
     <>
@@ -85,7 +85,6 @@ export default function TabOneScreen() {
           >
             <View style={styles.donutContainer}>
               <DonutChart
-                key={refreshKey}
                 data={userFolio.map(({ name, quantity, currentPrice }) => ({
                   name,
                   quantity,

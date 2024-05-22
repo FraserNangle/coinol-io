@@ -23,11 +23,9 @@ export default function TabLayout() {
     (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
   );
 
-  const totalPortfolioValue24h = useSelector(
-    (state: any) => state?.totalPortfolioValue?.totalPortfolioValue24h
+  const totalPortfolioPercentageChange24hr = useSelector(
+    (state: any) => state?.totalPortfolioValue?.totalPortfolioPercentageChange24hr
   );
-
-  const percentageChange = (totalPortfolioValue - totalPortfolioValue24h) / totalPortfolioValue24h * 100;
 
   const getPercentageChangeDisplay = (percentageChange: number) => {
     return percentageChange > 0
@@ -68,10 +66,10 @@ export default function TabLayout() {
 
                   <Text style={[
                     styles.percentageContainer,
-                    percentageChange > 0 ? styles.positive : styles.negative,
+                    totalPortfolioPercentageChange24hr > 0 ? styles.positive : styles.negative,
                   ]}
                   >
-                    {getPercentageChangeDisplay(percentageChange)}%
+                    {getPercentageChangeDisplay(totalPortfolioPercentageChange24hr)}%
                   </Text>
                 </>
               )}
@@ -115,7 +113,7 @@ export default function TabLayout() {
           headerTitle: () => (
             <View style={styles.titleContainer}>
               <Text style={styles.headerTitle}>
-                {formattedTotalPortfolioValue} ({percentageChange}%)
+                {formattedTotalPortfolioValue} ({totalPortfolioPercentageChange24hr}%)
               </Text>
             </View>
           ),

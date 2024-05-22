@@ -1,9 +1,9 @@
 import React, {
   useLayoutEffect,
   useState,
-  useCallback,
   useMemo,
   useEffect,
+  useRef,
 } from "react";
 import { View, StyleSheet, Image } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
@@ -90,21 +90,6 @@ export const DonutChart = ({
     });
   }
 
-  useEffect(() => {
-    setThickness(outerRadius * 0.3);
-  }, [outerRadius]);
-
-  useEffect(() => {
-    if (
-      (displayMode === "percentage" &&
-        !((selectedSection?.value / totalMoney) * 100)) ||
-      (displayMode === "value" && !selectedSection?.value) ||
-      (displayMode === "quantity" && !selectedSection?.quantity)
-    ) {
-      toggleDisplayMode();
-    }
-  }, [selectedSection, displayMode, toggleDisplayMode]);
-
   useLayoutEffect(() => {
     if (sections.length > 0) {
       sections[0].color = donutChartColors[0];
@@ -114,7 +99,56 @@ export const DonutChart = ({
     }
   }, []);
 
-  const toggleDisplayMode = useCallback(() => {
+  useEffect(() => {
+    setThickness(outerRadius * 0.3);
+  }, [outerRadius]);
+
+  const prevSelectedSectionRef = useRef();
+
+  useEffect(() => {
+    prevSelectedSectionRef.current = selectedSection;
+  }, [selectedSection]);
+  
+  useEffect(() => {
+    const prevSelectedSection = prevSelectedSectionRef.current;
+    if (
+      selectedSection !== prevSelectedSection &&
+      (
+        (displayMode === "percentage" && !((selectedSection?.value / totalMoney) * 100)) ||
+        (displayMode === "value" && !selectedSection?.value) ||
+        (displayMode === "quantity" && !selectedSection?.quantity)
+      )
+    ) {
+      toggleDisplayMode();
+    }
+  }, [selectedSection, displayMode, toggleDisplayMode]);
+
+  const toggleDisplayMode = () => {
+    setDisplayMode((prevMode) => {
+      let newMode;
+      switch (prevMode) {
+        case "percentage":
+          newMode = selectedSection?.value ? "value" : "quantity";
+          break;
+        case "value":
+          newMode = selectedSection?.quantity ? "quantity" : "percentage";
+          break;
+        case "quantity":
+        default:
+          newMode =
+            (selectedSection?.value / totalMoney) * 100
+              ? "percentage"
+              : "value";
+          break;
+      }
+      if (newMode !== prevMode) {
+        return newMode;
+      }
+      return prevMode;
+    });
+  };
+
+  /* const toggleDisplayMode = useCallback(() => {
     setDisplayMode((prevMode) => {
       let newMode;
       switch (prevMode) {
@@ -134,7 +168,7 @@ export const DonutChart = ({
       }
       return newMode;
     });
-  }, [selectedSection]);
+  }, [selectedSection]); */
 
   const formatNumber = (num) => {
     if (num >= 1e9) {

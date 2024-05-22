@@ -110,15 +110,11 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
         </DataTable.Header>
 
         {sortedData.map((item) => {
-          const priceDifference = item
-            ? ((item.currentPrice - item.price24h) / item.price24h) * 100
-            : 0;
           const priceDifferenceDisplay =
-            getPriceDifferenceDisplay(priceDifference);
-
+            getPriceDifferenceDisplay(item.priceChangePercentage24h);
           return (
             <DataTable.Row
-              key={item.coinId}
+              key={item?.id}
               style={
                 selectedSection?.name == item?.name
                   ? styles.highlightedRow
@@ -140,7 +136,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
                 <Text
                   style={[
                     styles.rightAlign,
-                    priceDifference > 0 ? styles.positive : styles.negative,
+                    item.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
                   ]}
                 >
                   {priceDifferenceDisplay}

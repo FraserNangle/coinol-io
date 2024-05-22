@@ -1,6 +1,6 @@
 
 export type UserTransaction = {
-    coinId: string;
+    id: string;
     date: Date;
     quantity: number;
     type: string;

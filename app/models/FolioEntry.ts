@@ -1,9 +1,10 @@
 export type FolioEntry = {
-    coinId: string;
+    id: string;
     ticker: string;
     name: string;
     currentPrice: number;
-    price24h: number;
+    priceChange24h: number;
+    priceChangePercentage24h: number;
     ranking: number;
     quantity: number;
 };
