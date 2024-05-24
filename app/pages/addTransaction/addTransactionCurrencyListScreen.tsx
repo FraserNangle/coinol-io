@@ -2,7 +2,7 @@ import { FlatList, StyleSheet, TouchableHighlight } from "react-native";
 
 import { Text, View } from "@/components/Themed";
 import React, { useState } from "react";
-import { DataTable, Icon, TextInput } from "react-native-paper";
+import { DataTable, TextInput } from "react-native-paper";
 import { mockCoinAPI } from "@/app/mocks/chartData";
 import { useNavigation } from "@react-navigation/native";
 

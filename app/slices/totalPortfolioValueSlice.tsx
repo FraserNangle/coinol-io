@@ -2,12 +2,12 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface TotalPortfolioValueSliceState {
     totalPortfolioValue: number | null;
-    totalPortfolioValue24h: number | null;
+    totalPortfolioPercentageChange24hr: number | null;
 }
 
 const initialState: TotalPortfolioValueSliceState = {
     totalPortfolioValue: null,
-    totalPortfolioValue24h: null,
+    totalPortfolioPercentageChange24hr: null,
 };
 
 const totalPortfolioValueSlice = createSlice({
@@ -17,12 +17,12 @@ const totalPortfolioValueSlice = createSlice({
         setTotalPortfolioValue: (state, action: PayloadAction<number | null>) => {
             state.totalPortfolioValue = action.payload;
         },
-        setTotalPortfolioValue24h: (state, action: PayloadAction<number | null>) => {
-            state.totalPortfolioValue24h = action.payload;
+        setTotalPortfolioPercentageChange24hr: (state, action: PayloadAction<number | null>) => {
+            state.totalPortfolioPercentageChange24hr = action.payload;
         },
     },
 });
 
-export const { setTotalPortfolioValue, setTotalPortfolioValue24h } = totalPortfolioValueSlice.actions;
+export const { setTotalPortfolioValue, setTotalPortfolioPercentageChange24hr } = totalPortfolioValueSlice.actions;
 
 export default totalPortfolioValueSlice.reducer;
