@@ -29,6 +29,8 @@ export default function TabOneScreen() {
     fetchUserFolio().then(data => dispatch(setUserFolio(data)));
   }, []);
 
+  const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchUserFolio().then((data) => {
@@ -36,8 +38,6 @@ export default function TabOneScreen() {
       setRefreshing(false);
     });
   }, []);
-
-  const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
 
   useEffect(() => {
     const totalPortfolioValue = userFolio.reduce(

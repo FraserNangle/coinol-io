@@ -1,7 +1,7 @@
 import { FolioEntry } from "../models/FolioEntry";
 import { UserTransaction } from "../models/UserTransaction";
 import { getTransactionList } from "./transactionService";
-import { fetchCoinDataForCoinsList } from "./coinService";
+import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 
 export async function fetchUserFolio() {
@@ -12,7 +12,7 @@ export async function fetchUserFolio() {
 
     let coinsMarketsList: CoinsMarkets[] = [];
 
-    await fetchCoinDataForCoinsList(uniqueCoinIds).then((data) => {
+    await fetchCoinDataByCoinsList(uniqueCoinIds).then((data) => {
         coinsMarketsList = data;
     });
 

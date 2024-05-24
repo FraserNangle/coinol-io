@@ -52,7 +52,7 @@ export default function AddTransactionBuySellScreen() {
 
     const sellAll = () => {
         userFolio.forEach((folioEntry) => {
-            if (folioEntry.coinId === item.key) {
+            if (folioEntry.id === item.id) {
                 setTotal(folioEntry.quantity);
             }
         });
@@ -114,7 +114,7 @@ export default function AddTransactionBuySellScreen() {
                             maxLength={60}
                             textAlign="right"
                         />
-                        <Text>{' '}{item.name}</Text>
+                        <Text>{' '}{item.symbol.toUpperCase()}</Text>
                         {transactionType === "SELL" &&
                             <TouchableHighlight
                                 onPress={() => sellAll()}
@@ -149,7 +149,7 @@ export default function AddTransactionBuySellScreen() {
                 mode="contained"
                 onPress={() => {
                     const newHolding: UserTransaction = {
-                        coinId: item.key,
+                        id: item.id,
                         date: date,
                         quantity: total,
                         type: transactionType,

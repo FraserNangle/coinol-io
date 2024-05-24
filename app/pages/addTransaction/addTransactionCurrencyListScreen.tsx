@@ -1,27 +1,42 @@
 import { FlatList, StyleSheet, TouchableHighlight } from "react-native";
 
 import { Text, View } from "@/components/Themed";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DataTable, TextInput } from "react-native-paper";
-import { mockCoinAPI } from "@/app/mocks/chartData";
 import { useNavigation } from "@react-navigation/native";
+import { fetchAllCoinData } from "@/app/services/coinService";
+import { useDispatch, useSelector } from "react-redux";
+import { setAllCoinData } from "@/app/slices/allCoinDataSlice";
+import { RootState } from "@/app/store/store";
+import { Coin } from "@/app/models/Coin";
 
 export default function AddTransactionCurrencyListScreen() {
   const [query, setQuery] = useState("");
-  const [filteredData, setFilteredData] = useState(mockCoinAPI);
+  const [filteredData, setFilteredData] = useState<Coin[]>();
   const navigation = useNavigation();
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    fetchAllCoinData().then(data => {
+      dispatch(setAllCoinData(data));
+      setFilteredData(data);
+    });
+  }, []);
+
+  const allCoinData = useSelector((state: RootState) => state.allCoinData.allCoinData) || [];
 
   const handleSearch = (text: string) => {
     setQuery(text);
     if (text) {
-      const newData = mockCoinAPI.filter((item) => {
+      const newData = allCoinData.filter((item) => {
         const itemData = item.name ? item.name.toUpperCase() : "".toUpperCase();
         const textData = text.toUpperCase();
         return itemData.indexOf(textData) > -1;
       });
       setFilteredData(newData);
     } else {
-      setFilteredData(mockCoinAPI);
+      setFilteredData(allCoinData);
     }
   };
 
