@@ -12,8 +12,7 @@ export interface ICoinStorageService {
 
 // Function to add transaction data to the local store (Create)
 export const addTransactionData = async (newTransaction: UserTransaction) => {
-  const isUserGuest = await isGuest();
-  if (!isUserGuest) {
+  if (!isGuest()) {
     // If the user is not a guest, update the transactions on the server
     const response = await api.post('/holdings', {
       newTransaction
