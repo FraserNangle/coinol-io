@@ -1,27 +1,43 @@
 import { FlatList, StyleSheet, TouchableHighlight } from "react-native";
 
 import { Text, View } from "@/components/Themed";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DataTable, TextInput } from "react-native-paper";
-import { mockCoinAPI } from "@/app/mocks/chartData";
 import { useNavigation } from "@react-navigation/native";
+import { fetchAllCoinData } from "@/app/services/coinService";
+import { useDispatch, useSelector } from "react-redux";
+import { setAllCoinData } from "@/app/slices/allCoinDataSlice";
+import { RootState } from "@/app/store/store";
+import { Coin } from "@/app/models/Coin";
 
 export default function AddTransactionCurrencyListScreen() {
   const [query, setQuery] = useState("");
-  const [filteredData, setFilteredData] = useState(mockCoinAPI);
+  const [filteredData, setFilteredData] = useState<Coin[]>();
   const navigation = useNavigation();
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    fetchAllCoinData().then(data => {
+      dispatch(setAllCoinData(data));
+      setFilteredData(data);
+    });
+  }, []);
+
+  const allCoinData = useSelector((state: RootState) => state.allCoinData.allCoinData) || [];
 
   const handleSearch = (text: string) => {
     setQuery(text);
     if (text) {
-      const newData = mockCoinAPI.filter((item) => {
-        const itemData = item.name ? item.name.toUpperCase() : "".toUpperCase();
+      const newData = allCoinData.filter((item) => {
+        const itemName = item.name ? item.name.toUpperCase() : "".toUpperCase();
+        const itemSymbol = item.symbol ? item.symbol.toUpperCase() : "".toUpperCase();
         const textData = text.toUpperCase();
-        return itemData.indexOf(textData) > -1;
+        return itemName.indexOf(textData) > -1 || itemSymbol.indexOf(textData) > -1;
       });
       setFilteredData(newData);
     } else {
-      setFilteredData(mockCoinAPI);
+      setFilteredData(allCoinData);
     }
   };
 
@@ -56,9 +72,14 @@ export default function AddTransactionCurrencyListScreen() {
             >
               <DataTable.Row key={item.name}>
                 <DataTable.Cell>
-                  <Text>
-                    {item.name}
-                  </Text>
+                  <View style={styles.row}>
+                    <Text>
+                      {item.name}
+                    </Text>
+                    <Text style={styles.bold}>
+                      {' (' + item.symbol.toUpperCase() + ')'}
+                    </Text>
+                  </View>
                 </DataTable.Cell>
               </DataTable.Row>
             </TouchableHighlight>
@@ -103,6 +124,10 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   row: {
+    flex: 1,
     flexDirection: "row",
+    //justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: 'hsl(0, 0%, 15%)',
   }
 });

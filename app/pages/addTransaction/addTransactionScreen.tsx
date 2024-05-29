@@ -1,6 +1,6 @@
 import { StyleSheet, TouchableHighlight, TextInput } from "react-native";
 import { Text, View } from "@/components/Themed";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Divider, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
@@ -15,6 +15,7 @@ export default function AddTransactionBuySellScreen() {
     const [date, setDate] = React.useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
+    const [canSell, setCanSell] = useState(false);
 
     // Retrieve the item parameter from the route page
     const route = useRoute();
@@ -23,6 +24,14 @@ export default function AddTransactionBuySellScreen() {
     const navigation = useNavigation();
 
     const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
+
+    useEffect(() => {
+        userFolio.forEach((folioEntry) => {
+            if (folioEntry.id === item.id && folioEntry.quantity > 0) {
+                setCanSell(true);
+            }
+        });
+    }, []);
 
     const changeDate = (event: DateTimePickerEvent, changedDate: Date | undefined) => {
         setShowDatePicker(false);
@@ -52,7 +61,7 @@ export default function AddTransactionBuySellScreen() {
 
     const sellAll = () => {
         userFolio.forEach((folioEntry) => {
-            if (folioEntry.coinId === item.key) {
+            if (folioEntry.id === item.id) {
                 setTotal(folioEntry.quantity);
             }
         });
@@ -82,6 +91,7 @@ export default function AddTransactionBuySellScreen() {
                     BUY
                 </Button>
                 <Button
+                    disabled={!canSell}
                     buttonColor="hsl(0, 0%, 15%)"
                     textColor={transactionType === "SELL" ? "red" : "hsl(0, 0%, 60%)"}
                     style={[styles.button, transactionType === "SELL" ? { borderColor: 'red' } : { borderColor: 'hsl(0, 0%, 15%)' }]}
@@ -90,6 +100,7 @@ export default function AddTransactionBuySellScreen() {
                     onPress={() => setTransactionType("SELL")}>
                     SELL
                 </Button>
+
             </View>
             <View style={styles.tableContainer}>
                 <View style={styles.row}>
@@ -114,7 +125,7 @@ export default function AddTransactionBuySellScreen() {
                             maxLength={60}
                             textAlign="right"
                         />
-                        <Text>{' '}{item.name}</Text>
+                        <Text>{' '}{item.symbol.toUpperCase()}</Text>
                         {transactionType === "SELL" &&
                             <TouchableHighlight
                                 onPress={() => sellAll()}
@@ -149,7 +160,7 @@ export default function AddTransactionBuySellScreen() {
                 mode="contained"
                 onPress={() => {
                     const newHolding: UserTransaction = {
-                        coinId: item.key,
+                        id: item.id,
                         date: date,
                         quantity: total,
                         type: transactionType,

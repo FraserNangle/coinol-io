@@ -1,9 +1,9 @@
 import { coinsMarketsMock } from "../mocks/coinsMarketsMock";
+import { coinsMock } from "../mocks/coinsMock";
+import { Coin } from "../models/Coin";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 
-export async function fetchCoinDataForCoinsList(coinsList: string[]) {
-    //TODO: need to change the folioEntry and transactionList mock data so that the ids are string names of coins to match the api data style
-
+export async function fetchCoinDataByCoinsList(coinsList: string[]) {
     if (process.env.NODE_ENV === 'development') {
         // Mock the data in development environment
         return new Promise<CoinsMarkets[]>((resolve) => {
@@ -22,5 +22,20 @@ export async function fetchCoinDataForCoinsList(coinsList: string[]) {
             body: JSON.stringify({ coinsList }),
         });
         return await response.json() as CoinsMarkets[];
+    }
+}
+
+export async function fetchAllCoinData() {
+    if (process.env.NODE_ENV === 'development') {
+        // Mock the data in development environment
+        return new Promise<Coin[]>((resolve) => {
+            setTimeout(() => {
+                resolve(coinsMock);
+            }, 100); // Simulate a delay of 1 second
+        });
+    } else {
+        // Fetch the data from backend in other environments
+        const response = await fetch('/api/allCoins');
+        return await response.json() as Coin[];
     }
 }
