@@ -30,9 +30,10 @@ export default function AddTransactionCurrencyListScreen() {
     setQuery(text);
     if (text) {
       const newData = allCoinData.filter((item) => {
-        const itemData = item.name ? item.name.toUpperCase() : "".toUpperCase();
+        const itemName = item.name ? item.name.toUpperCase() : "".toUpperCase();
+        const itemSymbol = item.symbol ? item.symbol.toUpperCase() : "".toUpperCase();
         const textData = text.toUpperCase();
-        return itemData.indexOf(textData) > -1;
+        return itemName.indexOf(textData) > -1 || itemSymbol.indexOf(textData) > -1;
       });
       setFilteredData(newData);
     } else {
@@ -71,9 +72,14 @@ export default function AddTransactionCurrencyListScreen() {
             >
               <DataTable.Row key={item.name}>
                 <DataTable.Cell>
-                  <Text>
-                    {item.name}
-                  </Text>
+                  <View style={styles.row}>
+                    <Text>
+                      {item.name}
+                    </Text>
+                    <Text style={styles.bold}>
+                      {' (' + item.symbol.toUpperCase() + ')'}
+                    </Text>
+                  </View>
                 </DataTable.Cell>
               </DataTable.Row>
             </TouchableHighlight>
@@ -118,6 +124,10 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   row: {
+    flex: 1,
     flexDirection: "row",
+    //justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: 'hsl(0, 0%, 15%)',
   }
 });
