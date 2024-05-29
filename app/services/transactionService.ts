@@ -12,6 +12,15 @@ export interface ICoinStorageService {
 
 // Function to add transaction data to the local store (Create)
 export const addTransactionData = async (newTransaction: UserTransaction) => {
+  // Save the transaction to the local storage
+  const transactions = await SecureStore.getItemAsync('transactions');
+  let transactionsArray = [];
+  if (transactions) {
+    transactionsArray = JSON.parse(transactions);
+  }
+  transactionsArray.push({ newTransaction });
+  await SecureStore.setItemAsync('transactions', JSON.stringify(transactionsArray));
+
   if (!isGuest()) {
     // If the user is not a guest, update the transactions on the server
     const response = await api.post('/holdings', {
@@ -21,15 +30,6 @@ export const addTransactionData = async (newTransaction: UserTransaction) => {
     if (response.status >= 200 && response.status < 300) {
       return response.data;
     }
-  } else {
-    // If the user is a guest, update the local holdings
-    const transactions = await SecureStore.getItemAsync('transactions');
-    let transactionsArray = [];
-    if (transactions) {
-      transactionsArray = JSON.parse(transactions);
-    }
-    transactionsArray.push({ newTransaction });
-    await SecureStore.setItemAsync('transactions', JSON.stringify(transactionsArray));
   }
 };
 
@@ -42,21 +42,20 @@ export const getTransactionList = async () => {
         resolve(transactionListMock);
       }, 1000); // Simulate a delay of 1 second
     });
+  }
+
+  if (!isGuest()) {
+    // If the user is not a guest, download the transactions from the server and save them to local storage
+    await downloadTransactionsToLocalStorage();
+  }
+
+  // retrieve the transactions from the local storage
+  const transactions = await SecureStore.getItemAsync('transactions');
+  if (transactions) {
+    return JSON.parse(transactions) as UserTransaction[];
   } else {
-    const isUserGuest = await isGuest();
-    if (!isUserGuest) {
-      // If the user is not a guest, retrieve the transactions from the server
-      const response = await api.get<UserTransaction[]>('/holdings');
-      return response.data;
-    } else {
-      // If the user is a guest, retrieve the transactions from the local storage
-      const holdingsCredentials = await SecureStore.getItemAsync('holdings');
-      if (holdingsCredentials) {
-        return JSON.parse(holdingsCredentials) as UserTransaction[];
-      }
-      return [];
-    }
-  };
+    return [];
+  }
 }
 
 // Function to get the quantity of a specific coin in the local store (Read)
@@ -123,6 +122,15 @@ export const removeCoinData = async (coinId: string) => {
   }
 };
 
-export const deleteAllHoldings = async () => {
-  await SecureStore.deleteItemAsync('holdings');
+export const deleteAllTransactionsFromLocalStorage = async () => {
+  await SecureStore.deleteItemAsync('transactions');
 };
+
+async function downloadTransactionsToLocalStorage() {
+  // download the transactions from the server and save them to local storage
+  const response = await api.get<UserTransaction[]>('/holdings');
+
+  if (response.data.length > 0) {
+    await SecureStore.setItemAsync('transactions', JSON.stringify(response.data));
+  }
+}
