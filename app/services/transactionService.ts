@@ -10,7 +10,6 @@ export interface ICoinStorageService {
   removeCoinData: (coinId: string) => Promise<void>;
 }
 
-// Function to add transaction data to the local store (Create)
 export const addTransactionData = async (newTransaction: UserTransaction) => {
   // Save the transaction to the local storage
   const transactions = await SecureStore.getItemAsync('transactions');
@@ -33,7 +32,6 @@ export const addTransactionData = async (newTransaction: UserTransaction) => {
   }
 };
 
-// Retrieve the user's transaction list (Read)
 export const getTransactionList = async () => {
   if (process.env.NODE_ENV === 'development') {
     // Mock the data in development environment
@@ -55,6 +53,15 @@ export const getTransactionList = async () => {
     return JSON.parse(transactions) as UserTransaction[];
   } else {
     return [];
+  }
+}
+
+async function downloadTransactionsToLocalStorage() {
+  // download the transactions from the server and save them to local storage
+  const response = await api.get<UserTransaction[]>('/holdings');
+
+  if (response.data.length > 0) {
+    await SecureStore.setItemAsync('transactions', JSON.stringify(response.data));
   }
 }
 
@@ -125,12 +132,3 @@ export const removeCoinData = async (coinId: string) => {
 export const deleteAllTransactionsFromLocalStorage = async () => {
   await SecureStore.deleteItemAsync('transactions');
 };
-
-async function downloadTransactionsToLocalStorage() {
-  // download the transactions from the server and save them to local storage
-  const response = await api.get<UserTransaction[]>('/holdings');
-
-  if (response.data.length > 0) {
-    await SecureStore.setItemAsync('transactions', JSON.stringify(response.data));
-  }
-}
