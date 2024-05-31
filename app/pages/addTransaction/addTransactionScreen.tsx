@@ -6,8 +6,9 @@ import { Divider, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { addTransactionData } from "@/app/services/transactionService";
 import { UserTransaction } from "@/app/models/UserTransaction";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
+import { setLastTransaction } from "@/app/slices/lastTransactionSlice";
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
@@ -17,11 +18,12 @@ export default function AddTransactionBuySellScreen() {
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [canSell, setCanSell] = useState(false);
 
-    // Retrieve the item parameter from the route page
+    // Retrieve the item parameter from the currency list page
     const route = useRoute();
     const { item } = route.params;
 
     const navigation = useNavigation();
+    const dispatch = useDispatch();
 
     const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
 
@@ -70,8 +72,8 @@ export default function AddTransactionBuySellScreen() {
     const addTransaction = (transaction: UserTransaction) => {
         addTransactionData(transaction)
             .then(() => {
-                console.log('Success:', transaction);
-                navigation.navigate("index");
+                navigation.navigate('index');
+                dispatch(setLastTransaction(transaction.id));
             })
             .catch(error => {
                 console.error('Error:', error);

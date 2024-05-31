@@ -3,10 +3,12 @@ import selectedSectionReducer from '../slices/selectedSectionSlice';
 import totalPortfolioValueReducer from '../slices/totalPortfolioValueSlice';
 import userFolioReducer from '../slices/userFolioSlice';
 import allCoinDataReducer from '../slices/allCoinDataSlice';
+import lastTransactionReducer from '../slices/lastTransactionSlice';
 
 const store = configureStore({
     reducer: {
-        selectedSlice: selectedSectionReducer,
+        selectedSection: selectedSectionReducer,
+        lastTransaction: lastTransactionReducer,
         totalPortfolioValue: totalPortfolioValueReducer,
         userFolio: userFolioReducer,
         allCoinData: allCoinDataReducer,

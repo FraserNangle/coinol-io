@@ -12,7 +12,7 @@ import { donutChartColors } from "@/app/styling/donutChartColors";
 import Svg, { G, Text, Circle } from "react-native-svg";
 import { Section } from "./section";
 
-export const DonutChart = ({
+const DonutChart = ({
   data,
   width = 300,
   height = 500,
@@ -22,7 +22,7 @@ export const DonutChart = ({
   const styles = getStyles();
 
   const dispatch = useDispatch();
-  const selectedSection = useSelector((state) => state.selectedSlice.value);
+  const selectedSection = useSelector((state) => state.selectedSection.value);
 
   const [outerRadius, setOuterRadius] = useState(150);
   const [thickness, setThickness] = useState(30);
@@ -150,35 +150,6 @@ export const DonutChart = ({
       return newMode;
     });
   }, [selectedSection]);
-
-  const formatNumber = (num) => {
-    if (num >= 1e9) {
-      return (num / 1e9).toFixed(2) + "B";
-    } else if (num >= 1e6) {
-      return (num / 1e6).toFixed(2) + "M";
-    } else if (num >= 1e3) {
-      return (num / 1e3).toFixed(2) + "K";
-    } else {
-      return num.toString();
-    }
-  };
-
-  const getText = () => {
-    if (
-      displayMode === "percentage" &&
-      (selectedSection?.value / totalMoney) * 100
-    ) {
-      return `${((selectedSection?.value / totalMoney) * 100).toFixed(2)}%`;
-    } else if (displayMode === "value" && selectedSection?.value) {
-      return formatNumber(selectedSection?.value);
-    } else if (displayMode === "quantity" && selectedSection?.quantity) {
-      return formatNumber(selectedSection?.quantity);
-    } else {
-      return null;
-    }
-  };
-
-  const text = getText();
 
   const circleSize = 10;
 

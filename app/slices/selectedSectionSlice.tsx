@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-interface SelectedSliceState {
-  value: string | null;
+interface SelectedSectionState {
+  id: string | null;
 }
 
-const initialState: SelectedSliceState = {
-  value: null,
+const initialState: SelectedSectionState = {
+  id: null,
 };
 
 const selectedSectionSlice = createSlice({
@@ -13,7 +13,7 @@ const selectedSectionSlice = createSlice({
   initialState,
   reducers: {
     setSelectedSection: (state, action) => {
-      state.value = action.payload;
+      state.id = action.payload;
     },
   },
 });

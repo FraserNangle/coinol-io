@@ -16,7 +16,7 @@ import {
 import { setSelectedSection } from "../../../app/slices/selectedSectionSlice";
 import { donutChartColors } from "../../../app/styling/donutChartColors";
 
-export const Section = ({
+const SectionObso = ({
   section,
   index,
   accumulatedValue,
@@ -26,7 +26,7 @@ export const Section = ({
 }) => {
   const dispatch = useDispatch();
   const selectedIndex = useSelector(
-    (state) => state.selectedSlice.value?.index
+    (state) => state.selectedSection.value?.index
   );
 
   const { value, startAngle, endAngle } = section;

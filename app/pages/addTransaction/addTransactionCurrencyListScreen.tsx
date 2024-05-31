@@ -29,7 +29,7 @@ export default function AddTransactionCurrencyListScreen() {
   const handleSearch = (text: string) => {
     setQuery(text);
     if (text) {
-      const newData = allCoinData.filter((item) => {
+      const newData = allCoinData.filter((item: Coin) => {
         const itemName = item.name ? item.name.toUpperCase() : "".toUpperCase();
         const itemSymbol = item.symbol ? item.symbol.toUpperCase() : "".toUpperCase();
         const textData = text.toUpperCase();
@@ -67,7 +67,7 @@ export default function AddTransactionCurrencyListScreen() {
           renderItem={({ item }) => (
             <TouchableHighlight
               onPress={() =>
-                navigation.navigate("pages/addTransaction/addTransactionScreen", { item })
+                navigation.navigate("pages/addTransaction/addTransactionScreen", { item: item })
               }
             >
               <DataTable.Row key={item.name}>

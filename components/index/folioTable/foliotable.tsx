@@ -37,20 +37,20 @@ const getPriceDifferenceDisplay = (priceDifference: number) => {
     : `${priceDifference.toFixed(2)}%`;
 };
 
-export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
+export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) => {
   type SortField = "ticker" | "price" | "total";
 
   const [sortField, setSortField] = React.useState<SortField>("total");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
 
   const selectedSection = useSelector(
-    (state: any) => state.selectedSlice.value
+    (state: any) => state.selectedSection.value
   );
 
   const styles = getStyles();
 
   const sortedData = React.useMemo(() => {
-    return [...data].sort((a, b) => {
+    return [...props.data].sort((a, b) => {
       let comparison = 0;
 
       switch (sortField) {
@@ -69,7 +69,7 @@ export const FolioTable: React.FC<FolioTableProps> = ({ data }) => {
 
       return sortOrder === "asc" ? comparison : -comparison;
     });
-  }, [data, sortField, sortOrder]);
+  }, [props.data, sortField, sortOrder]);
 
   const handleSort = (field: "ticker" | "price" | "total") => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

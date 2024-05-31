@@ -8,19 +8,20 @@ import {
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "@/components/index/folioTable/foliotable";
-import { DonutChart } from "@/components/index/donutChart/donutChart";
 import { Link, useFocusEffect } from "expo-router";
 import { fetchUserFolio } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";
 import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
 import { setUserFolio } from "../slices/userFolioSlice";
 import { RootState } from "../store/store";
+import { DonutChart } from "@/components/index/donutChart/donutChart";
 
 // Define the currency type
 const CURRENCY_TYPE = "USD";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
+  const screenHeight = Dimensions.get("window").height;
   const [refreshing, setRefreshing] = useState(false);
 
   const dispatch = useDispatch();
@@ -88,12 +89,9 @@ export default function TabOneScreen() {
           >
             <View style={styles.donutContainer}>
               <DonutChart
-                data={userFolio.map(({ name, quantity, currentPrice }) => ({
-                  name,
-                  quantity,
-                  value: quantity * currentPrice,
-                }))}
+                data={userFolio}
                 width={screenWidth * 0.95}
+                height={screenHeight / 2}
                 backgroundColor={"black"}
                 currencyTicker={CURRENCY_TYPE}
               />
