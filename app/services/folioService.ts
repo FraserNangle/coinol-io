@@ -23,13 +23,13 @@ export async function fetchUserFolio() {
         const coinMarket = coinsMarketsList.find((coinMarket) => coinMarket.id === transaction.id);
 
         if (existingEntry) {
-            if (transaction.type === 'buy') {
+            if (transaction.type === 'BUY') {
                 existingEntry.quantity += transaction.quantity;
-            } else if (transaction.type === 'sell') {
+            } else if (transaction.type === 'SELL') {
                 existingEntry.quantity -= transaction.quantity;
             }
         } else {
-            const newQuantity = transaction.type === 'buy' ? transaction.quantity : -transaction.quantity;
+            const newQuantity = transaction.type === 'BUY' ? transaction.quantity : -transaction.quantity;
             if (newQuantity > 0) {
                 folioEntries.push({
                     id: transaction.id,

@@ -1,3 +1,4 @@
+import { parse } from "@babel/core";
 import { transactionListMock } from "../mocks/transactionListMock";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
@@ -33,24 +34,42 @@ export const addTransactionData = async (newTransaction: UserTransaction) => {
 };
 
 export const getTransactionList = async () => {
-  if (process.env.NODE_ENV === 'development') {
+  /* if (process.env.NODE_ENV === 'development') {
     // Mock the data in development environment
     return new Promise<UserTransaction[]>((resolve) => {
       setTimeout(() => {
         resolve(transactionListMock);
       }, 1000); // Simulate a delay of 1 second
     });
-  }
-
+  } */
   if (!isGuest()) {
     // If the user is not a guest, download the transactions from the server and save them to local storage
     await downloadTransactionsToLocalStorage();
   }
 
   // retrieve the transactions from the local storage
-  const transactions = await SecureStore.getItemAsync('transactions');
-  if (transactions) {
-    return JSON.parse(transactions) as UserTransaction[];
+  const transactionsStringified = await SecureStore.getItemAsync('transactions');
+
+  if (transactionsStringified) {
+    const parsedTransactions = JSON.parse(transactionsStringified);
+
+    const transactions: UserTransaction[] = [];
+
+    parsedTransactions.forEach((parsedTransaction: any) => {
+      const newTransaction: UserTransaction = {
+        id: "",
+        date: new Date(),
+        quantity: 0,
+        type: ""
+      };
+      newTransaction.date = new Date(parsedTransaction.newTransaction.date);
+      newTransaction.id = parsedTransaction.newTransaction.id;
+      newTransaction.type = parsedTransaction.newTransaction.type;
+      newTransaction.quantity = parsedTransaction.newTransaction.quantity;
+
+      transactions.push(newTransaction);
+    });
+    return transactions;
   } else {
     return [];
   }

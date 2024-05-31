@@ -9,7 +9,7 @@ import {
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "@/components/index/folioTable/foliotable";
 import { DonutChart } from "@/components/index/donutChart/donutChart";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import { fetchUserFolio } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";
 import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
@@ -25,11 +25,14 @@ export default function TabOneScreen() {
 
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    fetchUserFolio().then(data => dispatch(setUserFolio(data)));
-  }, []);
-
   const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
+
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('useFocusEffect');
+      fetchUserFolio().then(data => dispatch(setUserFolio(data)));
+    }, [dispatch])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
