@@ -48,6 +48,8 @@ export const Section: React.FC<SectionProps> = ({
         (state: RootState) => state.selectedSection.id
     );
 
+
+
     const animation = useSharedValue(0);
     const scale = useSharedValue(1);
 
@@ -97,6 +99,11 @@ export const Section: React.FC<SectionProps> = ({
         animation.value = 0; // reset the animation value
         const delay = (section.accumulatedValue / totalValue) * totalAnimationTime;
         const duration = (section.currentPrice / totalValue) * totalAnimationTime;
+
+        console.log('delay ' + delay);
+        console.log('duration ' + duration);
+        console.log('totalValue ' + totalValue);
+
         setTimeout(() => {
             animation.value = withTiming(1, { duration });
         }, delay);

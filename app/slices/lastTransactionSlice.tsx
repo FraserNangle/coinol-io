@@ -1,12 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { UserTransaction } from "../models/UserTransaction";
 
 interface LastTransactionState {
   transactionId: string | null;
 }
 
 const initialState: LastTransactionState = {
-  transactionId: null,
+  transactionId: "",
 };
 
 const lastTransactionSlice = createSlice({

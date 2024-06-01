@@ -42,9 +42,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [thickness, setThickness] = useState(30);
     const [displayMode, setDisplayMode] = useState("percentage");
 
-    const totalPortfolioValue = useSelector(
-        (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
-    );
+    const totalPortfolioValue = data.reduce((acc, section) => acc + section.currentPrice, 0);
 
     const significantItems = data.filter(
         (section) => section.currentPrice / totalPortfolioValue >= 0.05
@@ -224,7 +222,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 <G x={width / 2} y={height / 2}>
                     {sections.map((section, index) => (
                         <Section
-                            key={section.name}
+                            key={section.id}
                             section={section}
                             index={index}
                             totalValue={totalPortfolioValue}
