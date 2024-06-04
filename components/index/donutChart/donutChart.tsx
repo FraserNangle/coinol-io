@@ -35,8 +35,8 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const styles = getStyles();
 
     const dispatch = useDispatch();
-    const selectedSection = useSelector((state: RootState) => state.selectedSection.id);
-    const transaction = useSelector((state: RootState) => state.lastTransaction.transactionId);
+    let selectedSection = useSelector((state: RootState) => state.selectedSection.section);
+    let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transactionId);
 
     const [outerRadius, setOuterRadius] = useState(150);
     const [thickness, setThickness] = useState(30);
@@ -55,16 +55,18 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         return acc;
     }, 0);
 
+    const otherSectionDetails = {
+        name: "Other",
+        currentPrice: otherItemValue,
+        quantity: 0,
+        id: "other",
+        ticker: "OTHER",
+        priceChangePercentage24h: 0,
+        ranking: 0
+    }
+
     if (otherItemValue > 0) {
-        significantItems.push({
-            name: "Other",
-            currentPrice: otherItemValue,
-            quantity: 0,
-            id: "other",
-            ticker: "OTH",
-            priceChangePercentage24h: 0,
-            ranking: 0
-        });
+        significantItems.push(otherSectionDetails);
     }
 
     const sortedData = useMemo(() => {
@@ -114,22 +116,33 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         });
     }
 
-    /* useFocusEffect(
+    let displayValue;
+    if (displayMode === "percentage" && selectedSection?.details?.currentPrice) {
+        const percentage = (selectedSection?.details.currentPrice / totalPortfolioValue) * 100;
+        displayValue = `${percentage.toFixed(2)}%`;
+    } else if (displayMode === "value" && selectedSection?.details?.currentPrice) {
+        displayValue = formatCurrency(selectedSection?.details.currentPrice, currencyTicker);
+    } else if (displayMode === "quantity" && selectedSection?.details?.quantity) {
+        displayValue = formatQuantity(Number(selectedSection?.details.quantity));
+    }
+
+    useFocusEffect(
         React.useCallback(() => {
+            console.log(lastTransaction)
             if (sections.length > 0) {
                 dispatch(
-                    setSelectedSection({ index: 0, name: sections[0].name })
+                    setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
                 );
             }
         }, [dispatch])
-    ); */
+    );
 
     useEffect(() => {
         setThickness(outerRadius * 0.3);
     }, [outerRadius]);
 
     /*     const prevSelectedSectionRef = useRef();
-    
+     
         useFocusEffect(
             React.useCallback(() => {
                 prevSelectedSectionRef.current = selectedSection;
@@ -154,25 +167,22 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
 
     const toggleDisplayMode = React.useCallback(() => {
-        /* setDisplayMode((prevMode) => {
+        setDisplayMode((prevMode) => {
             let newMode;
             switch (prevMode) {
                 case "percentage":
-                    newMode = selectedSection?.value ? "value" : "quantity";
+                    newMode = "value";
                     break;
                 case "value":
-                    newMode = selectedSection?.quantity ? "quantity" : "percentage";
+                    newMode = "quantity";
                     break;
                 case "quantity":
                 default:
-                    newMode =
-                        (selectedSection?.value / totalPortfolioValue) * 100
-                            ? "percentage"
-                            : "value";
+                    newMode = "percentage";
                     break;
             }
             return newMode;
-        }); */
+        });
     }, [selectedSection]);
 
     const circleSize = 10;
@@ -213,9 +223,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             onLayout={(event) => {
                 const { width, height } = event.nativeEvent.layout;
                 setOuterRadius(Math.min(width, height) / 2.5 / 1.1);
-                if (transaction) {
-                    setSelectedSection(transaction)
-                }
             }}
         >
             <Svg width={width} height={height}>
@@ -238,14 +245,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                     {selectedSection && (
                         <View>
                             <Text style={styles.selectedSliceValue}>
-                                {displayMode === "percentage" &&
-                                    (selectedSection.value / totalPortfolioValue) * 100
-                                    ? `${((selectedSection.value / totalPortfolioValue) * 100).toFixed(2)}%`
-                                    : displayMode === "value" && selectedSection.value
-                                        ? formatCurrency(selectedSection.value, currencyTicker)
-                                        : displayMode === "quantity" && selectedSection.quantity
-                                            ? formatQuantity(Number(selectedSection.quantity))
-                                            : null}
+                                {displayValue}
                             </Text>
                             {selectedSection.image ? (
                                 <Image
@@ -261,7 +261,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                 </G>
                             )}
                             <Text style={styles.selectedSliceName}>
-                                {selectedSection.name}
+                                {selectedSection.details?.name}
                             </Text>
                         </View>
                     )}

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useSelector } from "react-redux";
 import { FolioEntry } from "@/app/models/FolioEntry";
+import { RootState } from "@/app/store/store";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -43,8 +44,8 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
   const [sortField, setSortField] = React.useState<SortField>("total");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
 
-  const selectedSection = useSelector(
-    (state: any) => state.selectedSection.value
+  const selectedSectionId = useSelector(
+    (state: RootState) => state.selectedSection.section?.details?.id
   );
 
   const styles = getStyles();
@@ -120,7 +121,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
             <DataTable.Row
               key={item?.id}
               style={
-                selectedSection?.name == item?.name
+                selectedSectionId == item?.id
                   ? styles.highlightedRow
                   : styles.row
               }

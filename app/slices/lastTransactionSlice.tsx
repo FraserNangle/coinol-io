@@ -5,7 +5,7 @@ interface LastTransactionState {
 }
 
 const initialState: LastTransactionState = {
-  transactionId: "",
+  transactionId: null,
 };
 
 const lastTransactionSlice = createSlice({

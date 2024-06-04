@@ -1,11 +1,12 @@
+import { DonutSection } from "@/components/index/donutChart/section";
 import { createSlice } from "@reduxjs/toolkit";
 
 interface SelectedSectionState {
-  id: string | null;
+  section: { details: DonutSection | undefined, index: number | null, color: string | undefined } | undefined;
 }
 
 const initialState: SelectedSectionState = {
-  id: null,
+  section: undefined,
 };
 
 const selectedSectionSlice = createSlice({
@@ -13,7 +14,7 @@ const selectedSectionSlice = createSlice({
   initialState,
   reducers: {
     setSelectedSection: (state, action) => {
-      state.id = action.payload;
+      state.section = action.payload;
     },
   },
 });

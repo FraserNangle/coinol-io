@@ -45,7 +45,7 @@ export const Section: React.FC<SectionProps> = ({
 
     const dispatch = useDispatch();
     const selectedSection = useSelector(
-        (state: RootState) => state.selectedSection.id
+        (state: RootState) => state.selectedSection.section
     );
 
 
@@ -99,18 +99,13 @@ export const Section: React.FC<SectionProps> = ({
         animation.value = 0; // reset the animation value
         const delay = (section.accumulatedValue / totalValue) * totalAnimationTime;
         const duration = (section.currentPrice / totalValue) * totalAnimationTime;
-
-        console.log('delay ' + delay);
-        console.log('duration ' + duration);
-        console.log('totalValue ' + totalValue);
-
         setTimeout(() => {
             animation.value = withTiming(1, { duration });
         }, delay);
     }, [section.currentPrice, section.accumulatedValue, totalValue, totalAnimationTime]);
 
     useLayoutEffect(() => {
-        scale.value = withTiming(selectedSection === section.id ? 1.1 : 1, {
+        scale.value = withTiming(selectedSection?.details?.id === section.id ? 1.1 : 1, {
             duration: 200,
         });
 
@@ -121,7 +116,7 @@ export const Section: React.FC<SectionProps> = ({
     }, [selectedSection]);
 
     const handlePress = useCallback(() => {
-        dispatch(setSelectedSection(section.id));
+        dispatch(setSelectedSection({ details: section, index: index, color: color }));
     }, [setSelectedSection]);
 
     return (

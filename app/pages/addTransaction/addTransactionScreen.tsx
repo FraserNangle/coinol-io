@@ -72,8 +72,9 @@ export default function AddTransactionBuySellScreen() {
     const addTransaction = (transaction: UserTransaction) => {
         addTransactionData(transaction)
             .then(() => {
-                navigation.navigate('index');
+                console.log("Transaction added successfully: " + transaction.id);
                 dispatch(setLastTransaction(transaction.id));
+                navigation.navigate('index');
             })
             .catch(error => {
                 console.error('Error:', error);
