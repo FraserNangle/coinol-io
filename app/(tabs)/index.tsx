@@ -30,7 +30,6 @@ export default function TabOneScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      console.log('useFocusEffect');
       fetchUserFolio().then(data => dispatch(setUserFolio(data)));
     }, [dispatch])
   );

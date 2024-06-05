@@ -7,3 +7,9 @@ export type FolioEntry = {
     ranking: number;
     quantity: number;
 };
+
+export interface SectionFolioEntry extends FolioEntry {
+    startAngle: number;
+    endAngle: number;
+    accumulatedValue: number;
+}

@@ -13,7 +13,7 @@ import Svg, { G, Text, Circle } from "react-native-svg";
 import { Section } from "./section";
 import { RootState } from "@/app/store/store";
 import { UserTransaction } from "@/app/models/UserTransaction";
-import { FolioEntry } from "@/app/models/FolioEntry";
+import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
 
 
 interface DonutChartProps {
@@ -43,6 +43,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [displayMode, setDisplayMode] = useState("percentage");
     const [sortedData, setSortedData] = useState<FolioEntry[]>([]);
     const [otherItemValue, setOtherItemValue] = useState(0);
+    const [sections, setSections] = useState<SectionFolioEntry[]>([]);
     const [otherSectionDetails, setOtherSectionDetails] = useState<FolioEntry>({
         name: "Other",
         currentPrice: 0,
@@ -53,16 +54,24 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         ranking: 0
     });
 
-    //TODO - convert all this logic to use React Hooks so that the section indexes work properly
     const minSliceAngle = 2 * Math.PI * 0.05;
+
+    /* const totalPortfolioValue = useSelector(
+        (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
+    ); */
     const totalPortfolioValue = data.reduce((acc, folioEntry) => acc + (folioEntry.quantity * folioEntry.currentPrice), 0);
 
     useEffect(() => {
-        if (totalPortfolioValue === 0) return;
+        console.log("data: ", data);
+        if (totalPortfolioValue === 0) {
+            console.log("Total Portfolio Value is 0");
+            return;
+        }
 
         const significantItems = data?.filter((folioEntry) =>
             (folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue >= 0.05
         );
+        console.log("significantItems: ", significantItems);
         setOtherItemValue(data?.reduce((acc, folioEntry) => {
             if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
                 return acc + (folioEntry?.quantity * folioEntry?.currentPrice);
@@ -78,49 +87,53 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         }
         setSortedData([...significantItems].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity)));
 
-    }, [data]);
+        console.log("sortedData: ", sortedData);
 
-    let startAngle = -Math.PI / 2;
-    let accumulatedValue = 0;
-
-    let sections = sortedData.map((folioEntry) => {
-        const gapSize = 2 / outerRadius;
-        const sliceAngle = Math.max(
-            2 * Math.PI * ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue),
-            minSliceAngle
-        );
-        const startAngleGap = startAngle + gapSize;
-        const endAngle = startAngleGap + sliceAngle - 2 * gapSize;
-        const s = {
-            ...folioEntry,
-            startAngle: startAngleGap,
-            endAngle,
-            accumulatedValue,
-        };
-        startAngle = endAngle + gapSize;
-        accumulatedValue += (folioEntry.quantity * folioEntry.currentPrice);
-        return s;
-    });
-
-    const totalAngle = sections.reduce(
-        (total, section) => total + (section.endAngle - section.startAngle),
-        0
-    );
-
-    if (totalAngle > 2 * Math.PI) {
-        const scale = (2 * Math.PI) / totalAngle;
         let startAngle = -Math.PI / 2;
+        let accumulatedValue = 0;
 
-        sections = sections.map((section) => {
+        setSections(sortedData.map((folioEntry) => {
             const gapSize = 2 / outerRadius;
-            const sliceAngle = (section.endAngle - section.startAngle) * scale;
-            const startAngleGap = startAngle + gapSize * scale;
-            const endAngle = startAngleGap + sliceAngle - 2 * gapSize * scale;
-            const s = { ...section, startAngle: startAngleGap, endAngle };
-            startAngle = endAngle + gapSize * scale;
+            const sliceAngle = Math.max(
+                2 * Math.PI * ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue),
+                minSliceAngle
+            );
+            const startAngleGap = startAngle + gapSize;
+            const endAngle = startAngleGap + sliceAngle - 2 * gapSize;
+            const s = {
+                ...folioEntry,
+                startAngle: startAngleGap,
+                endAngle,
+                accumulatedValue,
+            };
+            startAngle = endAngle + gapSize;
+            accumulatedValue += (folioEntry.quantity * folioEntry.currentPrice);
             return s;
-        });
-    }
+        }));
+
+        console.log("sections: ", sections);
+
+        const totalAngle = sections.reduce(
+            (total, section) => total + (section.endAngle - section.startAngle),
+            0
+        );
+
+        if (totalAngle > 2 * Math.PI) {
+            const scale = (2 * Math.PI) / totalAngle;
+            let startAngle = -Math.PI / 2;
+
+            setSections(sections.map((section) => {
+                const gapSize = 2 / outerRadius;
+                const sliceAngle = (section.endAngle - section.startAngle) * scale;
+                const startAngleGap = startAngle + gapSize * scale;
+                const endAngle = startAngleGap + sliceAngle - 2 * gapSize * scale;
+                const s = { ...section, startAngle: startAngleGap, endAngle };
+                startAngle = endAngle + gapSize * scale;
+                return s;
+            }));
+        }
+
+    }, [data]);
 
     let displayValue;
     if (displayMode === "percentage" && selectedSection?.details) {
@@ -138,7 +151,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
             );
         }
-    }, []);
+    }, [sections]);
 
     useEffect(() => {
         setThickness(outerRadius * 0.3);
