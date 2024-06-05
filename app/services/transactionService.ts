@@ -69,6 +69,7 @@ export const getTransactionList = async () => {
 
       transactions.push(newTransaction);
     });
+    console.log(transactions);
     return transactions;
   } else {
     return [];

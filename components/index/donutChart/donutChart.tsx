@@ -42,15 +42,17 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [thickness, setThickness] = useState(30);
     const [displayMode, setDisplayMode] = useState("percentage");
 
-    const totalPortfolioValue = data.reduce((acc, section) => acc + section.currentPrice, 0);
+    //TODO - convert all this logic to use React Hooks so that the section indexes work properly
+
+    const totalPortfolioValue = data.reduce((acc, folioEntry) => acc + (folioEntry.quantity * folioEntry.currentPrice), 0);
 
     const significantItems = data.filter(
-        (section) => section.currentPrice / totalPortfolioValue >= 0.05
+        (folioEntry) => (folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue >= 0.05
     );
 
-    const otherItemValue = data.reduce((acc, section) => {
-        if (section.currentPrice / totalPortfolioValue < 0.05) {
-            return acc + section.currentPrice;
+    const otherItemValue = data.reduce((acc, folioEntry) => {
+        if ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue < 0.05) {
+            return acc + (folioEntry.quantity * folioEntry.currentPrice);
         }
         return acc;
     }, 0);
@@ -70,29 +72,29 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }
 
     const sortedData = useMemo(() => {
-        return [...significantItems].sort((a, b) => b.currentPrice - a.currentPrice);
+        return [...significantItems].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity));
     }, [significantItems]);
 
     const minSliceAngle = 2 * Math.PI * 0.05;
     let startAngle = -Math.PI / 2;
     let accumulatedValue = 0;
 
-    let sections = sortedData.map((section) => {
+    let sections = sortedData.map((folioEntry) => {
         const gapSize = 2 / outerRadius;
         const sliceAngle = Math.max(
-            2 * Math.PI * (section.currentPrice / totalPortfolioValue),
+            2 * Math.PI * ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue),
             minSliceAngle
         );
         const startAngleGap = startAngle + gapSize;
         const endAngle = startAngleGap + sliceAngle - 2 * gapSize;
         const s = {
-            ...section,
+            ...folioEntry,
             startAngle: startAngleGap,
             endAngle,
             accumulatedValue,
         };
         startAngle = endAngle + gapSize;
-        accumulatedValue += section.currentPrice;
+        accumulatedValue += (folioEntry.quantity * folioEntry.currentPrice);
         return s;
     });
 
@@ -117,8 +119,8 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }
 
     let displayValue;
-    if (displayMode === "percentage" && selectedSection?.details?.currentPrice) {
-        const percentage = (selectedSection?.details.currentPrice / totalPortfolioValue) * 100;
+    if (displayMode === "percentage" && selectedSection?.details) {
+        const percentage = ((selectedSection?.details?.currentPrice * selectedSection?.details?.quantity) / totalPortfolioValue) * 100;
         displayValue = `${percentage.toFixed(2)}%`;
     } else if (displayMode === "value" && selectedSection?.details?.currentPrice) {
         displayValue = formatCurrency(selectedSection?.details.currentPrice, currencyTicker);
@@ -126,45 +128,17 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         displayValue = formatQuantity(Number(selectedSection?.details.quantity));
     }
 
-    useFocusEffect(
-        React.useCallback(() => {
-            console.log(lastTransaction)
-            if (sections.length > 0) {
-                dispatch(
-                    setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
-                );
-            }
-        }, [dispatch])
-    );
+    useEffect(() => {
+        if (sections.length > 0) {
+            dispatch(
+                setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
+            );
+        }
+    }, []);
 
     useEffect(() => {
         setThickness(outerRadius * 0.3);
     }, [outerRadius]);
-
-    /*     const prevSelectedSectionRef = useRef();
-     
-        useFocusEffect(
-            React.useCallback(() => {
-                prevSelectedSectionRef.current = selectedSection;
-            }, [selectedSection])
-        ); */
-
-    /*     useFocusEffect(
-            React.useCallback(() => {
-                const prevSelectedSection = prevSelectedSectionRef.current;
-                if (
-                    selectedSection !== prevSelectedSection &&
-                    (
-                        (displayMode === "percentage" && !((selectedSection?.value / totalPortfolioValue) * 100)) ||
-                        (displayMode === "value" && !selectedSection?.value) ||
-                        (displayMode === "quantity" && !selectedSection?.quantity)
-                    )
-                ) {
-                    toggleDisplayMode();
-                }
-            }, [selectedSection, displayMode, toggleDisplayMode])
-        ); */
-
 
     const toggleDisplayMode = React.useCallback(() => {
         setDisplayMode((prevMode) => {
