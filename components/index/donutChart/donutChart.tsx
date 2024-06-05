@@ -41,41 +41,45 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [outerRadius, setOuterRadius] = useState(150);
     const [thickness, setThickness] = useState(30);
     const [displayMode, setDisplayMode] = useState("percentage");
-
-    //TODO - convert all this logic to use React Hooks so that the section indexes work properly
-
-    const totalPortfolioValue = data.reduce((acc, folioEntry) => acc + (folioEntry.quantity * folioEntry.currentPrice), 0);
-
-    const significantItems = data.filter(
-        (folioEntry) => (folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue >= 0.05
-    );
-
-    const otherItemValue = data.reduce((acc, folioEntry) => {
-        if ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue < 0.05) {
-            return acc + (folioEntry.quantity * folioEntry.currentPrice);
-        }
-        return acc;
-    }, 0);
-
-    const otherSectionDetails = {
+    const [sortedData, setSortedData] = useState<FolioEntry[]>([]);
+    const [otherItemValue, setOtherItemValue] = useState(0);
+    const [otherSectionDetails, setOtherSectionDetails] = useState<FolioEntry>({
         name: "Other",
-        currentPrice: otherItemValue,
+        currentPrice: 0,
         quantity: 0,
         id: "other",
         ticker: "OTHER",
         priceChangePercentage24h: 0,
         ranking: 0
-    }
+    });
 
-    if (otherItemValue > 0) {
-        significantItems.push(otherSectionDetails);
-    }
-
-    const sortedData = useMemo(() => {
-        return [...significantItems].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity));
-    }, [significantItems]);
-
+    //TODO - convert all this logic to use React Hooks so that the section indexes work properly
     const minSliceAngle = 2 * Math.PI * 0.05;
+    const totalPortfolioValue = data.reduce((acc, folioEntry) => acc + (folioEntry.quantity * folioEntry.currentPrice), 0);
+
+    useEffect(() => {
+        if (totalPortfolioValue === 0) return;
+
+        const significantItems = data?.filter((folioEntry) =>
+            (folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue >= 0.05
+        );
+        setOtherItemValue(data?.reduce((acc, folioEntry) => {
+            if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
+                return acc + (folioEntry?.quantity * folioEntry?.currentPrice);
+            }
+            return acc;
+        }, 0));
+        setOtherSectionDetails(details => ({
+            ...details,
+            currentPrice: otherItemValue
+        }));
+        if (otherItemValue > 0) {
+            significantItems.push(otherSectionDetails);
+        }
+        setSortedData([...significantItems].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity)));
+
+    }, [data]);
+
     let startAngle = -Math.PI / 2;
     let accumulatedValue = 0;
 
