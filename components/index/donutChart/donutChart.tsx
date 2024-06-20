@@ -41,6 +41,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [outerRadius, setOuterRadius] = useState(150);
     const [thickness, setThickness] = useState(30);
     const [displayMode, setDisplayMode] = useState("percentage");
+    const [significantItems, setSignificantItems] = useState<FolioEntry[]>([]);
     const [sortedData, setSortedData] = useState<FolioEntry[]>([]);
     const [otherItemValue, setOtherItemValue] = useState(0);
     const [sections, setSections] = useState<SectionFolioEntry[]>([]);
@@ -56,41 +57,54 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
     const minSliceAngle = 2 * Math.PI * 0.05;
 
-    /* const totalPortfolioValue = useSelector(
+    const totalPortfolioValue = useSelector(
         (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
-    ); */
-    const totalPortfolioValue = data.reduce((acc, folioEntry) => acc + (folioEntry.quantity * folioEntry.currentPrice), 0);
+    );
 
     useEffect(() => {
-        console.log("data: ", data);
         if (totalPortfolioValue === 0) {
             console.log("Total Portfolio Value is 0");
             return;
         }
 
-        const significantItems = data?.filter((folioEntry) =>
+        setSignificantItems(data.filter((folioEntry) =>
             (folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue >= 0.05
-        );
-        console.log("significantItems: ", significantItems);
-        setOtherItemValue(data?.reduce((acc, folioEntry) => {
+        ));
+
+        setOtherItemValue(data.reduce((acc, folioEntry) => {
             if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
                 return acc + (folioEntry?.quantity * folioEntry?.currentPrice);
             }
             return acc;
         }, 0));
+
+    }, [data, totalPortfolioValue]);
+
+    useEffect(() => {
         setOtherSectionDetails(details => ({
             ...details,
             currentPrice: otherItemValue
         }));
+    }, [otherItemValue, data]);
+
+    useEffect(() => {
         if (otherItemValue > 0) {
-            significantItems.push(otherSectionDetails);
+            setSignificantItems((prevItems) => {
+                const filteredItems = prevItems.filter(item => item.id !== "other");
+                return [...filteredItems, otherSectionDetails];
+            });
         }
+    }, [otherSectionDetails, otherItemValue, data]);
+
+    useEffect(() => {
         setSortedData([...significantItems].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity)));
+    }, [significantItems]);
 
-        console.log("sortedData: ", sortedData);
-
+    useEffect(() => {
         let startAngle = -Math.PI / 2;
         let accumulatedValue = 0;
+
+        console.log("Sorted Data: ", sortedData);
 
         setSections(sortedData.map((folioEntry) => {
             const gapSize = 2 / outerRadius;
@@ -111,8 +125,9 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             return s;
         }));
 
-        console.log("sections: ", sections);
+    }, [sortedData]);
 
+    useEffect(() => {
         const totalAngle = sections.reduce(
             (total, section) => total + (section.endAngle - section.startAngle),
             0
@@ -132,8 +147,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 return s;
             }));
         }
-
-    }, [data]);
+    }, [sections]);
 
     let displayValue;
     if (displayMode === "percentage" && selectedSection?.details) {

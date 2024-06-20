@@ -40,6 +40,7 @@ export default function TabOneScreen() {
       dispatch(setUserFolio(data));
       setRefreshing(false);
     });
+    console.log("Refreshed user folio data...");
   }, []);
 
   useEffect(() => {
