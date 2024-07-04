@@ -132,7 +132,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         let startAngle = -Math.PI / 2;
         let accumulatedValue = 0;
 
-        setSections(sortedData.map((folioEntry, index) => {
+        setSections(sortedData.map((folioEntry) => {
             const gapSize = 2 / outerRadius;
             const sliceAngle = Math.max(
                 2 * Math.PI * ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue),
@@ -140,20 +140,12 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             );
             const startAngleGap = startAngle + gapSize;
             const endAngle = startAngleGap + sliceAngle - 2 * gapSize;
-            const colorIndex = interpolate(
-                index,
-                [0, sortedData.length - 1],
-                [0, donutChartColors.length - 1]
-            );
-            const roundedColorIndex = Math.round(colorIndex);
-            const color = donutChartColors[roundedColorIndex];
-
             const s = {
                 ...folioEntry,
                 startAngle: startAngleGap,
                 endAngle,
                 accumulatedValue,
-                color
+                color: donutChartColors[0],
             };
             startAngle = endAngle + gapSize;
             accumulatedValue += (folioEntry.quantity * folioEntry.currentPrice);
@@ -205,10 +197,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     // If lastTransactionId is set, find the section with the same id and dispatch setSelectedSection with its details
     useEffect(() => {
         if (sections.length > 0) {
-            // Find the section with id equal to lastTransactionId
-            const matchingSection = sections.find(section => section.id === lastTransactionId)
-                ? sections.find(section => section.id === lastTransactionId)
-                : sections.find(section => section.id === "other");
+
+            const lastTransactionSection = sections.find(section => section.id === lastTransactionId);
+
+            const matchingSection = lastTransactionSection || sections.find(section => section.id === "other") || sections[0];
 
             // If a matching section is found, dispatch setSelectedSection with its details
             if (matchingSection) {
@@ -297,6 +289,8 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                         );
                         const roundedColorIndex = Math.round(colorIndex);
                         const color = donutChartColors[roundedColorIndex];
+
+                        section.color = color;
 
                         return (
                             <Section
