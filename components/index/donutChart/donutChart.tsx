@@ -67,12 +67,37 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             return;
         }
 
-        console.log("Setting significant items from data: " + JSON.stringify(data));
+        console.log("Setting significant items");
         setSignificantItems(data.filter((folioEntry) =>
             (folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue >= 0.05
         ));
 
-        console.log("Setting other item value");
+        console.log("Setting other items details");
+        setOtherSectionDetails(details => ({
+            ...details,
+            currentPrice: (() => {
+                let smallEntries = 0;
+                const total = data.reduce((acc, folioEntry) => {
+                    if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
+                        smallEntries += 1;
+                        return acc + folioEntry?.currentPrice;
+                    }
+                    return acc;
+                }, 0);
+                return smallEntries > 0 ? total / smallEntries : 0;
+            })(),
+            quantity: (() => {
+                let smallEntries = 0; // Initialize counter for entries that pass the condition
+                const totalQuantity = data.reduce((acc, folioEntry) => {
+                    if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
+                        smallEntries += 1; // Increment counter for each entry that passes the condition
+                        return acc + folioEntry?.quantity;
+                    }
+                    return acc;
+                }, 0);
+                return smallEntries > 0 ? totalQuantity / smallEntries : 0; // Divide total by count if count is not zero
+            })()
+        }));
         setOtherItemValue(data.reduce((acc, folioEntry) => {
             if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
                 return acc + (folioEntry?.quantity * folioEntry?.currentPrice);
@@ -83,22 +108,15 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [data, totalPortfolioValue]);
 
     useEffect(() => {
-        console.log("Setting other section details");
-        setOtherSectionDetails(details => ({
-            ...details,
-            currentPrice: otherItemValue
-        }));
-    }, [otherItemValue]);
-
-    useEffect(() => {
         if (otherItemValue > 0) {
             console.log("Setting significant items with other section details");
+            console.log("Other Section Details: " + JSON.stringify(otherSectionDetails));
             setSignificantItems((prevItems) => {
                 const filteredItems = prevItems.filter(item => item.id !== "other");
                 return [...filteredItems, otherSectionDetails];
             });
         }
-    }, [otherSectionDetails, otherItemValue, data]);
+    }, [otherSectionDetails, data]);
 
     useEffect(() => {
         console.log("Setting sorted data");
