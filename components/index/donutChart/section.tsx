@@ -103,7 +103,7 @@ export const Section: React.FC<SectionProps> = ({
     }, [section.currentPrice, section.quantity, section.accumulatedValue, totalValue, totalAnimationTime]);
 
     useLayoutEffect(() => {
-        scale.value = withTiming(selectedSection?.index === index ? 1.1 : 1, {
+        scale.value = withTiming(selectedSection?.details?.id === section.id ? 1.1 : 1, {
             duration: 200,
         });
 

@@ -67,10 +67,12 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             return;
         }
 
+        console.log("Setting significant items from data: " + JSON.stringify(data));
         setSignificantItems(data.filter((folioEntry) =>
             (folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue >= 0.05
         ));
 
+        console.log("Setting other item value");
         setOtherItemValue(data.reduce((acc, folioEntry) => {
             if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
                 return acc + (folioEntry?.quantity * folioEntry?.currentPrice);
@@ -81,14 +83,16 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [data, totalPortfolioValue]);
 
     useEffect(() => {
+        console.log("Setting other section details");
         setOtherSectionDetails(details => ({
             ...details,
             currentPrice: otherItemValue
         }));
-    }, [otherItemValue, data]);
+    }, [otherItemValue]);
 
     useEffect(() => {
         if (otherItemValue > 0) {
+            console.log("Setting significant items with other section details");
             setSignificantItems((prevItems) => {
                 const filteredItems = prevItems.filter(item => item.id !== "other");
                 return [...filteredItems, otherSectionDetails];
@@ -97,15 +101,16 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [otherSectionDetails, otherItemValue, data]);
 
     useEffect(() => {
+        console.log("Setting sorted data");
         setSortedData([...significantItems].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity)));
     }, [significantItems]);
 
     useEffect(() => {
+        setSections([]);
         let startAngle = -Math.PI / 2;
         let accumulatedValue = 0;
 
-        console.log("Sorted Data: ", sortedData);
-
+        console.log("Setting sections");
         setSections(sortedData.map((folioEntry) => {
             const gapSize = 2 / outerRadius;
             const sliceAngle = Math.max(
@@ -160,7 +165,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }
 
     useEffect(() => {
-        if (sections.length > 0) {
+        if (sections.length > 0 && selectedSection === undefined) {
             dispatch(
                 setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
             );
@@ -232,16 +237,19 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         >
             <Svg width={width} height={height}>
                 <G x={width / 2} y={height / 2}>
-                    {sections.map((section, index) => (
-                        <Section
-                            key={section.id}
-                            section={section}
-                            index={index}
-                            totalValue={totalPortfolioValue}
-                            outerRadius={outerRadius}
-                            totalSections={sections.length}
-                        />
-                    ))}
+                    {sections.map((section, index) => {
+                        console.log(`Rendering ${section.id} section at index: ${index}`);
+                        return (
+                            <Section
+                                key={section.id}
+                                section={section}
+                                index={index}
+                                totalValue={totalPortfolioValue}
+                                outerRadius={outerRadius}
+                                totalSections={sections.length}
+                            />
+                        );
+                    })}
                     <Circle
                         r={outerRadius - thickness}
                         fill={backgroundColor}
