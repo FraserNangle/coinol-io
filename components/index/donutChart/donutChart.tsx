@@ -1,10 +1,7 @@
 import React, {
     useState,
-    useMemo,
     useEffect,
-    useRef,
 } from "react";
-import { useFocusEffect } from "expo-router";
 import { View, StyleSheet, Image } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
@@ -12,8 +9,10 @@ import { donutChartColors } from "@/app/styling/donutChartColors";
 import Svg, { G, Text, Circle } from "react-native-svg";
 import { Section } from "./section";
 import { RootState } from "@/app/store/store";
-import { UserTransaction } from "@/app/models/UserTransaction";
 import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
+import {
+    interpolate,
+} from "react-native-reanimated";
 
 
 interface DonutChartProps {
@@ -36,7 +35,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
     const dispatch = useDispatch();
     let selectedSection = useSelector((state: RootState) => state.selectedSection.section);
-    let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transactionId);
+    let lastTransactionId = useSelector((state: RootState) => state.lastTransaction.transactionId);
 
     const [outerRadius, setOuterRadius] = useState(150);
     const [thickness, setThickness] = useState(30);
@@ -45,6 +44,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [sortedData, setSortedData] = useState<FolioEntry[]>([]);
     const [otherItemValue, setOtherItemValue] = useState(0);
     const [sections, setSections] = useState<SectionFolioEntry[]>([]);
+    const [refreshCount, setRefreshCount] = useState(0);
     const [otherSectionDetails, setOtherSectionDetails] = useState<FolioEntry>({
         name: "Other",
         currentPrice: 0,
@@ -61,18 +61,25 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
     );
 
+    const forceRefresh = () => {
+        setRefreshCount((prevCount) => prevCount + 1);
+    };
+
+    useEffect(() => {
+        console.log("Data changed, refreshing...");
+        forceRefresh();
+    }, [data]);
+
     useEffect(() => {
         if (totalPortfolioValue === 0) {
             console.log("Total Portfolio Value is 0");
             return;
         }
 
-        console.log("Setting significant items");
         setSignificantItems(data.filter((folioEntry) =>
             (folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue >= 0.05
         ));
 
-        console.log("Setting other items details");
         setOtherSectionDetails(details => ({
             ...details,
             currentPrice: (() => {
@@ -109,8 +116,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
     useEffect(() => {
         if (otherItemValue > 0) {
-            console.log("Setting significant items with other section details");
-            console.log("Other Section Details: " + JSON.stringify(otherSectionDetails));
             setSignificantItems((prevItems) => {
                 const filteredItems = prevItems.filter(item => item.id !== "other");
                 return [...filteredItems, otherSectionDetails];
@@ -119,7 +124,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [otherSectionDetails, data]);
 
     useEffect(() => {
-        console.log("Setting sorted data");
         setSortedData([...significantItems].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity)));
     }, [significantItems]);
 
@@ -128,8 +132,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         let startAngle = -Math.PI / 2;
         let accumulatedValue = 0;
 
-        console.log("Setting sections");
-        setSections(sortedData.map((folioEntry) => {
+        setSections(sortedData.map((folioEntry, index) => {
             const gapSize = 2 / outerRadius;
             const sliceAngle = Math.max(
                 2 * Math.PI * ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue),
@@ -137,11 +140,20 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             );
             const startAngleGap = startAngle + gapSize;
             const endAngle = startAngleGap + sliceAngle - 2 * gapSize;
+            const colorIndex = interpolate(
+                index,
+                [0, sortedData.length - 1],
+                [0, donutChartColors.length - 1]
+            );
+            const roundedColorIndex = Math.round(colorIndex);
+            const color = donutChartColors[roundedColorIndex];
+
             const s = {
                 ...folioEntry,
                 startAngle: startAngleGap,
                 endAngle,
                 accumulatedValue,
+                color
             };
             startAngle = endAngle + gapSize;
             accumulatedValue += (folioEntry.quantity * folioEntry.currentPrice);
@@ -189,6 +201,27 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             );
         }
     }, [sections]);
+
+    // If lastTransactionId is set, find the section with the same id and dispatch setSelectedSection with its details
+    useEffect(() => {
+        if (sections.length > 0) {
+            // Find the section with id equal to lastTransactionId
+            const matchingSection = sections.find(section => section.id === lastTransactionId)
+                ? sections.find(section => section.id === lastTransactionId)
+                : sections.find(section => section.id === "other");
+
+            // If a matching section is found, dispatch setSelectedSection with its details
+            if (matchingSection) {
+                dispatch(
+                    setSelectedSection({
+                        details: matchingSection,
+                        index: sections.indexOf(matchingSection),
+                        color: matchingSection?.color
+                    })
+                );
+            }
+        }
+    }, [sections, lastTransactionId, dispatch]);
 
     useEffect(() => {
         setThickness(outerRadius * 0.3);
@@ -256,15 +289,23 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             <Svg width={width} height={height}>
                 <G x={width / 2} y={height / 2}>
                     {sections.map((section, index) => {
-                        console.log(`Rendering ${section.id} section at index: ${index}`);
+
+                        const colorIndex = interpolate(
+                            index,
+                            [0, sections.length - 1],
+                            [0, donutChartColors.length - 1]
+                        );
+                        const roundedColorIndex = Math.round(colorIndex);
+                        const color = donutChartColors[roundedColorIndex];
+
                         return (
                             <Section
-                                key={section.id}
+                                key={`${section.id}-${refreshCount}`}
                                 section={section}
                                 index={index}
                                 totalValue={totalPortfolioValue}
                                 outerRadius={outerRadius}
-                                totalSections={sections.length}
+                                color={color}
                             />
                         );
                     })}

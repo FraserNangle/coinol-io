@@ -27,16 +27,19 @@ export default function TabOneScreen() {
   const dispatch = useDispatch();
 
   let userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
+  let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transactionId);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      console.log("Fetching user folio data...");
-      fetchUserFolio().then(data => {
-        console.log("Fetched user folio data..." + JSON.stringify(data));
-        dispatch(setUserFolio(data))
-      });
-    }, [dispatch])
-  );
+  useEffect(() => {
+    fetchUserFolio().then((data) => {
+      dispatch(setUserFolio(data));
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchUserFolio().then((data) => {
+      dispatch(setUserFolio(data));
+    });
+  }, [lastTransaction]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -44,11 +47,9 @@ export default function TabOneScreen() {
       dispatch(setUserFolio(data));
       setRefreshing(false);
     });
-    console.log("Refreshed user folio data...");
   }, []);
 
   useEffect(() => {
-    console.log("Calculating total portfolio value...");
     const totalPortfolioValue = userFolio.reduce(
       (total, item) => total + item.quantity * item.currentPrice,
       0

@@ -1,4 +1,3 @@
-import { parse } from "@babel/core";
 import { transactionListMock } from "../mocks/transactionListMock";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
@@ -34,14 +33,6 @@ export const addTransactionData = async (newTransaction: UserTransaction) => {
 };
 
 export const getTransactionList = async () => {
-  /* if (process.env.NODE_ENV === 'development') {
-    // Mock the data in development environment
-    return new Promise<UserTransaction[]>((resolve) => {
-      setTimeout(() => {
-        resolve(transactionListMock);
-      }, 1000); // Simulate a delay of 1 second
-    });
-  } */
   if (!isGuest()) {
     // If the user is not a guest, download the transactions from the server and save them to local storage
     await downloadTransactionsToLocalStorage();

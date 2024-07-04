@@ -14,7 +14,6 @@ import {
     AnimatedPath,
 } from "@/app/styling/donutChartAnimation";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
-import { donutChartColors } from "@/app/styling/donutChartColors";
 import { RootState } from "@/app/store/store";
 
 export interface DonutSection {
@@ -32,7 +31,7 @@ interface SectionProps {
     index: number,
     totalValue: number,
     outerRadius: number,
-    totalSections: number,
+    color: string,
 }
 
 export const Section: React.FC<SectionProps> = ({
@@ -40,7 +39,7 @@ export const Section: React.FC<SectionProps> = ({
     index,
     totalValue,
     outerRadius,
-    totalSections,
+    color
 }: SectionProps) => {
 
     const dispatch = useDispatch();
@@ -50,16 +49,6 @@ export const Section: React.FC<SectionProps> = ({
 
     const animation = useSharedValue(0);
     const scale = useSharedValue(1);
-
-    const color = useMemo(() => {
-        const colorIndex = interpolate(
-            index,
-            [0, totalSections - 1],
-            [0, donutChartColors.length - 1]
-        );
-        const roundedColorIndex = Math.round(colorIndex);
-        return donutChartColors[roundedColorIndex];
-    }, [index, totalSections]);
 
     const animatedEndAngle = useDerivedValue(() => {
         return interpolate(animation.value, [0, 1], [section.startAngle, section.endAngle]);
@@ -94,7 +83,7 @@ export const Section: React.FC<SectionProps> = ({
     });
 
     useLayoutEffect(() => {
-        animation.value = 0; // reset the animation value
+        animation.value = 0;
         const delay = (section.accumulatedValue / totalValue) * totalAnimationTime;
         const duration = ((section.currentPrice * section.quantity) / totalValue) * totalAnimationTime;
         setTimeout(() => {
