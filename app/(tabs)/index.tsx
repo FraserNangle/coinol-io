@@ -27,7 +27,7 @@ export default function TabOneScreen() {
   const dispatch = useDispatch();
 
   let userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
-  let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transactionId);
+  let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
 
   useEffect(() => {
     fetchUserFolio().then((data) => {

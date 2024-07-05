@@ -35,7 +35,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
     const dispatch = useDispatch();
     let selectedSection = useSelector((state: RootState) => state.selectedSection.section);
-    let lastTransactionId = useSelector((state: RootState) => state.lastTransaction.transactionId);
+    let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
 
     const [outerRadius, setOuterRadius] = useState(150);
     const [thickness, setThickness] = useState(30);
@@ -194,11 +194,11 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         }
     }, [sections]);
 
-    // If lastTransactionId is set, find the section with the same id and dispatch setSelectedSection with its details
+    // If lastTransaction is set, find the section with the same id and dispatch setSelectedSection with its details
     useEffect(() => {
         if (sections.length > 0) {
 
-            const lastTransactionSection = sections.find(section => section.id === lastTransactionId);
+            const lastTransactionSection = sections.find(section => section.id === lastTransaction?.id);
 
             const matchingSection = lastTransactionSection || sections.find(section => section.id === "other") || sections[0];
 
@@ -213,7 +213,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 );
             }
         }
-    }, [sections, lastTransactionId, dispatch]);
+    }, [sections, lastTransaction, dispatch]);
 
     useEffect(() => {
         setThickness(outerRadius * 0.3);

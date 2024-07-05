@@ -1,19 +1,20 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { UserTransaction } from "@/app/models/UserTransaction";
 
 interface LastTransactionState {
-  transactionId: string | null;
+  transaction: UserTransaction | null;
 }
 
 const initialState: LastTransactionState = {
-  transactionId: null,
+  transaction: null,
 };
 
 const lastTransactionSlice = createSlice({
   name: "lastTransaction",
   initialState,
   reducers: {
-    setLastTransaction: (state, action) => {
-      state.transactionId = action.payload;
+    setLastTransaction: (state, action: PayloadAction<UserTransaction | null>) => {
+      state.transaction = action.payload;
     },
   },
 });

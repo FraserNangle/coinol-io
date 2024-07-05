@@ -73,7 +73,7 @@ export default function AddTransactionBuySellScreen() {
         addTransactionData(transaction)
             .then(() => {
                 console.log("Transaction added successfully: " + transaction.id);
-                dispatch(setLastTransaction(transaction.id));
+                dispatch(setLastTransaction(transaction));
                 navigation.navigate('index');
             })
             .catch(error => {
@@ -164,7 +164,7 @@ export default function AddTransactionBuySellScreen() {
                 onPress={() => {
                     const newHolding: UserTransaction = {
                         id: item.id,
-                        date: date,
+                        date: date.toLocaleDateString(),
                         quantity: total,
                         type: transactionType,
                     };
