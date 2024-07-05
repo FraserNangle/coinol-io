@@ -46,7 +46,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [sections, setSections] = useState<SectionFolioEntry[]>([]);
     const [refreshCount, setRefreshCount] = useState(0);
     const [otherSectionDetails, setOtherSectionDetails] = useState<FolioEntry>({
-        name: "Other",
+        name: "Other Coins",
         currentPrice: 0,
         quantity: 0,
         id: "other",
@@ -55,7 +55,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         ranking: 0
     });
 
-    const minSliceAngle = 2 * Math.PI * 0.05;
+    const minSliceAngle = 2 * Math.PI * 0.03;
 
     const totalPortfolioValue = useSelector(
         (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
@@ -281,7 +281,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             <Svg width={width} height={height}>
                 <G x={width / 2} y={height / 2}>
                     {sections.map((section, index) => {
-
                         const colorIndex = interpolate(
                             index,
                             [0, sections.length - 1],
@@ -289,9 +288,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                         );
                         const roundedColorIndex = Math.round(colorIndex);
                         const color = donutChartColors[roundedColorIndex];
-
                         section.color = color;
-
                         return (
                             <Section
                                 key={`${section.id}-${refreshCount}`}
