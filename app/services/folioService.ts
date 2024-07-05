@@ -28,6 +28,9 @@ export async function fetchUserFolio() {
             } else if (transaction.type === 'SELL') {
                 existingEntry.quantity -= transaction.quantity;
             }
+            if (existingEntry.quantity <= 0) {
+                folioEntries.splice(folioEntries.indexOf(existingEntry), 1);
+            }
         } else {
             const newQuantity = transaction.type === 'BUY' ? transaction.quantity : -transaction.quantity;
             if (newQuantity > 0) {

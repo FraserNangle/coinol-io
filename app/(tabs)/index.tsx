@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "@/components/index/folioTable/foliotable";
-import { Link, useFocusEffect } from "expo-router";
+import { Link } from "expo-router";
 import { fetchUserFolio } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";
 import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
