@@ -1,4 +1,4 @@
-import { transactionListMock } from "../mocks/transactionListMock";
+import { useSQLiteContext } from "expo-sqlite";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
 import * as SecureStore from 'expo-secure-store';
@@ -11,6 +11,8 @@ export interface ICoinStorageService {
 }
 
 export const addTransactionData = async (newTransaction: UserTransaction) => {
+  const db = useSQLiteContext();
+
   // Save the transaction to the local storage
   const transactions = await SecureStore.getItemAsync('transactions');
   let transactionsArray = [];
@@ -49,11 +51,11 @@ export const getTransactionList = async () => {
     parsedTransactions.forEach((parsedTransaction: any) => {
       const newTransaction: UserTransaction = {
         id: "",
-        date: new Date(),
+        date: new Date().toUTCString(),
         quantity: 0,
         type: ""
       };
-      newTransaction.date = new Date(parsedTransaction.newTransaction.date);
+      newTransaction.date = new Date(parsedTransaction.newTransaction.date).toUTCString();
       newTransaction.id = parsedTransaction.newTransaction.id;
       newTransaction.type = parsedTransaction.newTransaction.type;
       newTransaction.quantity = parsedTransaction.newTransaction.quantity;
