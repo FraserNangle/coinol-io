@@ -119,9 +119,9 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
             getPriceDifferenceDisplay(item.priceChangePercentage24h);
           return (
             <DataTable.Row
-              key={item?.id}
+              key={item?.coinId}
               style={
-                selectedSectionId == item?.id
+                selectedSectionId == item?.coinId
                   ? styles.highlightedRow
                   : styles.row
               }

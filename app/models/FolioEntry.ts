@@ -1,5 +1,5 @@
 export type FolioEntry = {
-    id: string;
+    coinId: string;
     ticker: string;
     name: string;
     currentPrice: number;

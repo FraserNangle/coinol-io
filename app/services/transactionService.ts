@@ -1,4 +1,4 @@
-import { useSQLiteContext } from "expo-sqlite";
+import { SQLiteDatabase } from "expo-sqlite";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
 import * as SecureStore from 'expo-secure-store';
@@ -10,17 +10,34 @@ export interface ICoinStorageService {
   removeCoinData: (coinId: string) => Promise<void>;
 }
 
-export const addTransactionData = async (newTransaction: UserTransaction) => {
-  const db = useSQLiteContext();
+export const addTransactionData = async (db: SQLiteDatabase, newTransaction: UserTransaction) => {
+  await db.execAsync(
+    `CREATE TABLE IF NOT EXISTS transactions (
+      id TEXT PRIMARY KEY NOT NULL,
+      coinId TEXT NOT NULL,
+      quantity REAL NOT NULL,
+      date TEXT NOT NULL,
+      type TEXT NOT NULL
+    );`
+  );
+
+  const result = await db.runAsync('INSERT INTO transactions (id, coinId, quantity, date, type) VALUES (?, ?, ?, ?, ?)',
+    newTransaction.id,
+    newTransaction.coinId,
+    newTransaction.quantity,
+    newTransaction.date,
+    newTransaction.type);
+  console.log(result.lastInsertRowId, result.changes);
+
 
   // Save the transaction to the local storage
-  const transactions = await SecureStore.getItemAsync('transactions');
+  /* const transactions = await SecureStore.getItemAsync('transactions');
   let transactionsArray = [];
   if (transactions) {
     transactionsArray = JSON.parse(transactions);
   }
   transactionsArray.push({ newTransaction });
-  await SecureStore.setItemAsync('transactions', JSON.stringify(transactionsArray));
+  await SecureStore.setItemAsync('transactions', JSON.stringify(transactionsArray)); */
 
   if (!isGuest()) {
     // If the user is not a guest, update the transactions on the server
@@ -50,13 +67,14 @@ export const getTransactionList = async () => {
 
     parsedTransactions.forEach((parsedTransaction: any) => {
       const newTransaction: UserTransaction = {
-        id: "",
+        coinId: "",
         date: new Date().toUTCString(),
         quantity: 0,
-        type: ""
+        type: "",
+        id: ""
       };
       newTransaction.date = new Date(parsedTransaction.newTransaction.date).toUTCString();
-      newTransaction.id = parsedTransaction.newTransaction.id;
+      newTransaction.coinId = parsedTransaction.newTransaction.id;
       newTransaction.type = parsedTransaction.newTransaction.type;
       newTransaction.quantity = parsedTransaction.newTransaction.quantity;
 

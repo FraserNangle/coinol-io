@@ -69,8 +69,8 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   return (
-    <Provider store={store}>
-      <SQLiteProvider databaseName="transaction.db">
+    <SQLiteProvider databaseName="transaction.db">
+      <Provider store={store}>
         <ThemeProvider value={DarkTheme}>
           <Stack
             screenOptions={{
@@ -88,7 +88,7 @@ function RootLayoutNav() {
             />
           </Stack>
         </ThemeProvider>
-      </SQLiteProvider>
-    </Provider>
+      </Provider>
+    </SQLiteProvider>
   );
 }

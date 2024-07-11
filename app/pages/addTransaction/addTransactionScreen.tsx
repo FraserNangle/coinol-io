@@ -9,6 +9,8 @@ import { UserTransaction } from "@/app/models/UserTransaction";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 import { setLastTransaction } from "@/app/slices/lastTransactionSlice";
+import { randomUUID } from "expo-crypto";
+import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
@@ -17,6 +19,8 @@ export default function AddTransactionBuySellScreen() {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [canSell, setCanSell] = useState(false);
+
+    const db = useSQLiteContext();
 
     // Retrieve the item parameter from the currency list page
     const route = useRoute();
@@ -29,7 +33,7 @@ export default function AddTransactionBuySellScreen() {
 
     useEffect(() => {
         userFolio.forEach((folioEntry) => {
-            if (folioEntry.id === item.id && folioEntry.quantity > 0) {
+            if (folioEntry.coinId === item.coinId && folioEntry.quantity > 0) {
                 setCanSell(true);
             }
         });
@@ -63,16 +67,16 @@ export default function AddTransactionBuySellScreen() {
 
     const sellAll = () => {
         userFolio.forEach((folioEntry) => {
-            if (folioEntry.id === item.id) {
+            if (folioEntry.coinId === item.coinId) {
                 setTotal(folioEntry.quantity);
             }
         });
     };
 
-    const addTransaction = (transaction: UserTransaction) => {
-        addTransactionData(transaction)
+    const addTransaction = (db: SQLiteDatabase, transaction: UserTransaction) => {
+        addTransactionData(db, transaction)
             .then(() => {
-                console.log("Transaction added successfully: " + transaction.id);
+                console.log("Transaction added successfully: " + transaction.coinId);
                 dispatch(setLastTransaction(transaction));
                 navigation.navigate('index');
             })
@@ -163,12 +167,13 @@ export default function AddTransactionBuySellScreen() {
                 mode="contained"
                 onPress={() => {
                     const newHolding: UserTransaction = {
-                        id: item.id,
+                        id: randomUUID(),
+                        coinId: item.coinId,
                         date: date.toLocaleDateString(),
                         quantity: total,
                         type: transactionType,
                     };
-                    addTransaction(newHolding)
+                    addTransaction(db, newHolding)
                 }}>
                 ADD TRANSACTION
             </Button>

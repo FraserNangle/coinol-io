@@ -15,13 +15,10 @@ import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from ".
 import { setUserFolio } from "../slices/userFolioSlice";
 import { RootState } from "../store/store";
 import { DonutChart } from "@/components/index/donutChart/donutChart";
-import { useSQLiteContext } from "expo-sqlite";
-import { UserTransaction } from "../models/UserTransaction";
 
 const CURRENCY_TYPE = "USD";
 
 export default function TabOneScreen() {
-  const db = useSQLiteContext();
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
   const [refreshing, setRefreshing] = useState(false);
@@ -29,23 +26,6 @@ export default function TabOneScreen() {
 
   let userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
   let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
-
-  useEffect(() => {
-    db.execAsync(
-      `CREATE TABLE IF NOT EXISTS transactions (
-        id TEXT PRIMARY KEY NOT NULL,
-        coinId TEXT NOT NULL,
-        quantity REAL NOT NULL,
-        date TEXT NOT NULL,
-        type TEXT NOT NULL
-      );`
-    );
-  }, []);
-
-  useEffect(() => {
-    const transactions = db.getAllAsync<UserTransaction>('SELECT * FROM transactions');
-    transactions.then((data) => console.log(data));
-  }, [db]);
 
   useEffect(() => {
     fetchUserFolio().then((data) => {

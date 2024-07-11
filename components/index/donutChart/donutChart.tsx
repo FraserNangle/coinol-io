@@ -49,7 +49,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         name: "Other Coins",
         currentPrice: 0,
         quantity: 0,
-        id: "other",
+        coinId: "other",
         ticker: "OTHER",
         priceChangePercentage24h: 0,
         ranking: 0
@@ -117,7 +117,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     useEffect(() => {
         if (otherItemValue > 0) {
             setSignificantItems((prevItems) => {
-                const filteredItems = prevItems.filter(item => item.id !== "other");
+                const filteredItems = prevItems.filter(item => item.coinId !== "other");
                 return [...filteredItems, otherSectionDetails];
             });
         }
@@ -198,9 +198,9 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     useEffect(() => {
         if (sections.length > 0) {
 
-            const lastTransactionSection = sections.find(section => section.id === lastTransaction?.id);
+            const lastTransactionSection = sections.find(section => section.coinId === lastTransaction?.coinId);
 
-            const matchingSection = lastTransactionSection || sections.find(section => section.id === "other") || sections[0];
+            const matchingSection = lastTransactionSection || sections.find(section => section.coinId === "other") || sections[0];
 
             // If a matching section is found, dispatch setSelectedSection with its details
             if (matchingSection) {
@@ -291,7 +291,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                         section.color = color;
                         return (
                             <Section
-                                key={`${section.id}-${refreshCount}`}
+                                key={`${section.coinId}-${refreshCount}`}
                                 section={section}
                                 index={index}
                                 totalValue={totalPortfolioValue}

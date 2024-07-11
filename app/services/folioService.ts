@@ -8,7 +8,7 @@ export async function fetchUserFolio() {
     const transactionList: UserTransaction[] = await getTransactionList();
 
     // Send the unique coinIds from the transactionList to the backend to get the complex data of each coin
-    const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.id))];
+    const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.coinId))];
 
     let coinsMarketsList: CoinsMarkets[] = [];
 
@@ -19,8 +19,8 @@ export async function fetchUserFolio() {
     // populate the folio entries based on the transactionList and the coinsMarketsList
     const folioEntries: FolioEntry[] = [];
     transactionList.forEach((transaction) => {
-        const existingEntry = folioEntries.find((entry) => entry.id === transaction.id);
-        const coinMarket = coinsMarketsList.find((coinMarket) => coinMarket.id === transaction.id);
+        const existingEntry = folioEntries.find((entry) => entry.coinId === transaction.coinId);
+        const coinMarket = coinsMarketsList.find((coinMarket) => coinMarket.id === transaction.coinId);
 
         if (existingEntry) {
             if (transaction.type === 'BUY') {
@@ -35,7 +35,7 @@ export async function fetchUserFolio() {
             const newQuantity = transaction.type === 'BUY' ? transaction.quantity : -transaction.quantity;
             if (newQuantity > 0) {
                 folioEntries.push({
-                    id: transaction.id,
+                    coinId: transaction.coinId,
                     quantity: newQuantity,
                     ticker: coinMarket ? coinMarket.symbol : "",
                     name: coinMarket ? coinMarket.name : "",
