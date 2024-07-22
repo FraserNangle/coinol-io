@@ -21,7 +21,7 @@ export interface DonutSection {
     endAngle: number;
     accumulatedValue: number;
     name: string;
-    id: string;
+    coinId: string;
     quantity: number;
     currentPrice: number;
 }
@@ -92,7 +92,7 @@ export const Section: React.FC<SectionProps> = ({
     }, [section.currentPrice, section.quantity, section.accumulatedValue, totalValue, totalAnimationTime]);
 
     useLayoutEffect(() => {
-        scale.value = withTiming(selectedSection?.details?.id === section.id ? 1.1 : 1, {
+        scale.value = withTiming(selectedSection?.details?.coinId === section.coinId ? 1.1 : 1, {
             duration: 200,
         });
 
