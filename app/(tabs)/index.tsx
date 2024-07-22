@@ -15,6 +15,7 @@ import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from ".
 import { setUserFolio } from "../slices/userFolioSlice";
 import { RootState } from "../store/store";
 import { DonutChart } from "@/components/index/donutChart/donutChart";
+import { useSQLiteContext } from "expo-sqlite";
 
 const CURRENCY_TYPE = "USD";
 
@@ -22,26 +23,29 @@ export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
   const [refreshing, setRefreshing] = useState(false);
+
+  const db = useSQLiteContext();
+
   const dispatch = useDispatch();
 
   let userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
   let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
 
   useEffect(() => {
-    fetchUserFolio().then((data) => {
+    fetchUserFolio(db).then((data) => {
       dispatch(setUserFolio(data));
     });
   }, []);
 
   useEffect(() => {
-    fetchUserFolio().then((data) => {
+    fetchUserFolio(db).then((data) => {
       dispatch(setUserFolio(data));
     });
   }, [lastTransaction]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchUserFolio().then((data) => {
+    fetchUserFolio(db).then((data) => {
       dispatch(setUserFolio(data));
       setRefreshing(false);
     });

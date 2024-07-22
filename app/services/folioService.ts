@@ -3,9 +3,10 @@ import { UserTransaction } from "../models/UserTransaction";
 import { getTransactionList } from "./transactionService";
 import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
+import { SQLiteDatabase } from "expo-sqlite";
 
-export async function fetchUserFolio() {
-    const transactionList: UserTransaction[] = await getTransactionList();
+export async function fetchUserFolio(db: SQLiteDatabase) {
+    const transactionList: UserTransaction[] = await getTransactionList(db);
 
     // Send the unique coinIds from the transactionList to the backend to get the complex data of each coin
     const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.coinId))];
