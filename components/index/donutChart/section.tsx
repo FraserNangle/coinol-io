@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useCallback, useMemo } from "react";
+import React, { useLayoutEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { G } from "react-native-svg";
 import {
@@ -15,19 +15,10 @@ import {
 } from "@/app/styling/donutChartAnimation";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
 import { RootState } from "@/app/store/store";
-
-export interface DonutSection {
-    startAngle: number;
-    endAngle: number;
-    accumulatedValue: number;
-    name: string;
-    coinId: string;
-    quantity: number;
-    currentPrice: number;
-}
+import { SectionFolioEntry } from "@/app/models/FolioEntry";
 
 interface SectionProps {
-    section: DonutSection,
+    section: SectionFolioEntry,
     index: number,
     totalValue: number,
     outerRadius: number,
@@ -103,8 +94,8 @@ export const Section: React.FC<SectionProps> = ({
     }, [selectedSection]);
 
     const handlePress = useCallback(() => {
-        console.log("Section pressed: ", index, section.name);
-        dispatch(setSelectedSection({ details: section, index: index, color: color }));
+        console.log("Section pressed: ", index, section);
+        dispatch(setSelectedSection({ details: section, index: index }));
     }, [setSelectedSection]);
 
     return (

@@ -1,8 +1,8 @@
-import { DonutSection } from "@/components/index/donutChart/section";
 import { createSlice } from "@reduxjs/toolkit";
+import { SectionFolioEntry } from "../models/FolioEntry";
 
 interface SelectedSectionState {
-  section: { details: DonutSection | undefined, index: number | null, color: string | undefined } | undefined;
+  section: { details: SectionFolioEntry | undefined, index: number | null } | undefined;
 }
 
 const initialState: SelectedSectionState = {

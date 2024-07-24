@@ -40,20 +40,9 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [outerRadius, setOuterRadius] = useState(150);
     const [thickness, setThickness] = useState(30);
     const [displayMode, setDisplayMode] = useState("percentage");
-    const [significantItems, setSignificantItems] = useState<FolioEntry[]>([]);
     const [sortedData, setSortedData] = useState<FolioEntry[]>([]);
-    const [otherItemValue, setOtherItemValue] = useState(0);
     const [sections, setSections] = useState<SectionFolioEntry[]>([]);
     const [refreshCount, setRefreshCount] = useState(0);
-    const [otherSectionDetails, setOtherSectionDetails] = useState<FolioEntry>({
-        name: "Other Coins",
-        currentPrice: 0,
-        quantity: 0,
-        coinId: "other",
-        ticker: "OTHER",
-        priceChangePercentage24h: 0,
-        ranking: 0
-    });
 
     const minSliceAngle = 2 * Math.PI * 0.03;
 
@@ -66,7 +55,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     };
 
     useEffect(() => {
-        console.log("Data changed, refreshing...");
         forceRefresh();
     }, [data]);
 
@@ -75,65 +63,19 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             console.log("Total Portfolio Value is 0");
             return;
         }
-
-        setSignificantItems(data.filter((folioEntry) =>
-            (folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue >= 0.05
-        ));
-
-        setOtherSectionDetails(details => ({
-            ...details,
-            currentPrice: (() => {
-                let smallEntries = 0;
-                const total = data.reduce((acc, folioEntry) => {
-                    if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
-                        smallEntries += 1;
-                        return acc + folioEntry?.currentPrice;
-                    }
-                    return acc;
-                }, 0);
-                return smallEntries > 0 ? total / smallEntries : 0;
-            })(),
-            quantity: (() => {
-                let smallEntries = 0; // Initialize counter for entries that pass the condition
-                const totalQuantity = data.reduce((acc, folioEntry) => {
-                    if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
-                        smallEntries += 1; // Increment counter for each entry that passes the condition
-                        return acc + folioEntry?.quantity;
-                    }
-                    return acc;
-                }, 0);
-                return smallEntries > 0 ? totalQuantity / smallEntries : 0; // Divide total by count if count is not zero
-            })()
-        }));
-        setOtherItemValue(data.reduce((acc, folioEntry) => {
-            if ((folioEntry?.quantity * folioEntry?.currentPrice) / totalPortfolioValue < 0.05) {
-                return acc + (folioEntry?.quantity * folioEntry?.currentPrice);
-            }
-            return acc;
-        }, 0));
-
+        setSortedData([...data].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity)));
     }, [data, totalPortfolioValue]);
-
-    useEffect(() => {
-        if (otherItemValue > 0) {
-            setSignificantItems((prevItems) => {
-                const filteredItems = prevItems.filter(item => item.coinId !== "other");
-                return [...filteredItems, otherSectionDetails];
-            });
-        }
-    }, [otherSectionDetails, data]);
-
-    useEffect(() => {
-        setSortedData([...significantItems].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity)));
-    }, [significantItems]);
 
     useEffect(() => {
         setSections([]);
         let startAngle = -Math.PI / 2;
         let accumulatedValue = 0;
 
+
         setSections(sortedData.map((folioEntry) => {
+            console.log("setting sections");
             const gapSize = 2 / outerRadius;
+
             const sliceAngle = Math.max(
                 2 * Math.PI * ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue),
                 minSliceAngle
@@ -154,6 +96,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
     }, [sortedData]);
 
+    // prevents donut from wrapping more than 360 degrees
     useEffect(() => {
         const totalAngle = sections.reduce(
             (total, section) => total + (section.endAngle - section.startAngle),
@@ -176,16 +119,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         }
     }, [sections]);
 
-    let displayValue;
-    if (displayMode === "percentage" && selectedSection?.details) {
-        const percentage = ((selectedSection?.details?.currentPrice * selectedSection?.details?.quantity) / totalPortfolioValue) * 100;
-        displayValue = `${percentage.toFixed(2)}%`;
-    } else if (displayMode === "value" && selectedSection?.details?.currentPrice) {
-        displayValue = formatCurrency(selectedSection?.details.currentPrice, currencyTicker);
-    } else if (displayMode === "quantity" && selectedSection?.details?.quantity) {
-        displayValue = formatQuantity(Number(selectedSection?.details.quantity));
-    }
-
     useEffect(() => {
         if (sections.length > 0 && selectedSection === undefined) {
             dispatch(
@@ -197,7 +130,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     // If lastTransaction is set, find the section with the same id and dispatch setSelectedSection with its details
     useEffect(() => {
         if (sections.length > 0) {
-
             const lastTransactionSection = sections.find(section => section.coinId === lastTransaction?.coinId);
 
             const matchingSection = lastTransactionSection || sections.find(section => section.coinId === "other") || sections[0];
@@ -208,7 +140,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                     setSelectedSection({
                         details: matchingSection,
                         index: sections.indexOf(matchingSection),
-                        color: matchingSection?.color
                     })
                 );
             }
@@ -239,6 +170,18 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [selectedSection]);
 
     const circleSize = 10;
+
+    function getDisplayValue() {
+        console.log("getting display value");
+        if (displayMode === "percentage" && selectedSection?.details) {
+            const percentage = ((selectedSection?.details?.currentPrice * selectedSection?.details?.quantity) / totalPortfolioValue) * 100;
+            return `${percentage.toFixed(2)}%`;
+        } else if (displayMode === "value" && selectedSection?.details?.currentPrice) {
+            return formatCurrency(selectedSection?.details.currentPrice, currencyTicker);
+        } else if (displayMode === "quantity" && selectedSection?.details?.quantity) {
+            return formatQuantity(Number(selectedSection?.details.quantity));
+        }
+    };
 
     function formatQuantity(quantity: number) {
         if (quantity >= 1e9) {
@@ -289,6 +232,9 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                         const roundedColorIndex = Math.round(colorIndex);
                         const color = donutChartColors[roundedColorIndex];
                         section.color = color;
+
+                        console.log(`${section.coinId}-${refreshCount}`);
+
                         return (
                             <Section
                                 key={`${section.coinId}-${refreshCount}`}
@@ -308,7 +254,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                     {selectedSection && (
                         <View>
                             <Text style={styles.selectedSliceValue}>
-                                {displayValue}
+                                {getDisplayValue()}
                             </Text>
                             {selectedSection.image ? (
                                 <Image
@@ -320,7 +266,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                 />
                             ) : (
                                 <G style={styles.selectedSliceCircle}>
-                                    <Circle r={circleSize} fill={selectedSection.color} />
+                                    <Circle r={circleSize} fill={selectedSection?.details?.color} />
                                 </G>
                             )}
                             <Text style={styles.selectedSliceName}>
