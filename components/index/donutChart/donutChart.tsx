@@ -1,6 +1,7 @@
 import React, {
     useState,
     useEffect,
+    useCallback,
 } from "react";
 import { View, StyleSheet, Image } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
@@ -34,8 +35,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const styles = getStyles();
 
     const dispatch = useDispatch();
-    let selectedSection = useSelector((state: RootState) => state.selectedSection.section);
-    let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
+    const selectedSection = useSelector(
+        (state: RootState) => state.selectedSection.section
+    );
+    const lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
 
     const [outerRadius, setOuterRadius] = useState(150);
     const [thickness, setThickness] = useState(30);
@@ -150,7 +153,15 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         setThickness(outerRadius * 0.3);
     }, [outerRadius]);
 
-    const toggleDisplayMode = React.useCallback(() => {
+    useEffect(() => {
+        if (selectedSection) {
+            console.log("Selected section updated:", selectedSection);
+            // Call getDisplayValue or any other function that depends on selectedSection here
+            getDisplayValue();
+        }
+    }, [selectedSection]);
+
+    const toggleDisplayMode = useCallback(() => {
         setDisplayMode((prevMode) => {
             let newMode;
             switch (prevMode) {
@@ -171,8 +182,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
     const circleSize = 10;
 
-    function getDisplayValue() {
-        console.log("getting display value");
+    const getDisplayValue = useCallback(() => {
         if (displayMode === "percentage" && selectedSection?.details) {
             const percentage = ((selectedSection?.details?.currentPrice * selectedSection?.details?.quantity) / totalPortfolioValue) * 100;
             return `${percentage.toFixed(2)}%`;
@@ -181,7 +191,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         } else if (displayMode === "quantity" && selectedSection?.details?.quantity) {
             return formatQuantity(Number(selectedSection?.details.quantity));
         }
-    };
+    }, [selectedSection, displayMode, totalPortfolioValue, refreshCount]);
 
     function formatQuantity(quantity: number) {
         if (quantity >= 1e9) {
@@ -232,8 +242,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                         const roundedColorIndex = Math.round(colorIndex);
                         const color = donutChartColors[roundedColorIndex];
                         section.color = color;
-
-                        console.log(`${section.coinId}-${refreshCount}`);
 
                         return (
                             <Section

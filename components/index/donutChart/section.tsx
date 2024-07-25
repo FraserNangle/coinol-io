@@ -94,9 +94,8 @@ export const Section: React.FC<SectionProps> = ({
     }, [selectedSection]);
 
     const handlePress = useCallback(() => {
-        console.log("Section pressed: ", index, section);
         dispatch(setSelectedSection({ details: section, index: index }));
-    }, [setSelectedSection]);
+    }, [dispatch, index, section]);
 
     return (
         <G>
