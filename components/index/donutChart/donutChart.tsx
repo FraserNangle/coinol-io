@@ -47,7 +47,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [sections, setSections] = useState<SectionFolioEntry[]>([]);
     const [refreshCount, setRefreshCount] = useState(0);
 
-    const minSliceAngle = 2 * Math.PI * 0.03;
+    const minSliceAngle = 2 * Math.PI * 0.02;
 
     const totalPortfolioValue = useSelector(
         (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
@@ -76,7 +76,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
 
         setSections(sortedData.map((folioEntry) => {
-            console.log("setting sections");
             const gapSize = 2 / outerRadius;
 
             const sliceAngle = Math.max(
@@ -152,14 +151,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     useEffect(() => {
         setThickness(outerRadius * 0.3);
     }, [outerRadius]);
-
-    useEffect(() => {
-        if (selectedSection) {
-            console.log("Selected section updated:", selectedSection);
-            // Call getDisplayValue or any other function that depends on selectedSection here
-            getDisplayValue();
-        }
-    }, [selectedSection]);
 
     const toggleDisplayMode = useCallback(() => {
         setDisplayMode((prevMode) => {
