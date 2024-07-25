@@ -1,5 +1,5 @@
 export type FolioEntry = {
-    id: string;
+    coinId: string;
     ticker: string;
     name: string;
     currentPrice: number;
@@ -7,3 +7,10 @@ export type FolioEntry = {
     ranking: number;
     quantity: number;
 };
+
+export interface SectionFolioEntry extends FolioEntry {
+    startAngle: number;
+    endAngle: number;
+    accumulatedValue: number;
+    color: string;
+}

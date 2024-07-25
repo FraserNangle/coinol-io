@@ -3,12 +3,13 @@ import { UserTransaction } from "../models/UserTransaction";
 import { getTransactionList } from "./transactionService";
 import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
+import { SQLiteDatabase } from "expo-sqlite";
 
-export async function fetchUserFolio() {
-    const transactionList: UserTransaction[] = await getTransactionList();
+export async function fetchUserFolio(db: SQLiteDatabase) {
+    const transactionList: UserTransaction[] = await getTransactionList(db);
 
     // Send the unique coinIds from the transactionList to the backend to get the complex data of each coin
-    const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.id))];
+    const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.coinId))];
 
     let coinsMarketsList: CoinsMarkets[] = [];
 
@@ -19,20 +20,23 @@ export async function fetchUserFolio() {
     // populate the folio entries based on the transactionList and the coinsMarketsList
     const folioEntries: FolioEntry[] = [];
     transactionList.forEach((transaction) => {
-        const existingEntry = folioEntries.find((entry) => entry.id === transaction.id);
-        const coinMarket = coinsMarketsList.find((coinMarket) => coinMarket.id === transaction.id);
+        const existingEntry = folioEntries.find((entry) => entry.coinId === transaction.coinId);
+        const coinMarket = coinsMarketsList.find((coinMarket) => coinMarket.id === transaction.coinId);
 
         if (existingEntry) {
-            if (transaction.type === 'buy') {
+            if (transaction.type === 'BUY') {
                 existingEntry.quantity += transaction.quantity;
-            } else if (transaction.type === 'sell') {
+            } else if (transaction.type === 'SELL') {
                 existingEntry.quantity -= transaction.quantity;
             }
+            if (existingEntry.quantity <= 0) {
+                folioEntries.splice(folioEntries.indexOf(existingEntry), 1);
+            }
         } else {
-            const newQuantity = transaction.type === 'buy' ? transaction.quantity : -transaction.quantity;
+            const newQuantity = transaction.type === 'BUY' ? transaction.quantity : -transaction.quantity;
             if (newQuantity > 0) {
                 folioEntries.push({
-                    id: transaction.id,
+                    coinId: transaction.coinId,
                     quantity: newQuantity,
                     ticker: coinMarket ? coinMarket.symbol : "",
                     name: coinMarket ? coinMarket.name : "",

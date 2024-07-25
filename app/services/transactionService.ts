@@ -1,4 +1,4 @@
-import { transactionListMock } from "../mocks/transactionListMock";
+import { SQLiteDatabase } from "expo-sqlite";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
 import * as SecureStore from 'expo-secure-store';
@@ -10,8 +10,24 @@ export interface ICoinStorageService {
   removeCoinData: (coinId: string) => Promise<void>;
 }
 
-// Function to add transaction data to the local store (Create)
-export const addTransactionData = async (newTransaction: UserTransaction) => {
+export const addTransactionData = async (db: SQLiteDatabase, newTransaction: UserTransaction) => {
+  await db.execAsync(
+    `CREATE TABLE IF NOT EXISTS transactions (
+      id TEXT PRIMARY KEY NOT NULL,
+      coinId TEXT NOT NULL,
+      quantity REAL NOT NULL,
+      date TEXT NOT NULL,
+      type TEXT NOT NULL
+    );`
+  );
+
+  await db.runAsync('INSERT INTO transactions (id, coinId, quantity, date, type) VALUES (?, ?, ?, ?, ?)',
+    newTransaction.id,
+    newTransaction.coinId,
+    newTransaction.quantity,
+    newTransaction.date,
+    newTransaction.type);
+
   if (!isGuest()) {
     // If the user is not a guest, update the transactions on the server
     const response = await api.post('/holdings', {
@@ -21,42 +37,32 @@ export const addTransactionData = async (newTransaction: UserTransaction) => {
     if (response.status >= 200 && response.status < 300) {
       return response.data;
     }
-  } else {
-    // If the user is a guest, update the local holdings
-    const transactions = await SecureStore.getItemAsync('transactions');
-    let transactionsArray = [];
-    if (transactions) {
-      transactionsArray = JSON.parse(transactions);
-    }
-    transactionsArray.push({ newTransaction });
-    await SecureStore.setItemAsync('transactions', JSON.stringify(transactionsArray));
   }
 };
 
-// Retrieve the user's transaction list (Read)
-export const getTransactionList = async () => {
-  if (process.env.NODE_ENV === 'development') {
-    // Mock the data in development environment
-    return new Promise<UserTransaction[]>((resolve) => {
-      setTimeout(() => {
-        resolve(transactionListMock);
-      }, 1000); // Simulate a delay of 1 second
-    });
+export const getTransactionList = async (db: SQLiteDatabase) => {
+  if (!isGuest()) {
+    // If the user is not a guest, download the transactions from the server and save them to local storage
+    await downloadTransactionsToLocalStorage();
+  }
+
+  const transactions = await db.getAllAsync<UserTransaction>('SELECT * FROM transactions');
+
+  if (transactions.length > 0) {
+    return transactions;
   } else {
-    const isUserGuest = await isGuest();
-    if (!isUserGuest) {
-      // If the user is not a guest, retrieve the transactions from the server
-      const response = await api.get<UserTransaction[]>('/holdings');
-      return response.data;
-    } else {
-      // If the user is a guest, retrieve the transactions from the local storage
-      const holdingsCredentials = await SecureStore.getItemAsync('holdings');
-      if (holdingsCredentials) {
-        return JSON.parse(holdingsCredentials) as UserTransaction[];
-      }
-      return [];
-    }
-  };
+    return [];
+  }
+}
+
+async function downloadTransactionsToLocalStorage() {
+  // download the transactions from the server and save them to local storage
+  const response = await api.get<UserTransaction[]>('/holdings');
+
+  if (response.data.length > 0) {
+    //TODO: Compare the transactions with the ones in the local storage and see which is more recent then update accordingly
+    console.log("Transactions downloaded from the server: ", response.data);
+  }
 }
 
 // Function to get the quantity of a specific coin in the local store (Read)
@@ -65,15 +71,8 @@ export const getCoinQuantity = async (coinId: string) => {
     // If the user is not a guest, retrieve the coin quantity from the server
     const response = await api.get(`/holdings/${coinId}`);
     return response.data.quantity;
-  } else {
-    // If the user is a guest, retrieve the coin quantity from the local storage
-    const holdingsCredentials = await SecureStore.getItemAsync('holdings');
-    if (holdingsCredentials) {
-      const holdings = JSON.parse(holdingsCredentials);
-      const coin = holdings.find((coin: { coinId: string }) => coin.coinId === coinId);
-      return coin ? coin.quantity : 0;
-    }
   }
+  //TODO: integrate this with sqlite system if needed
 };
 
 // Function to update coin data in the local store (Update)
@@ -87,18 +86,7 @@ export const updateCoinData = async (coinId: string, newQuantity: number) => {
     if (response.status >= 200 && response.status < 300) {
       return response.data;
     }
-  } else {
-    // If the user is a guest, update the coin data in the local storage
-    let holdings = [];
-    const holdingsCredentials = await SecureStore.getItemAsync('holdings');
-    if (holdingsCredentials) {
-      holdings = JSON.parse(holdingsCredentials);
-    }
-    const coinIndex = holdings.findIndex((coin: { coinId: string }) => coin.coinId === coinId);
-    if (coinIndex !== -1) {
-      holdings[coinIndex].quantity = newQuantity;
-    }
-    await SecureStore.setItemAsync('holdings', JSON.stringify(holdings));
+    //TODO: integrate this with sqlite system if needed
   }
 };
 
@@ -111,18 +99,11 @@ export const removeCoinData = async (coinId: string) => {
     if (response.status >= 200 && response.status < 300) {
       return response.data;
     }
-  } else {
-    // If the user is a guest, remove the coin data from the local storage
-    let holdings = [];
-    const holdingsCredentials = await SecureStore.getItemAsync('holdings');
-    if (holdingsCredentials) {
-      holdings = JSON.parse(holdingsCredentials);
-    }
-    holdings = holdings.filter((coin: { coinId: string }) => coin.coinId !== coinId);
-    await SecureStore.setItemAsync('holdings', JSON.stringify(holdings));
   }
+  //TODO: integrate this with sqlite system if needed
 };
 
-export const deleteAllHoldings = async () => {
-  await SecureStore.deleteItemAsync('holdings');
+export const deleteAllTransactionsFromLocalStorage = async (db: SQLiteDatabase) => {
+  console.log("Deleting all transactions from local storage");
+  await db.execAsync('DELETE FROM transactions');
 };

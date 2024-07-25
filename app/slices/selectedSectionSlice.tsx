@@ -1,11 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { SectionFolioEntry } from "../models/FolioEntry";
 
-interface SelectedSliceState {
-  value: string | null;
+interface SelectedSectionState {
+  section: { details: SectionFolioEntry | undefined, index: number | null } | undefined;
 }
 
-const initialState: SelectedSliceState = {
-  value: null,
+const initialState: SelectedSectionState = {
+  section: undefined,
 };
 
 const selectedSectionSlice = createSlice({
@@ -13,7 +14,7 @@ const selectedSectionSlice = createSlice({
   initialState,
   reducers: {
     setSelectedSection: (state, action) => {
-      state.value = action.payload;
+      state.section = action.payload;
     },
   },
 });
