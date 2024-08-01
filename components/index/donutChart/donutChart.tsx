@@ -216,20 +216,16 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }
 
     const pan = Gesture.Pan()
-        .onStart(() => {
-            console.log("Pan started");
-
-            sections.forEach((section, index) => {
-                console.log(section.coinId, "with", section.startAngle, section.endAngle);
-            });
-
-        })
         .onChange((event) => {
             const { absoluteX: x, absoluteY: y } = event;
             sections.forEach((section, index) => {
                 const pointIsInSection = isPointInSection(x, y, section);
                 if (pointIsInSection) {
-                    console.log("point is in section", section.coinId, "with", section.startAngle, section.endAngle);
+                    if (selectedSection?.details?.coinId === section.coinId) {
+                        return;
+                    } else {
+                        dispatch(setSelectedSection({ details: section, index: index }));
+                    }
                 }
             });
         }).runOnJS(true);
@@ -242,7 +238,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         const dy = y - (centerY + height / 4);
 
         if (dx * dx + dy * dy < innerRadius * innerRadius || dx * dx + dy * dy > outerRadius * outerRadius) {
-            console.log("Point is outside the radius range");
             return false;
         }
 
