@@ -97,6 +97,7 @@ export const Section: React.FC<SectionProps> = ({
         dispatch(setSelectedSection({ details: section, index: index }));
     }, [dispatch, index, section]);
 
+
     return (
         <G>
             <AnimatedPath
