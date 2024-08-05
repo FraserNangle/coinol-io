@@ -33,6 +33,7 @@ export default function MetaMaskWalletScreen() {
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.textInput}
+                            value={walletAddress}
                             placeholder="Wallet Address"
                             onChangeText={setWalletAddress}
                             multiline={false}
@@ -95,6 +96,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'hsl(0, 0%, 15%)',
         paddingBottom: 10,
+        justifyContent: "center",
     },
     qrCodeIcon: {
         flex: .1,
