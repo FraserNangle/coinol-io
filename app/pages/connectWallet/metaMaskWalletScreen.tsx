@@ -24,23 +24,29 @@ export default function MetaMaskWalletScreen() {
     return (
         <View style={styles.screenContainer}>
             <View style={styles.tableContainer}>
-                <View style={styles.title}>
-                    <View style={styles.walletOption}>
-                        <Image source={require('@/assets/images/MetaMask_Fox.png')} style={styles.logo} />
-                        <Text>Metamask</Text>
-                    </View>
+                <View style={styles.walletOption}>
+                    <Image source={require('@/assets/images/MetaMask_Fox.png')} style={styles.logo} />
+                    <Text>Metamask</Text>
                 </View>
+                <Text style={{ fontWeight: 200, paddingLeft: 10, fontSize: 12 }}>Wallet Address</Text>
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.textInput}
                         placeholder="Enter MetaMask Wallet Address"
                         value={walletAddress}
                         onChangeText={setWalletAddress}
+                        multiline={false}
+                        numberOfLines={1}
+                        placeholderTextColor={'hsl(0, 0%, 60%)'}
+                        selectionColor="white"
+                        cursorColor="white"
+                        textAlign="right"
                     />
                     <Button onPress={handlePaste}
                         buttonColor="hsl(0, 0%, 25%)"
-                        compact
                         mode="contained"
+                        compact
+                        style={{ marginRight: 5 }}
                     >Paste</Button>
                 </View>
             </View>
@@ -63,17 +69,22 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     inputContainer: {
+        backgroundColor: 'hsl(0, 0%, 15%)',
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'flex-end',
+        alignContent: 'center',
+        borderColor: 'gray',
+        borderRadius: 10,
+        borderWidth: 1,
     },
     textInput: {
-        flex: 1,
-        borderColor: 'gray',
-        borderWidth: 1,
         padding: 10,
         marginRight: 10,
+        color: 'white',
     },
     walletOption: {
+        flexDirection: "row",
         alignItems: 'center',
         backgroundColor: 'hsl(0, 0%, 15%)',
         padding: 10,
@@ -93,13 +104,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'hsl(0, 0%, 15%)',
         padding: 10,
     },
-    title: {
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: 'hsl(0, 0%, 15%)',
-        padding: 10,
-        fontWeight: "bold",
-    },
     subtitle: {
         flexDirection: "row",
         justifyContent: "center",
@@ -108,8 +112,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     logo: {
-        width: 50,
-        height: 50,
-        marginBottom: 5,
+        width: 30,
+        height: 30,
     },
 });
