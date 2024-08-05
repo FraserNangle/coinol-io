@@ -56,24 +56,21 @@ const styles = StyleSheet.create({
     walletOption: {
         alignItems: 'center',
         backgroundColor: 'hsl(0, 0%, 15%)',
-        padding: 10,
     },
     bold: {
         fontWeight: "bold",
     },
     row: {
         flexDirection: "row",
-        justifyContent: "space-around",
-        alignItems: "center",
+        justifyContent: "space-evenly",
         backgroundColor: 'hsl(0, 0%, 15%)',
-        padding: 10,
     },
     title: {
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: 'hsl(0, 0%, 15%)',
-        padding: 10,
         fontWeight: "bold",
+        paddingBottom: 10,
     },
     logo: {
         width: 50,

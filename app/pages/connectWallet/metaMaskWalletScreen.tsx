@@ -1,4 +1,4 @@
-import { StyleSheet, Image, TextInput } from "react-native";
+import { StyleSheet, Image, TextInput, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useState } from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -29,25 +29,29 @@ export default function MetaMaskWalletScreen() {
                     <Text>Metamask</Text>
                 </View>
                 <Text style={{ fontWeight: 200, paddingLeft: 10, fontSize: 12 }}>Wallet Address</Text>
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Enter MetaMask Wallet Address"
-                        value={walletAddress}
-                        onChangeText={setWalletAddress}
-                        multiline={false}
-                        numberOfLines={1}
-                        placeholderTextColor={'hsl(0, 0%, 60%)'}
-                        selectionColor="white"
-                        cursorColor="white"
-                        textAlign="right"
-                    />
-                    <Button onPress={handlePaste}
-                        buttonColor="hsl(0, 0%, 25%)"
-                        mode="contained"
-                        compact
-                        style={{ marginRight: 5 }}
-                    >Paste</Button>
+                <View style={styles.rowWithQr}>
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Wallet Address"
+                            onChangeText={setWalletAddress}
+                            multiline={false}
+                            numberOfLines={1}
+                            placeholderTextColor={'hsl(0, 0%, 60%)'}
+                            selectionColor="white"
+                            cursorColor="white"
+                            textAlign="left"
+                        />
+                        <Button onPress={handlePaste}
+                            buttonColor="hsl(0, 0%, 25%)"
+                            mode="contained"
+                            compact
+                            style={{ marginRight: 5 }}
+                        >Paste</Button>
+                    </View>
+                    <TouchableOpacity style={styles.qrCodeIcon}>
+                        <FontAwesome name="qrcode" color={"white"} size={styles.logo.width} style={styles.logo} />
+                    </TouchableOpacity>
                 </View>
             </View>
             {permissionWarning()}
@@ -69,25 +73,34 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     inputContainer: {
-        backgroundColor: 'hsl(0, 0%, 15%)',
+        flex: 1,
+        justifyContent: "flex-end",
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'flex-end',
-        alignContent: 'center',
-        borderColor: 'gray',
+        backgroundColor: 'hsl(0, 0%, 15%)',
+        borderColor: 'hsl(0, 0%, 60%)',
         borderRadius: 10,
         borderWidth: 1,
+        height: 60,
+        overflow: "hidden",
     },
     textInput: {
+        flex: 1,
         padding: 10,
-        marginRight: 10,
         color: 'white',
+        backgroundColor: 'hsl(0, 0%, 15%)',
     },
     walletOption: {
         flexDirection: "row",
         alignItems: 'center',
         backgroundColor: 'hsl(0, 0%, 15%)',
-        padding: 10,
+        paddingBottom: 10,
+    },
+    qrCodeIcon: {
+        flex: .1,
+        flexDirection: "row",
+        alignItems: 'center',
+        paddingLeft: 10,
     },
     bold: {
         fontWeight: "bold",
@@ -97,19 +110,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         paddingLeft: 10,
     },
-    row: {
+    rowWithQr: {
         flexDirection: "row",
-        justifyContent: "space-around",
+        justifyContent: "space-between",
         alignItems: "center",
+        height: 60,
         backgroundColor: 'hsl(0, 0%, 15%)',
-        padding: 10,
-    },
-    subtitle: {
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: 'hsl(0, 0%, 15%)',
-        padding: 10,
     },
     logo: {
         width: 30,
