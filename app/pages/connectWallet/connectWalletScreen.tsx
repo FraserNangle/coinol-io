@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     walletOption: {
+        flex: 1,
         alignItems: 'center',
         backgroundColor: 'hsl(0, 0%, 15%)',
     },

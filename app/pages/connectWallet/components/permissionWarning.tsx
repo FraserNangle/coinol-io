@@ -7,7 +7,7 @@ export default function permissionWarning() {
             name="shield"
             size={30}
             color={"green"}
-            style={{ paddingLeft: 10 }} />
+            style={{ padding: 10, flex: .1 }} />
         <Text style={styles.light}>
             By connecting a wallet you are only granting Coinolio
             <Text style={{ fontWeight: '500', fontStyle: 'italic' }}> View Permissions. </Text>
@@ -28,9 +28,9 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     light: {
+        flex: 1,
         color: 'white',
         fontWeight: "200",
         fontSize: 12,
-        padding: 10,
     },
 });
