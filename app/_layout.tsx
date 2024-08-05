@@ -88,6 +88,14 @@ function RootLayoutNav() {
                 name="pages/addTransaction/addTransactionScreen"
                 options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
               />
+              <Stack.Screen
+                name="pages/connectWallet/connectWalletScreen"
+                options={{ presentation: "fullScreenModal", title: "Connect Wallet" }}
+              />
+              <Stack.Screen
+                name="pages/connectWallet/metaMaskWalletScreen"
+                options={{ presentation: "fullScreenModal", title: "Connect MetaMask Wallet" }}
+              />
             </Stack>
           </ThemeProvider>
         </Provider>

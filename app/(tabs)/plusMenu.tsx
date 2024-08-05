@@ -26,7 +26,15 @@ export default function PlusMenuScreen() {
         }}
       />
       <View style={styles.container}>
-        <Text style={styles.title}>Connect a Wallet</Text>
+        <Link href="/pages/connectWallet/connectWalletScreen" asChild>
+          <Pressable>
+            {({ pressed }) => (
+              <Text style={[styles.title, { opacity: pressed ? 0.5 : 1 }]}>
+                Connect a Wallet
+              </Text>
+            )}
+          </Pressable>
+        </Link>
       </View>
     </View>
   );
