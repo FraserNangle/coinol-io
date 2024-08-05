@@ -8,7 +8,8 @@ import { Provider } from "react-redux";
 import store from "./store/store";
 import { ActivityIndicator } from "react-native";
 import { initiateGuestUser } from "./services/apiService";
-import { SQLiteProvider, useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
+import { SQLiteProvider } from 'expo-sqlite';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 
 export {
@@ -70,25 +71,27 @@ export default function RootLayout() {
 function RootLayoutNav() {
   return (
     <SQLiteProvider databaseName="transaction.db">
-      <Provider store={store}>
-        <ThemeProvider value={DarkTheme}>
-          <Stack
-            screenOptions={{
-              animation: "slide_from_right",
-            }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-            <Stack.Screen
-              name="pages/addTransaction/addTransactionCurrencyListScreen"
-              options={{ presentation: "fullScreenModal", title: "Select Currency" }}
-            />
-            <Stack.Screen
-              name="pages/addTransaction/addTransactionScreen"
-              options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
-            />
-          </Stack>
-        </ThemeProvider>
-      </Provider>
+      <GestureHandlerRootView >
+        <Provider store={store}>
+          <ThemeProvider value={DarkTheme}>
+            <Stack
+              screenOptions={{
+                animation: "slide_from_right",
+              }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+              <Stack.Screen
+                name="pages/addTransaction/addTransactionCurrencyListScreen"
+                options={{ presentation: "fullScreenModal", title: "Select Currency" }}
+              />
+              <Stack.Screen
+                name="pages/addTransaction/addTransactionScreen"
+                options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
+              />
+            </Stack>
+          </ThemeProvider>
+        </Provider>
+      </GestureHandlerRootView>
     </SQLiteProvider>
   );
 }

@@ -3,7 +3,7 @@ import React, {
     useEffect,
     useCallback,
 } from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, StyleSheet, Image, Dimensions } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
 import { donutChartColors } from "@/app/styling/donutChartColors";
@@ -14,6 +14,7 @@ import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
 import {
     interpolate,
 } from "react-native-reanimated";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 
 interface DonutChartProps {
@@ -47,7 +48,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [sections, setSections] = useState<SectionFolioEntry[]>([]);
     const [refreshCount, setRefreshCount] = useState(0);
 
+    const centerX = width / 2;
+    const centerY = height / 2;
     const minSliceAngle = 2 * Math.PI * 0.02;
+    const circleSize = 10;
 
     const totalPortfolioValue = useSelector(
         (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
@@ -171,8 +175,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         });
     }, [selectedSection]);
 
-    const circleSize = 10;
-
     const getDisplayValue = useCallback(() => {
         if (displayMode === "percentage" && selectedSection?.details) {
             const percentage = ((selectedSection?.details?.currentPrice * selectedSection?.details?.quantity) / totalPortfolioValue) * 100;
@@ -213,69 +215,114 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         }
     }
 
+    const pan = Gesture.Pan()
+        .onChange((event) => {
+            const { absoluteX: x, absoluteY: y } = event;
+            sections.forEach((section, index) => {
+                const pointIsInSection = isPointInSection(x, y, section);
+                if (pointIsInSection) {
+                    if (selectedSection?.details?.coinId === section.coinId) {
+                        return;
+                    } else {
+                        dispatch(setSelectedSection({ details: section, index: index }));
+                    }
+                }
+            });
+        }).runOnJS(true);
+
+    function isPointInSection(x: number, y: number, section: SectionFolioEntry): boolean {
+
+        const innerRadius = outerRadius - thickness;
+
+        const dx = x - centerX;
+        const dy = y - (centerY + height / 4);
+
+        if (dx * dx + dy * dy < innerRadius * innerRadius || dx * dx + dy * dy > outerRadius * outerRadius) {
+            return false;
+        }
+
+        let angle = Math.atan2(dy, dx);
+
+        // Normalize the angle to start at -Math.PI / 2
+        angle -= -Math.PI / 2;
+
+        // Ensure the angle is within the range [0, 2 * Math.PI]
+        if (angle < 0) {
+            angle += 2 * Math.PI;
+        }
+
+        // Check if the angle is within the range [-Math.PI / 2, 3 * Math.PI / 2]
+        const normalizedStartAngle = section.startAngle - -Math.PI / 2;
+        const normalizedEndAngle = section.endAngle - -Math.PI / 2;
+
+        const isInSection = angle >= normalizedStartAngle && angle <= normalizedEndAngle;
+
+        return isInSection;
+    }
 
     return (
-        <View
-            style={styles.container}
-            onLayout={(event) => {
-                const { width, height } = event.nativeEvent.layout;
-                setOuterRadius(Math.min(width, height) / 2.5 / 1.1);
-            }}
-        >
-            <Svg width={width} height={height}>
-                <G x={width / 2} y={height / 2}>
-                    {sections.map((section, index) => {
-                        const colorIndex = interpolate(
-                            index,
-                            [0, sections.length - 1],
-                            [0, donutChartColors.length - 1]
-                        );
-                        const roundedColorIndex = Math.round(colorIndex);
-                        const color = donutChartColors[roundedColorIndex];
-                        section.color = color;
+        <GestureDetector gesture={pan}>
+            <View
+                style={styles.container}
+                onLayout={() => {
+                    setOuterRadius(Math.min(width, height) / 2.5 / 1.1);
+                }}
+            >
+                <Svg width={width} height={height}>
+                    <G x={width / 2} y={height / 2}>
+                        {sections.map((section, index) => {
+                            const colorIndex = interpolate(
+                                index,
+                                [0, sections.length - 1],
+                                [0, donutChartColors.length - 1]
+                            );
+                            const roundedColorIndex = Math.round(colorIndex);
+                            const color = donutChartColors[roundedColorIndex];
+                            section.color = color;
 
-                        return (
-                            <Section
-                                key={`${section.coinId}-${refreshCount}`}
-                                section={section}
-                                index={index}
-                                totalValue={totalPortfolioValue}
-                                outerRadius={outerRadius}
-                                color={color}
-                            />
-                        );
-                    })}
-                    <Circle
-                        r={outerRadius - thickness}
-                        fill={backgroundColor}
-                        onPressIn={toggleDisplayMode}
-                    />
-                    {selectedSection && (
-                        <View>
-                            <Text style={styles.selectedSliceValue}>
-                                {getDisplayValue()}
-                            </Text>
-                            {selectedSection.image ? (
-                                <Image
-                                    source={{ uri: selectedSection.image }}
-                                    style={[
-                                        styles.selectedSliceImage,
-                                        { width: circleSize * 2, height: circleSize * 2 },
-                                    ]}
+                            return (
+                                <Section
+                                    key={`${section.coinId}-${refreshCount}`}
+                                    section={section}
+                                    index={index}
+                                    totalValue={totalPortfolioValue}
+                                    outerRadius={outerRadius}
+                                    color={color}
                                 />
-                            ) : (
-                                <G style={styles.selectedSliceCircle}>
-                                    <Circle r={circleSize} fill={selectedSection?.details?.color} />
-                                </G>
-                            )}
-                            <Text style={styles.selectedSliceName}>
-                                {selectedSection.details?.name}
-                            </Text>
-                        </View>
-                    )}
-                </G>
-            </Svg>
-        </View>
+                            );
+                        })}
+                        <Circle
+                            r={outerRadius - thickness}
+                            fill={backgroundColor}
+                            onPressIn={toggleDisplayMode}
+                        />
+                        {selectedSection && (
+                            <View>
+                                <Text style={styles.selectedSliceValue}>
+                                    {getDisplayValue()}
+                                </Text>
+                                {selectedSection.image ? (
+                                    <Image
+                                        source={{ uri: selectedSection.image }}
+                                        style={[
+                                            styles.selectedSliceImage,
+                                            { width: circleSize * 2, height: circleSize * 2 },
+                                        ]}
+                                    />
+                                ) : (
+                                    <G style={styles.selectedSliceCircle}>
+                                        <Circle r={circleSize} fill={selectedSection?.details?.color} />
+                                    </G>
+                                )}
+                                <Text style={styles.selectedSliceName}>
+                                    {selectedSection.details?.name}
+                                </Text>
+                            </View>
+                        )}
+                    </G>
+                </Svg>
+            </View>
+        </GestureDetector>
     );
 };
 
