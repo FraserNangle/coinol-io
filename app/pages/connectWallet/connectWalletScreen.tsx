@@ -1,9 +1,9 @@
 import { StyleSheet, Image, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React from "react";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useNavigation } from "expo-router";
 import permissionWarning from "./components/permissionWarning";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function ConnectWalletScreen() {
     const navigation = useNavigation();
@@ -29,7 +29,7 @@ export default function ConnectWalletScreen() {
                             <Text>Binance</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.walletOption} onPress={() => handlePress('OtherPage')}>
-                            <FontAwesome name="briefcase" color={"white"} size={styles.logo.width} style={styles.logo} />
+                            <MaterialIcons name="wallet" color={"white"} size={styles.logo.width} style={styles.logo} />
                             <Text>Other</Text>
                         </TouchableOpacity>
                     </View>

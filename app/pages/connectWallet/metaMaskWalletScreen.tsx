@@ -44,11 +44,12 @@ export default function MetaMaskWalletScreen() {
                             textAlign="left"
                         />
                         <Button onPress={handlePaste}
+                            icon={"content-paste"}
                             buttonColor="hsl(0, 0%, 25%)"
                             mode="contained"
                             compact
-                            style={{ marginRight: 5 }}
-                        >Paste</Button>
+                            style={{ marginRight: 10 }}
+                        >PASTE</Button>
                     </View>
                     <TouchableOpacity style={styles.qrCodeIcon}>
                         <FontAwesome name="qrcode" color={"white"} size={styles.logo.width} style={styles.logo} />

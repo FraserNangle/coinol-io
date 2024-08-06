@@ -10,7 +10,7 @@ export default function permissionWarning() {
             style={{ padding: 10, flex: .1 }} />
         <Text style={styles.light}>
             By connecting a wallet you are only granting Coinolio
-            <Text style={{ fontWeight: '500', fontStyle: 'italic' }}> View Permissions. </Text>
+            <Text style={{ fontWeight: '500' }}> View Permissions. </Text>
             This app will not have access to your private keys and cannot make any transactions on your behalf.
         </Text>
     </View>;
