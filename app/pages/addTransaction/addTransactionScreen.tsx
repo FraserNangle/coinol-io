@@ -127,7 +127,7 @@ export default function AddTransactionBuySellScreen() {
                             }}
                             placeholder="0"
                             placeholderTextColor={'hsl(0, 0%, 60%)'}
-                            selectionColor="white"
+                            selectionColor={'hsl(0, 0%, 60%)'}
                             cursorColor="white"
                             maxLength={60}
                             textAlign="right"

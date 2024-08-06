@@ -39,7 +39,7 @@ export default function MetaMaskWalletScreen() {
                             multiline={false}
                             numberOfLines={1}
                             placeholderTextColor={'hsl(0, 0%, 60%)'}
-                            selectionColor="white"
+                            selectionColor={'hsl(0, 0%, 60%)'}
                             cursorColor="white"
                             textAlign="left"
                         />
