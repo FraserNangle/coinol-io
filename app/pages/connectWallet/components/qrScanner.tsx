@@ -1,6 +1,6 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
-import { useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { Button } from 'react-native-paper';
 
 interface QrScannerProps {
     onScan: (result: BarcodeScanningResult) => void;
@@ -29,8 +29,17 @@ export default function QrScanner({ onScan }: Readonly<QrScannerProps>) {
         // Camera permissions are not granted yet. 
         return (
             <View style={styles.container}>
-                <Text style={styles.message}>We need your permission to show the camera</Text>
-                <Button onPress={requestPermission} title="grant permission" />
+                <View style={styles.tableContainer}>
+                    <Text style={styles.message}>In order to show the QR Scanner, we need camera permission.</Text>
+                    <Text style={styles.message}>(You only need to approve this once).</Text>
+                    <Button
+                        buttonColor="green"
+                        style={styles.bigButton}
+                        mode="contained"
+                        onPress={requestPermission}>
+                        Grant Camera Permission
+                    </Button>
+                </View>
             </View>
         );
     }
@@ -51,9 +60,17 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
     },
+    tableContainer: {
+        width: "80%",
+        backgroundColor: 'hsl(0, 0%, 15%)',
+        borderRadius: 10,
+        padding: 10,
+    },
     message: {
+        color: 'white',
         textAlign: 'center',
         paddingBottom: 10,
+        fontSize: 15,
     },
     camera: {
         flex: 1,
@@ -67,6 +84,11 @@ const styles = StyleSheet.create({
     button: {
         flex: 1,
         alignSelf: 'flex-end',
+        alignItems: 'center',
+    },
+    bigButton: {
+        justifyContent: 'center',
+        alignContent: 'center',
         alignItems: 'center',
     },
     text: {

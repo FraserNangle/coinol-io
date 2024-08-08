@@ -75,7 +75,9 @@ export default function MetaMaskWalletScreen() {
                     >
                         <View style={styles.modalContainer}>
                             <QrScanner onScan={handleScan} />
-                            <Button onPress={toggleModal}
+                            <Button
+                                icon={"close"}
+                                onPress={toggleModal}
                                 buttonColor="hsl(0, 0%, 25%)"
                                 mode="contained"
                                 compact
@@ -137,7 +139,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
     },
     bold: {
         fontWeight: "bold",
