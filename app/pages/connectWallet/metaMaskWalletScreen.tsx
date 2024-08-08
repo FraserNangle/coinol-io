@@ -1,4 +1,4 @@
-import { StyleSheet, Image, TextInput, TouchableOpacity } from "react-native";
+import { StyleSheet, Image, TextInput, TouchableOpacity, Modal } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useState } from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -7,14 +7,25 @@ import * as Clipboard from 'expo-clipboard';
 import { Button } from "react-native-paper";
 import PermissionWarning from "./components/permissionWarning";
 import QrScanner from "./components/qrScanner";
+import { BarcodeScanningResult } from "expo-camera";
 
 export default function MetaMaskWalletScreen() {
     const [walletAddress, setWalletAddress] = useState('');
+    const [isModalVisible, setModalVisible] = useState(false);
+
+    const toggleModal = () => {
+        setModalVisible(!isModalVisible);
+    };
 
     const handlePaste = async () => {
         const clipboardContent = await Clipboard.getStringAsync();
         setWalletAddress(clipboardContent);
     };
+
+    const handleScan = (result: BarcodeScanningResult) => {
+        setWalletAddress(result.data);
+        toggleModal();
+    }
 
     const navigation = useNavigation();
 
@@ -52,13 +63,28 @@ export default function MetaMaskWalletScreen() {
                             style={{ marginRight: 10 }}
                         >PASTE</Button>
                     </View>
-                    <TouchableOpacity style={styles.qrCodeIcon}>
+                    <TouchableOpacity style={styles.qrCodeIcon} onPress={toggleModal}>
                         <FontAwesome name="qrcode" color={"white"} size={styles.logo.width} style={styles.logo} />
                     </TouchableOpacity>
+
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={isModalVisible}
+                        onRequestClose={toggleModal}
+                    >
+                        <View style={styles.modalContainer}>
+                            <QrScanner onScan={handleScan} />
+                            <Button onPress={toggleModal}
+                                buttonColor="hsl(0, 0%, 25%)"
+                                mode="contained"
+                                compact
+                            >Close</Button>
+                        </View>
+                    </Modal>
                 </View>
             </View>
             {PermissionWarning()}
-            {QrScanner()}
         </View>
     );
 }
@@ -106,6 +132,12 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: 'center',
         paddingLeft: 10,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     bold: {
         fontWeight: "bold",

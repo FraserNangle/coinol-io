@@ -1,10 +1,24 @@
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, StyleSheet, Text, View } from 'react-native';
 
-export default function QrScanner() {
-    const [facing, setFacing] = useState<CameraType>('back');
+interface QrScannerProps {
+    onScan: (result: BarcodeScanningResult) => void;
+}
+
+export default function QrScanner({ onScan }: Readonly<QrScannerProps>) {
     const [permission, requestPermission] = useCameraPermissions();
+
+    const handleBarCodeScanned = (scanningResult: BarcodeScanningResult) => {
+        const ethAddressRegex = /^ethereum:0x[a-fA-F0-9]{40}$/;
+        const isValidEthAddress = ethAddressRegex.test(scanningResult.data);
+
+        if (isValidEthAddress) {
+            onScan(scanningResult);
+        } else {
+            console.log("Invalid Ethereum address scanned:", scanningResult.data);
+        }
+    }
 
     if (!permission) {
         // Camera permissions are still loading.
@@ -12,7 +26,7 @@ export default function QrScanner() {
     }
 
     if (!permission.granted) {
-        // Camera permissions are not granted yet.
+        // Camera permissions are not granted yet. 
         return (
             <View style={styles.container}>
                 <Text style={styles.message}>We need your permission to show the camera</Text>
@@ -21,17 +35,11 @@ export default function QrScanner() {
         );
     }
 
-    function toggleCameraFacing() {
-        setFacing(current => (current === 'back' ? 'front' : 'back'));
-    }
-
     return (
         <View style={styles.container}>
-            <CameraView style={styles.camera} facing={facing}>
+            <CameraView style={styles.camera} barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+                onBarcodeScanned={(scanningResult: BarcodeScanningResult) => handleBarCodeScanned(scanningResult)}>
                 <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-                        <Text style={styles.text}>Flip Camera</Text>
-                    </TouchableOpacity>
                 </View>
             </CameraView>
         </View>
@@ -54,7 +62,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         backgroundColor: 'transparent',
-        margin: 64,
+        margin: 160,
     },
     button: {
         flex: 1,
