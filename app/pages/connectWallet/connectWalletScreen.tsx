@@ -2,7 +2,7 @@ import { StyleSheet, Image, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React from "react";
 import { useNavigation } from "expo-router";
-import permissionWarning from "./components/permissionWarning";
+import PermissionWarning from "./components/permissionWarning";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function ConnectWalletScreen() {
@@ -35,7 +35,7 @@ export default function ConnectWalletScreen() {
                     </View>
                 </View>
             </View>
-            {permissionWarning()}
+            {PermissionWarning()}
         </View>
     );
 }

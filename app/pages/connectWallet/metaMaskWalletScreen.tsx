@@ -5,7 +5,8 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useNavigation } from "expo-router";
 import * as Clipboard from 'expo-clipboard';
 import { Button } from "react-native-paper";
-import permissionWarning from "./components/permissionWarning";
+import PermissionWarning from "./components/permissionWarning";
+import QrScanner from "./components/qrScanner";
 
 export default function MetaMaskWalletScreen() {
     const [walletAddress, setWalletAddress] = useState('');
@@ -56,7 +57,8 @@ export default function MetaMaskWalletScreen() {
                     </TouchableOpacity>
                 </View>
             </View>
-            {permissionWarning()}
+            {PermissionWarning()}
+            {QrScanner()}
         </View>
     );
 }

@@ -1,7 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { View, Text, StyleSheet } from "react-native";
 
-export default function permissionWarning() {
+export default function PermissionWarning() {
     return <View style={styles.permissionWarning}>
         <FontAwesome
             name="shield"
