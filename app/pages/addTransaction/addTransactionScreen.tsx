@@ -120,7 +120,7 @@ export default function AddTransactionBuySellScreen() {
             <View style={styles.tableContainer}>
                 <View style={styles.row}>
                     <Text style={styles.tag}>Total</Text>
-                    <View style={styles.ticker}>
+                    <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.textInput}
                             value={total.toString()}
@@ -206,10 +206,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         backgroundColor: 'hsl(0, 0%, 0%)',
     },
-    tabBar: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-    },
     tableContainer: {
         width: "80%",
         backgroundColor: 'hsl(0, 0%, 15%)',
@@ -234,12 +230,6 @@ const styles = StyleSheet.create({
         padding: 10,
         color: 'white',
     },
-    textBox: {
-        flex: 1,
-        color: 'white',
-        backgroundColor: 'hsl(0, 0%, 15%)',
-        textAlignVertical: 'top'
-    },
     tag: {
         zIndex: 1,
         backgroundColor: "hsl(0, 0%, 15%)",
@@ -253,19 +243,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'hsl(0, 0%, 15%)',
         padding: 10,
     },
-    ticker: {
+    inputContainer: {
         position: "relative",
         flex: 1,
         justifyContent: "flex-end",
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'hsl(0, 0%, 15%)',
-    },
-    rowWithQr: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        height: 60,
-        backgroundColor: 'hsl(0, 0%, 15%)',
-    },
+    }
 });
