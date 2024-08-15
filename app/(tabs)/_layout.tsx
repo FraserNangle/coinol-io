@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Link, Tabs } from "expo-router";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
@@ -9,12 +10,12 @@ import { useSelector } from "react-redux";
 const CURRENCY_TYPE = "USD";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>["name"];
+function TabBarIcon(props: Readonly<{
+  name: React.ComponentProps<typeof MaterialIcons>["name"];
   color: string;
   size?: number;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+}>) {
+  return <MaterialIcons size={28} {...props} />;
 }
 
 export default function TabLayout() {
@@ -55,7 +56,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Portfolio",
-          tabBarShowLabel: true,
+          tabBarLabel: () => null,
           headerTitle: () => (
             <View style={styles.titleContainer}>
               {totalPortfolioValue > 0 && (
@@ -76,7 +77,7 @@ export default function TabLayout() {
             </View>
           ),
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="briefcase" color={color} />
+            <TabBarIcon name="data-usage" color={color} />
           ),
           headerRight: () => (
             <Link href="/modal" asChild>
@@ -97,18 +98,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="plusMenu"
         options={{
+          headerShown: false,
           headerTitle: () => null,
           tabBarLabel: () => null,
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="plus-circle" color={color} size={40} />
+            <TabBarIcon name="add-circle" color={color} size={40} />
           ),
-          tabBarIconStyle: { justifyContent: "center" },
+          tabBarIconStyle: { justifyContent: "center", alignItems: "center", flex: 1, textAlign: "center", textAlignVertical: "center" },
         }}
       />
       <Tabs.Screen
         name="two"
         options={{
-          tabBarLabel: "Alerts",
+          tabBarLabel: () => null,
           tabBarShowLabel: true,
           headerTitle: () => (
             <View style={styles.titleContainer}>
@@ -117,7 +119,7 @@ export default function TabLayout() {
               </Text>
             </View>
           ),
-          tabBarIcon: ({ color }) => <TabBarIcon name="bell" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="settings" color={color} />,
         }}
       />
     </Tabs>
