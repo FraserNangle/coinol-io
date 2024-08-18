@@ -90,6 +90,10 @@ function RootLayoutNav() {
                   name="pages/addTransaction/addTransactionScreen"
                   options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
                 />
+                <Stack.Screen
+                  name="pages/coinGraph/coinGraphScreen"
+                  options={{ presentation: "fullScreenModal", title: "Coin Graph" }}
+                />
               </Stack>
             </ThemeProvider>
           </Provider>
