@@ -67,7 +67,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
     useEffect(() => {
         if (totalPortfolioValue === 0) {
-            console.log("Total Portfolio Value is 0");
             return;
         }
         setSortedData([...data].sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity)));

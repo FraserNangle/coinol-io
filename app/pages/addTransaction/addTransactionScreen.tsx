@@ -2,7 +2,7 @@ import { StyleSheet, TouchableHighlight, TextInput } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { Divider, Button } from "react-native-paper";
+import { Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { addTransactionData } from "@/app/services/transactionService";
 import { UserTransaction } from "@/app/models/UserTransaction";
@@ -11,10 +11,11 @@ import { RootState } from "@/app/store/store";
 import { setLastTransaction } from "@/app/slices/lastTransactionSlice";
 import { randomUUID } from "expo-crypto";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
+import Toast from 'react-native-root-toast';
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
-    const [total, setTotal] = React.useState(0);
+    const [total, setTotal] = React.useState('');
     const [date, setDate] = React.useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
@@ -33,7 +34,7 @@ export default function AddTransactionBuySellScreen() {
 
     useEffect(() => {
         userFolio.forEach((folioEntry) => {
-            if (folioEntry.coinId === item.coinId && folioEntry.quantity > 0) {
+            if (folioEntry.coinId === item.id && folioEntry.quantity > 0) {
                 setCanSell(true);
             }
         });
@@ -67,8 +68,8 @@ export default function AddTransactionBuySellScreen() {
 
     const sellAll = () => {
         userFolio.forEach((folioEntry) => {
-            if (folioEntry.coinId === item.coinId) {
-                setTotal(folioEntry.quantity);
+            if (folioEntry.coinId === item.id) {
+                setTotal(folioEntry.quantity.toString());
             }
         });
     };
@@ -76,14 +77,41 @@ export default function AddTransactionBuySellScreen() {
     const addTransaction = (db: SQLiteDatabase, transaction: UserTransaction) => {
         addTransactionData(db, transaction)
             .then(() => {
-                console.log("Transaction added successfully: " + transaction.coinId);
+                Toast.show(`Added ${item.name} transaction to portfolio. `, {
+                    backgroundColor: "hsl(0, 0%, 15%)",
+                    duration: Toast.durations.LONG,
+                });
                 dispatch(setLastTransaction(transaction));
                 navigation.navigate('index');
             })
             .catch(error => {
                 console.error('Error:', error);
             });
-    }
+    };
+
+    const handleChange = (text: string) => {
+        // Regular expression to match positive floating point numbers or a single decimal point
+        const regex = /^(?:[0-9]*\.?[0-9]*)$/;
+        if (regex.test(text)) {
+            if (transactionType === "SELL") {
+                userFolio.forEach((folioEntry) => {
+                    if (folioEntry.coinId === item.id) {
+                        if (Number(text) > folioEntry.quantity) {
+                            setTotal(folioEntry.quantity.toString());
+                            Toast.show(`Sell is limited to your ${item.name} quantity. `, {
+                                backgroundColor: "hsl(0, 0%, 15%)",
+                                duration: Toast.durations.LONG,
+                            });
+                        } else {
+                            setTotal(text);
+                        }
+                    }
+                });
+            } else {
+                setTotal(text);
+            }
+        }
+    };
 
     return (
         <View style={styles.screenContainer}>
@@ -112,22 +140,17 @@ export default function AddTransactionBuySellScreen() {
             <View style={styles.tableContainer}>
                 <View style={styles.row}>
                     <Text style={styles.tag}>Total</Text>
-                    <View style={styles.ticker}>
+                    <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.textInput}
                             value={total.toString()}
                             multiline={false}
                             numberOfLines={1}
-                            inputMode="decimal"
-                            onChangeText={(value) => {
-                                const isPositiveDecimal = /^\d*\.?\d*$/.test(value);
-                                if (isPositiveDecimal) {
-                                    setTotal(Number(value));
-                                }
-                            }}
+                            keyboardType='decimal-pad'
+                            onChangeText={handleChange}
                             placeholder="0"
                             placeholderTextColor={'hsl(0, 0%, 60%)'}
-                            selectionColor="white"
+                            selectionColor={'hsl(0, 0%, 60%)'}
                             cursorColor="white"
                             maxLength={60}
                             textAlign="right"
@@ -144,20 +167,19 @@ export default function AddTransactionBuySellScreen() {
                         }
                     </View>
                 </View>
-                <View>
-                    <Divider />
-                    <View style={styles.row}>
-                        <Text>Date & Time</Text>
-                        <TouchableHighlight
-                            onPress={() => setShowDatePicker(true)}
-                        >
-                            <Text style={styles.textInput}>
-                                {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
-                                {" "}
-                                {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                            </Text>
-                        </TouchableHighlight>
-                    </View>
+            </View>
+            <View style={styles.tableContainer}>
+                <View style={styles.row}>
+                    <Text>Date & Time</Text>
+                    <TouchableHighlight
+                        onPress={() => setShowDatePicker(true)}
+                    >
+                        <Text style={styles.textInput}>
+                            {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
+                            {" "}
+                            {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    </TouchableHighlight>
                 </View>
             </View>
             <Button
@@ -168,9 +190,9 @@ export default function AddTransactionBuySellScreen() {
                 onPress={() => {
                     const newHolding: UserTransaction = {
                         id: randomUUID(),
-                        coinId: item.coinId,
+                        coinId: item.id,
                         date: date.toLocaleDateString(),
-                        quantity: total,
+                        quantity: Number(total),
                         type: transactionType,
                     };
                     addTransaction(db, newHolding)
@@ -204,43 +226,29 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         backgroundColor: 'hsl(0, 0%, 0%)',
     },
-    tabBar: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-    },
     tableContainer: {
         width: "80%",
         backgroundColor: 'hsl(0, 0%, 15%)',
         borderRadius: 10,
         padding: 10,
+        marginBottom: 10,
     },
     buttonContainer: {
         flexDirection: "row",
         justifyContent: "space-evenly",
         width: "80%",
-        marginBottom: 10,
-        marginTop: 10,
+        margin: 10
     },
     button: {
         width: "25%",
     },
     bigButton: {
         width: "80%",
-        marginTop: 10,
     },
     textInput: {
-        color: 'white',
-        textAlign: "right",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        backgroundColor: 'hsl(0, 0%, 15%)',
-    },
-    textBox: {
         flex: 1,
+        padding: 10,
         color: 'white',
-        backgroundColor: 'hsl(0, 0%, 15%)',
-        textAlignVertical: 'top'
     },
     tag: {
         zIndex: 1,
@@ -255,9 +263,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'hsl(0, 0%, 15%)',
         padding: 10,
     },
-    ticker: {
+    inputContainer: {
         position: "relative",
-        zIndex: -1,
         flex: 1,
         justifyContent: "flex-end",
         flexDirection: 'row',

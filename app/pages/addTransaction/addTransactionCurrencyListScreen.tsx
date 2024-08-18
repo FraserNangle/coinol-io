@@ -45,14 +45,14 @@ export default function AddTransactionCurrencyListScreen() {
     <View style={styles.screenContainer}>
       <View style={styles.tableContainer}>
         <TextInput
+          selectionColor={'hsl(0, 0%, 60%)'}
+          cursorColor="white"
+          maxLength={60}
+          textAlign="right"
           multiline={false}
           numberOfLines={1}
           inputMode="search"
           placeholderTextColor={'hsl(0, 0%, 60%)'}
-          selectionColor="white"
-          cursorColor="white"
-          maxLength={60}
-          textAlign="right"
           textColor="white"
           style={styles.searchBar}
           value={query}

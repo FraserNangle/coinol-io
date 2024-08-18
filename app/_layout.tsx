@@ -3,13 +3,14 @@ import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import { ActivityIndicator } from "react-native";
 import { initiateGuestUser } from "./services/apiService";
 import { SQLiteProvider } from 'expo-sqlite';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { RootSiblingParent } from 'react-native-root-siblings';
 
 
 export {
@@ -71,27 +72,29 @@ export default function RootLayout() {
 function RootLayoutNav() {
   return (
     <SQLiteProvider databaseName="transaction.db">
-      <GestureHandlerRootView >
-        <Provider store={store}>
-          <ThemeProvider value={DarkTheme}>
-            <Stack
-              screenOptions={{
-                animation: "slide_from_right",
-              }}>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-              <Stack.Screen
-                name="pages/addTransaction/addTransactionCurrencyListScreen"
-                options={{ presentation: "fullScreenModal", title: "Select Currency" }}
-              />
-              <Stack.Screen
-                name="pages/addTransaction/addTransactionScreen"
-                options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
-              />
-            </Stack>
-          </ThemeProvider>
-        </Provider>
-      </GestureHandlerRootView>
+      <RootSiblingParent>
+        <GestureHandlerRootView >
+          <Provider store={store}>
+            <ThemeProvider value={DarkTheme}>
+              <Stack
+                screenOptions={{
+                  animation: "slide_from_right",
+                }}>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+                <Stack.Screen
+                  name="pages/addTransaction/addTransactionCurrencyListScreen"
+                  options={{ presentation: "fullScreenModal", title: "Select Currency" }}
+                />
+                <Stack.Screen
+                  name="pages/addTransaction/addTransactionScreen"
+                  options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
+                />
+              </Stack>
+            </ThemeProvider>
+          </Provider>
+        </GestureHandlerRootView>
+      </RootSiblingParent>
     </SQLiteProvider>
   );
 }
