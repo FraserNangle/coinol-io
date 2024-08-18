@@ -11,6 +11,7 @@ import { RootState } from "@/app/store/store";
 import { setLastTransaction } from "@/app/slices/lastTransactionSlice";
 import { randomUUID } from "expo-crypto";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
+import Toast from 'react-native-root-toast';
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
@@ -68,7 +69,7 @@ export default function AddTransactionBuySellScreen() {
     const sellAll = () => {
         userFolio.forEach((folioEntry) => {
             if (folioEntry.coinId === item.id) {
-                setTotal(folioEntry.quantity);
+                setTotal(folioEntry.quantity.toString());
             }
         });
     };
@@ -89,7 +90,23 @@ export default function AddTransactionBuySellScreen() {
         // Regular expression to match positive floating point numbers or a single decimal point
         const regex = /^(?:[0-9]*\.?[0-9]*)$/;
         if (regex.test(text)) {
-            setTotal(text);
+            if (transactionType === "SELL") {
+                userFolio.forEach((folioEntry) => {
+                    if (folioEntry.coinId === item.id) {
+                        if (Number(text) > folioEntry.quantity) {
+                            setTotal(folioEntry.quantity.toString());
+                            Toast.show(`Sell is limited to your ${item.name} quantity. `, {
+                                backgroundColor: "hsl(0, 0%, 15%)",
+                                duration: Toast.durations.LONG,
+                            });
+                        } else {
+                            setTotal(text);
+                        }
+                    }
+                });
+            } else {
+                setTotal(text);
+            }
         }
     };
 
