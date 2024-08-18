@@ -1,8 +1,8 @@
-import { StyleSheet, TouchableHighlight, TextInput, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableHighlight, TextInput } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { Divider, Button } from "react-native-paper";
+import { Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { addTransactionData } from "@/app/services/transactionService";
 import { UserTransaction } from "@/app/models/UserTransaction";
@@ -77,7 +77,10 @@ export default function AddTransactionBuySellScreen() {
     const addTransaction = (db: SQLiteDatabase, transaction: UserTransaction) => {
         addTransactionData(db, transaction)
             .then(() => {
-                console.log("Transaction added successfully: " + transaction.coinId);
+                Toast.show(`Added ${item.name} transaction to portfolio. `, {
+                    backgroundColor: "hsl(0, 0%, 15%)",
+                    duration: Toast.durations.LONG,
+                });
                 dispatch(setLastTransaction(transaction));
                 navigation.navigate('index');
             })
