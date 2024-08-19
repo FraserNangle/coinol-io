@@ -46,7 +46,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
 
   const selectedSectionId = useSelector(
-    (state: RootState) => state.selectedSection.section?.details?.id
+    (state: RootState) => state.selectedSection.section?.details?.coinId
   );
 
   const styles = getStyles();

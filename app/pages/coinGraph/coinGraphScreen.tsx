@@ -16,6 +16,7 @@ import { RootState } from "@/app/store/store";
 import { fetchUserFolio } from "@/app/services/folioService";
 import { setUserFolio } from "@/app/slices/userFolioSlice";
 import { useRoute } from "@react-navigation/native";
+import { CoinGraph } from "@/components/index/coinGraph/coinGraph";
 
 const CURRENCY_TYPE = "USD";
 
@@ -86,12 +87,8 @@ export default function CoinGraphScreen() {
                         removeClippedSubviews={true}
                     >
                         <View style={styles.donutContainer}>
-                            <DonutChart
+                            <CoinGraph
                                 data={userFolio}
-                                width={screenWidth * 0.95}
-                                height={screenHeight / 2}
-                                backgroundColor={"black"}
-                                currencyTicker={CURRENCY_TYPE}
                             />
                         </View>
                         <View style={styles.tableContainer}>
