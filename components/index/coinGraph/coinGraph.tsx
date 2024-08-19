@@ -3,6 +3,7 @@ import { Button, StyleSheet, View, Text } from "react-native";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { GraphPoint, LineGraph, SelectionDot } from 'react-native-graph'
 import { GraphRange } from "react-native-graph/lib/typescript/LineGraphProps";
+import { CustomSelectionDot } from "./customSelectionDot";
 
 
 interface CoinGraphProps {
@@ -89,9 +90,10 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
                 enablePanGesture={enablePanGesture}
                 enableFadeInMask={enableFadeInEffect}
                 //onGestureStart={() => hapticFeedback('impactLight')}
-                SelectionDot={enableCustomSelectionDot ? SelectionDot : undefined}
+                SelectionDot={enableCustomSelectionDot ? CustomSelectionDot : SelectionDot}
                 range={range}
                 enableIndicator={enableIndicator}
+                verticalPadding={enableIndicator ? 15 : 0}
                 horizontalPadding={enableIndicator ? 15 : 0}
                 indicatorPulsating={indicatorPulsating}
                 TopAxisLabel={() => <AxisLabel xPos={10} value={10} />}

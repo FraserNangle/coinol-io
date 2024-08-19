@@ -25,7 +25,7 @@ import {
 import { Circle } from '@shopify/react-native-skia'
 import type { SelectionDotProps } from 'react-native-graph'
 
-export function SelectionDot({
+export function CustomSelectionDot({
     isActive,
     color,
     circleX,
