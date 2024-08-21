@@ -1,122 +1,81 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Button, StyleSheet, View, Text } from "react-native";
 import { FolioEntry } from "@/app/models/FolioEntry";
-import { GraphPoint, LineGraph, SelectionDot } from 'react-native-graph'
-import { GraphRange } from "react-native-graph/lib/typescript/LineGraphProps";
-import { CustomSelectionDot } from "./customSelectionDot";
-
+import { LineChart } from "react-native-gifted-charts";
 
 interface CoinGraphProps {
     data: FolioEntry[],
+    screenWidth: number
 }
 
-function generateRandomGraphData(length: number): GraphPoint[] {
-    return Array<number>(length)
-        .fill(0)
-        .map((_, index) => ({
-            date: new Date(
-                new Date(2000, 0, 1).getTime() + 1000 * 60 * 60 * 24 * index
-            ),
-            value: Math.random(),
-        }))
-}
-
-const POINT_COUNT = 70
-const POINTS = generateRandomGraphData(POINT_COUNT)
-const COLOR = '#6a7ee7'
-const GRADIENT_FILL_COLORS = ['#7476df5D', '#7476df4D', '#7476df00']
-
-export const CoinGraph: React.FC<CoinGraphProps> = ({
-    data,
-}: CoinGraphProps) => {
-
-    const [isAnimated, setIsAnimated] = useState(true)
-    const [enablePanGesture, setEnablePanGesture] = useState(true)
-    const [enableFadeInEffect, setEnableFadeInEffect] = useState(false)
-    const [enableCustomSelectionDot, setEnableCustomSelectionDot] =
-        useState(false)
-    const [enableGradient, setEnableGradient] = useState(true)
-    const [enableRange, setEnableRange] = useState(false)
-    const [enableIndicator, setEnableIndicator] = useState(true)
-    const [indicatorPulsating, setIndicatorPulsating] = useState(true)
-
-    const [points, setPoints] = useState(POINTS)
-
-    const refreshData = useCallback(() => {
-        setPoints(generateRandomGraphData(POINT_COUNT));
-        //hapticFeedback('impactLight')
-    }, [])
-
-    const highestDate = useMemo(
-        () =>
-            points.length !== 0 && points[points.length - 1] != null
-                ? points[points.length - 1]!.date
-                : undefined,
-        [points]
-    )
-    const range: GraphRange | undefined = useMemo(() => {
-        // if range is disabled, default to infinite range (undefined)
-        if (!enableRange) return undefined
-
-        if (points.length !== 0 && highestDate != null) {
-            return {
-                x: {
-                    min: points[0]!.date,
-                    max: new Date(highestDate.getTime() + 50 * 1000 * 60 * 60 * 24),
-                },
-                y: {
-                    min: -200,
-                    max: 200,
-                },
-            }
-        } else {
-            return {
-                y: {
-                    min: -200,
-                    max: 200,
-                },
-            }
-        }
-    }, [enableRange, highestDate, points])
-
+const customDataPoint = () => {
     return (
-        <View style={[styles.container, { backgroundColor: 'black' }]}>
-            <LineGraph
-                style={styles.graph}
-                animated={isAnimated}
-                color={COLOR}
-                points={points}
-                gradientFillColors={enableGradient ? GRADIENT_FILL_COLORS : undefined}
-                enablePanGesture={enablePanGesture}
-                enableFadeInMask={enableFadeInEffect}
-                //onGestureStart={() => hapticFeedback('impactLight')}
-                SelectionDot={enableCustomSelectionDot ? CustomSelectionDot : SelectionDot}
-                range={range}
-                enableIndicator={enableIndicator}
-                verticalPadding={enableIndicator ? 15 : 0}
-                horizontalPadding={enableIndicator ? 15 : 0}
-                indicatorPulsating={indicatorPulsating}
-                TopAxisLabel={() => <AxisLabel xPos={10} value={10} />}
-                BottomAxisLabel={() => <AxisLabel xPos={40} value={40} />}
-            />
+        <View
+            style={{
+                width: 20,
+                height: 20,
+                backgroundColor: 'white',
+                borderWidth: 4,
+                borderRadius: 10,
+                borderColor: '#07BAD1',
+            }}
+        />
+    );
+};
 
-            <Button title="Refresh" onPress={refreshData} />
+const customLabel = val => {
+    return (
+        <View style={{ width: 70, marginLeft: 7 }}>
+            <Text style={{ color: 'white', fontWeight: 'bold' }}>{val}</Text>
         </View>
     );
 };
 
-interface AxisLabelProps {
-    xPos: number,
-    value: number,
-}
-
-export const AxisLabel: React.FC<AxisLabelProps> = ({
-    xPos,
-    value,
-}: AxisLabelProps) => {
+export const CoinGraph: React.FC<CoinGraphProps> = ({
+    data,
+    screenWidth
+}: CoinGraphProps) => {
+    const testData = [{ value: 15 }, { value: 30 }, { value: 26 }, {
+        value: 50,
+        labelComponent: () => customLabel('24 Nov'),
+        customDataPoint: customDataPoint,
+        showStrip: true,
+        stripHeight: 190,
+        stripColor: 'white',
+        dataPointLabelComponent: () => {
+            return (
+                <View
+                    style={{
+                        backgroundColor: 'white',
+                        paddingHorizontal: 8,
+                        paddingVertical: 5,
+                        borderRadius: 4,
+                    }}>
+                    <Text style={{ color: 'white' }}>410</Text>
+                </View>
+            );
+        },
+        dataPointLabelShiftY: -70,
+        dataPointLabelShiftX: -4,
+    }, { value: 15 }];
     return (
-        <View style={{ position: 'absolute', left: xPos }}>
-            <Text style={{ color: 'white' }}>{value}</Text>
+        <View style={[styles.container, { backgroundColor: 'black' }]}>
+            <LineChart
+                areaChart
+                data={testData}
+                color={'white'}
+                thickness={5}
+                hideAxesAndRules
+                hideDataPoints
+                curved
+                spacing={screenWidth / testData.length}
+                startFillColor="white"
+                startOpacity={.6}
+                endFillColor="white"
+                endOpacity={0}
+                isAnimated
+                animationDuration={1200}
+            />
         </View>
     );
 };

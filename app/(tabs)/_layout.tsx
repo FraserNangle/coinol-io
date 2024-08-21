@@ -6,6 +6,8 @@ import { Link, Tabs } from "expo-router";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import { useSelector } from "react-redux";
+import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
+import { getPercentageChangeDisplay } from "../utils/getPercentageChange";
 
 const CURRENCY_TYPE = "USD";
 
@@ -28,16 +30,7 @@ export default function TabLayout() {
     (state: any) => state?.totalPortfolioValue?.totalPortfolioPercentageChange24hr
   );
 
-  const getPercentageChangeDisplay = (percentageChange: number) => {
-    return percentageChange > 0
-      ? `+${percentageChange.toFixed(2)}`
-      : `${percentageChange.toFixed(2)}`;
-  };
-
-  const formattedTotalPortfolioValue = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: CURRENCY_TYPE,
-  }).format(totalPortfolioValue);
+  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, CURRENCY_TYPE);
 
   return (
     <Tabs
@@ -140,18 +133,16 @@ const styles = StyleSheet.create({
     color: "white",
   },
   percentageContainer: {
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 1,
     borderRadius: 10,
     marginLeft: 10,
     padding: 5,
   },
   positive: {
-    color: "#00ff00",
-    backgroundColor: "rgba(0, 255, 0, 0.2)",
+    color: "white",
+    backgroundColor: "green",
   },
   negative: {
-    color: "red",
-    backgroundColor: "rgba(255, 105, 180, 0.2)",
+    color: "white",
+    backgroundColor: "red",
   },
 });
