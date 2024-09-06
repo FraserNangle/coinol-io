@@ -28,9 +28,6 @@ type RouteParams = {
 };
 
 export default function CoinGraphScreen() {
-    const screenWidth = Dimensions.get("window").width;
-    const screenHeight = Dimensions.get("window").height;
-    const [refreshing, setRefreshing] = useState(false);
     const [timeRange, setTimeRange] = useState("24H");
 
     const db = useSQLiteContext();
@@ -81,19 +78,11 @@ export default function CoinGraphScreen() {
         <>
             {
                 userFolio.length > 0 && (
-                    <ScrollView
-                        contentContainerStyle={styles.screenContainer}
-                        refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                        }
-                        fadingEdgeLength={25}
-                        removeClippedSubviews={true}
+                    <View
+                        style={styles.screenContainer}
                     >
                         <View style={styles.titleContainer}>
                             <View style={styles.subtitleContainer}>
-                                <Text style={styles.headerTitle}>
-                                    {folioEntry.ticker.toUpperCase()}
-                                </Text>
                                 <Text style={styles.headerTitle}>
                                     {formattedCoinValue}
                                 </Text>
@@ -113,12 +102,9 @@ export default function CoinGraphScreen() {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.graphContainer}>
-                            <CoinGraph
-                                data={userFolio}
-                                screenWidth={screenWidth}
-                            />
-                        </View>
+                        <CoinGraph
+                            data={userFolio}
+                        />
                         <View style={styles.buttonContainer}>
                             {timeRangeControlButton("24H")}
                             {timeRangeControlButton("7D")}
@@ -129,7 +115,7 @@ export default function CoinGraphScreen() {
                         <View style={styles.tableContainer}>
                             <FolioTable data={userFolio} />
                         </View>
-                    </ScrollView>
+                    </View>
                 )
             }
         </>
@@ -138,6 +124,7 @@ export default function CoinGraphScreen() {
 
 const styles = StyleSheet.create({
     screenContainer: {
+        flex: 1,
         justifyContent: "flex-start",
         backgroundColor: "black",
     },
@@ -163,12 +150,6 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         textAlign: "center",
         color: "white",
-    },
-    graphContainer: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "flex-start",
-        backgroundColor: "black",
     },
     tableContainer: {
         flex: 1,
