@@ -1,7 +1,6 @@
 import { SQLiteDatabase } from "expo-sqlite";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
-import * as SecureStore from 'expo-secure-store';
 
 export interface ICoinStorageService {
   addTransactionData: (transaction: UserTransaction) => Promise<void>;

@@ -31,3 +31,9 @@ export interface CoinsMarkets {
     price_change_percentage_30d_in_currency: number;
     price_change_percentage_1y_in_currency: number;
 }
+
+export interface CoinMarketHistoricalDataPoint {
+    id: string;
+    date: string;
+    current_price: number;
+}
