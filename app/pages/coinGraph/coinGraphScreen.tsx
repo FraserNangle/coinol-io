@@ -1,25 +1,17 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
-    ScrollView,
     StyleSheet,
-    RefreshControl,
-    Dimensions,
-    Pressable,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
-import { FolioTable } from "@/components/index/folioTable/foliotable";
-import { Link, useNavigation } from "expo-router";
-import { useDispatch, useSelector } from "react-redux";
-import { useSQLiteContext } from "expo-sqlite";
-import { RootState } from "@/app/store/store";
-import { fetchUserFolio } from "@/app/services/folioService";
-import { setUserFolio } from "@/app/slices/userFolioSlice";
+import { useNavigation } from "expo-router";
 import { useRoute } from "@react-navigation/native";
 import { CoinGraph } from "@/components/index/coinGraph/coinGraph";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { Button } from "react-native-paper";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
+import { lineDataItem } from "gifted-charts-core";
+import { getHistoricalLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
 
 const CURRENCY_TYPE = "USD";
 
@@ -29,15 +21,10 @@ type RouteParams = {
 
 export default function CoinGraphScreen() {
     const [timeRange, setTimeRange] = useState("24H");
-
-    const db = useSQLiteContext();
-
-    const dispatch = useDispatch();
+    const [historicalData, setHistoricalData] = useState<lineDataItem[]>([]);
 
     const route = useRoute();
     const { folioEntry }: { folioEntry: FolioEntry } = route.params as RouteParams;
-
-    let userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
 
     const navigation = useNavigation();
 
@@ -46,18 +33,30 @@ export default function CoinGraphScreen() {
     }, [navigation]);
 
     useEffect(() => {
-        fetchUserFolio(db).then((data) => {
-            dispatch(setUserFolio(data));
-        });
-    }, []);
+        let days: number;
 
-    const onRefresh = useCallback(() => {
-        setRefreshing(true);
-        fetchUserFolio(db).then((data) => {
-            dispatch(setUserFolio(data));
-            setRefreshing(false);
+        if (timeRange === "24H") {
+            days = 1;
+        } else if (timeRange === "7D") {
+            days = 7;
+        } else if (timeRange === "1M") {
+            days = 30;
+        } else if (timeRange === "1Y") {
+            days = 365;
+        } else {
+            days = 365 * 10;
+        }
+
+        const currentDate = new Date();
+        const endDate = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        const startDate = new Date(currentDate);
+        startDate.setDate(startDate.getDate() - days);
+        const formattedStartDate = startDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+        getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange).then((data) => {
+            setHistoricalData(data);
         });
-    }, []);
+    }, [timeRange]);
 
     const formattedCoinValue = convertToCurrencyFormat(folioEntry.currentPrice * folioEntry.quantity, CURRENCY_TYPE);
 
@@ -77,46 +76,43 @@ export default function CoinGraphScreen() {
     return (
         <>
             {
-                userFolio.length > 0 && (
-                    <View
-                        style={styles.screenContainer}
-                    >
-                        <View style={styles.titleContainer}>
-                            <View style={styles.subtitleContainer}>
-                                <Text style={styles.headerTitle}>
-                                    {formattedCoinValue}
-                                </Text>
-                            </View>
+                <View
+                    style={styles.screenContainer}
+                >
+                    <View style={styles.titleContainer}>
+                        <View style={styles.subtitleContainer}>
+                            <Text style={styles.headerTitle}>
+                                {formattedCoinValue}
+                            </Text>
+                        </View>
 
-                            <View style={styles.subtitleContainer}>
-                                <Text
-                                >
-                                    {formatted24hChangeCoinValue}
-                                </Text>
-                                <Text style={[
-                                    styles.percentageContainer,
-                                    folioEntry.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
-                                ]}
-                                >
-                                    {getPercentageChangeDisplay(folioEntry.priceChangePercentage24h)}%
-                                </Text>
-                            </View>
-                        </View>
-                        <CoinGraph
-                            data={userFolio}
-                        />
-                        <View style={styles.buttonContainer}>
-                            {timeRangeControlButton("24H")}
-                            {timeRangeControlButton("7D")}
-                            {timeRangeControlButton("1M")}
-                            {timeRangeControlButton("1Y")}
-                            {timeRangeControlButton("ALL")}
-                        </View>
-                        <View style={styles.tableContainer}>
-                            <FolioTable data={userFolio} />
+                        <View style={styles.subtitleContainer}>
+                            <Text
+                            >
+                                {formatted24hChangeCoinValue}
+                            </Text>
+                            <Text style={[
+                                styles.percentageContainer,
+                                folioEntry.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
+                            ]}
+                            >
+                                {getPercentageChangeDisplay(folioEntry.priceChangePercentage24h)}%
+                            </Text>
                         </View>
                     </View>
-                )
+                    <CoinGraph
+                        data={historicalData}
+                    />
+                    <View style={styles.buttonContainer}>
+                        {timeRangeControlButton("24H")}
+                        {timeRangeControlButton("7D")}
+                        {timeRangeControlButton("1M")}
+                        {timeRangeControlButton("1Y")}
+                        {timeRangeControlButton("ALL")}
+                    </View>
+                    <View style={styles.tableContainer}>
+                    </View>
+                </View>
             }
         </>
     );

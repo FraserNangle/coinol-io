@@ -1,0 +1,50 @@
+import { lineDataItem } from "gifted-charts-core";
+import { coinMarketHistoricalData24hMock } from "../mocks/coinMarketHistoricalDataMock";
+import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
+
+async function fetchHistoricalCoinData(coinId: string, startDate: string, endDate: string, interval: string) {
+    if (process.env.NODE_ENV === 'development') {
+        // Mock the data in development environment
+        return new Promise<CoinMarketHistoricalDataPoint[]>((resolve) => {
+            setTimeout(() => {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                resolve(coinMarketHistoricalData24hMock
+                    .filter((coin) => coin.id === coinId)
+                    .filter((coin) => {
+                        const coinDate = new Date(coin.date);
+                        return coinDate >= start && coinDate <= end;
+                    })
+                );
+            }, 100); // Simulate a delay of 1 second
+        });
+    } else {
+        // Fetch the data from backend in other environments
+        // send the coinId, startDate and endDate to the backend to get the historical data for the coin, at the specified interval
+        const response = await fetch(`/api/coinMarkets/historicalData`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ coinId, startDate, endDate, interval }),
+        });
+        return await response.json() as CoinMarketHistoricalDataPoint[];
+    }
+}
+
+export async function getHistoricalLineGraphDataForCoinId(coinId: string, startDate: string, endDate: string, interval: string) {
+    const historicalDataPointList: CoinMarketHistoricalDataPoint[] = await fetchHistoricalCoinData(coinId, startDate, endDate, interval);
+
+    const data: lineDataItem[] = [];
+
+    // Sort the historicalDataPointList by date
+    historicalDataPointList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    historicalDataPointList.forEach((dataPoint) => {
+        data.push({
+            value: dataPoint.current_price,
+        });
+    });
+
+    return data;
+}
