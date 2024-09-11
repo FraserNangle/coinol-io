@@ -33,32 +33,34 @@ export default function CoinGraphScreen() {
     }, [navigation]);
 
     useEffect(() => {
-        let days: number;
+        if (folioEntry) {
+            let days: number;
 
-        if (timeRange === "24H") {
-            days = 1;
-        } else if (timeRange === "7D") {
-            days = 7;
-        } else if (timeRange === "1M") {
-            days = 30;
-        } else if (timeRange === "1Y") {
-            days = 365;
-        } else {
-            days = 365 * 10;
+            if (timeRange === "24H") {
+                days = 1;
+            } else if (timeRange === "7D") {
+                days = 7;
+            } else if (timeRange === "1M") {
+                days = 30;
+            } else if (timeRange === "1Y") {
+                days = 365;
+            } else {
+                days = 365 * 20;
+            }
+
+            const currentDate = new Date();
+            const endDate = currentDate.toISOString().split('T')[0];
+            const startDate = new Date(currentDate);
+            startDate.setDate(startDate.getDate() - days);
+            const formattedStartDate = startDate.toISOString().split('T')[0];
+
+            getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange).then((data) => {
+                setHistoricalData(data);
+            });
         }
+    }, [timeRange, folioEntry]);
 
-        const currentDate = new Date();
-        const endDate = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-        const startDate = new Date(currentDate);
-        startDate.setDate(startDate.getDate() - days);
-        const formattedStartDate = startDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-
-        getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange).then((data) => {
-            setHistoricalData(data);
-        });
-    }, [timeRange]);
-
-    const formattedCoinValue = convertToCurrencyFormat(folioEntry.currentPrice * folioEntry.quantity, CURRENCY_TYPE);
+    const formattedCoinValue = convertToCurrencyFormat(folioEntry.currentPrice, CURRENCY_TYPE);
 
     const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h, CURRENCY_TYPE);
 
@@ -100,9 +102,9 @@ export default function CoinGraphScreen() {
                             </Text>
                         </View>
                     </View>
-                    <CoinGraph
-                        data={historicalData}
-                    />
+                    {historicalData.length > 0 && (
+                        <CoinGraph data={historicalData} />
+                    )}
                     <View style={styles.buttonContainer}>
                         {timeRangeControlButton("24H")}
                         {timeRangeControlButton("7D")}

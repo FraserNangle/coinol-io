@@ -13,6 +13,7 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
         <View style={[styles.container, { backgroundColor: 'black' }]}>
             <LineChart
                 areaChart
+                lineGradient
                 height={300}
                 data={data}
                 color={'white'}
@@ -27,17 +28,16 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
                 hideAxesAndRules
                 hideOrigin
                 startFillColor="white"
-                startOpacity={.3}
+                startOpacity={.2}
                 endFillColor="white"
                 endOpacity={0}
                 isAnimated
-                animationDuration={1200}
-                scrollToEnd
+                animationDuration={600}
                 pointerConfig={{
-                    pointerStripColor: 'lightgray',
-                    pointerStripWidth: 2,
-                    pointerColor: 'lightgray',
-                    radius: 3,
+                    pointerStripColor: 'white',
+                    pointerStripWidth: 1,
+                    pointerColor: 'white',
+                    radius: 5,
                 }}
             />
         </View>

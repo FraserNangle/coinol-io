@@ -40,9 +40,15 @@ export async function getHistoricalLineGraphDataForCoinId(coinId: string, startD
     // Sort the historicalDataPointList by date
     historicalDataPointList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+    // Find the maximum and minimum current_price in the historicalDataPointList
+    const maxPrice = Math.max(...historicalDataPointList.map(dataPoint => dataPoint.current_price));
+    const minPrice = Math.min(...historicalDataPointList.map(dataPoint => dataPoint.current_price));
+
     historicalDataPointList.forEach((dataPoint) => {
         data.push({
             value: dataPoint.current_price,
+            dataPointText: dataPoint.current_price.toString(),
+            hideDataPoint: dataPoint.current_price !== maxPrice && dataPoint.current_price !== minPrice
         });
     });
 

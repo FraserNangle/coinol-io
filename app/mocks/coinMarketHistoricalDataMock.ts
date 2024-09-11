@@ -14,12 +14,12 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "bitcoin",
         date: "2024-09-07T00:00:00Z",
-        current_price: 51000,
+        current_price: 48700,
     },
     {
         id: "bitcoin",
         date: "2024-09-06T00:00:00Z",
-        current_price: 52000,
+        current_price: 57000,
     },
     {
         id: "bitcoin",
@@ -29,7 +29,7 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "bitcoin",
         date: "2024-09-04T00:00:00Z",
-        current_price: 54000,
+        current_price: 52500,
     },
     {
         id: "bitcoin",
@@ -39,12 +39,67 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "bitcoin",
         date: "2024-09-02T00:00:00Z",
-        current_price: 56000,
+        current_price: 56800,
     },
     {
         id: "bitcoin",
         date: "2024-09-01T00:00:00Z",
-        current_price: 57000,
+        current_price: 52300,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-31T00:00:00Z",
+        current_price: 58090,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-30T00:00:00Z",
+        current_price: 59300,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-29T00:00:00Z",
+        current_price: 62300,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-28T00:00:00Z",
+        current_price: 59000,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-27T00:00:00Z",
+        current_price: 62000,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-26T00:00:00Z",
+        current_price: 68000,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-25T00:00:00Z",
+        current_price: 61000,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-24T00:00:00Z",
+        current_price: 65000,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-23T00:00:00Z",
+        current_price: 59600,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-22T00:00:00Z",
+        current_price: 67000,
+    },
+    {
+        id: "bitcoin",
+        date: "2024-08-21T00:00:00Z",
+        current_price: 68000,
     },
     {
         id: "cardano",
@@ -59,7 +114,7 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "cardano",
         date: "2024-09-07T00:00:00Z",
-        current_price: 2.55,
+        current_price: 1.20,
     },
     {
         id: "cardano",
@@ -84,11 +139,66 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "cardano",
         date: "2024-09-02T00:00:00Z",
-        current_price: 2.80,
+        current_price: 2.89,
     },
     {
         id: "cardano",
         date: "2024-09-01T00:00:00Z",
-        current_price: 2.85,
+        current_price: 2.32,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-31T00:00:00Z",
+        current_price: 2.90,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-30T00:00:00Z",
+        current_price: 2.98,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-29T00:00:00Z",
+        current_price: 3.00,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-28T00:00:00Z",
+        current_price: 3.67,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-27T00:00:00Z",
+        current_price: 3.10,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-26T00:00:00Z",
+        current_price: 2.15,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-25T00:00:00Z",
+        current_price: 2.30,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-24T00:00:00Z",
+        current_price: 3.25,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-23T00:00:00Z",
+        current_price: 2.10,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-22T00:00:00Z",
+        current_price: 3.35,
+    },
+    {
+        id: "cardano",
+        date: "2024-08-21T00:00:00Z",
+        current_price: 1.40,
     },
 ];
