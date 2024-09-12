@@ -1,6 +1,8 @@
 import { lineDataItem } from "gifted-charts-core";
 import { coinMarketHistoricalData24hMock } from "../mocks/coinMarketHistoricalDataMock";
 import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
+import { CURRENCY_TYPE } from "../(tabs)";
+import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
 
 async function fetchHistoricalCoinData(coinId: string, startDate: string, endDate: string, interval: string) {
     if (process.env.NODE_ENV === 'development') {
@@ -44,11 +46,27 @@ export async function getHistoricalLineGraphDataForCoinId(coinId: string, startD
     const maxPrice = Math.max(...historicalDataPointList.map(dataPoint => dataPoint.current_price));
     const minPrice = Math.min(...historicalDataPointList.map(dataPoint => dataPoint.current_price));
 
-    historicalDataPointList.forEach((dataPoint) => {
+    historicalDataPointList.forEach((dataPoint, index) => {
+        let dataPointHeight = 0;
+        if (dataPoint.current_price == maxPrice) {
+            dataPointHeight = 30;
+        } else if (dataPoint.current_price == minPrice) {
+            dataPointHeight = -30;
+        }
+
+        let dataPointWidth = 0;
+        if (index === 0) {
+            dataPointWidth = -5;
+        } else if (index === historicalDataPointList.length - 1) {
+            dataPointWidth = 25;
+        }
+
         data.push({
             value: dataPoint.current_price,
-            dataPointText: dataPoint.current_price.toString(),
-            hideDataPoint: dataPoint.current_price !== maxPrice && dataPoint.current_price !== minPrice
+            dataPointText: convertToCurrencyFormat(dataPoint.current_price, CURRENCY_TYPE),
+            hideDataPoint: dataPoint.current_price !== maxPrice && dataPoint.current_price !== minPrice,
+            dataPointHeight: dataPointHeight,
+            dataPointWidth: dataPointWidth,
         });
     });
 

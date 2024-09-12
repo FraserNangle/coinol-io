@@ -13,20 +13,30 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
         <View style={[styles.container, { backgroundColor: 'black' }]}>
             <LineChart
                 areaChart
+                color={"white"}
                 lineGradient
                 height={300}
                 data={data}
-                color={'white'}
                 textColor1="white"
-                textShiftX={10}
                 textFontSize={12}
+                //TODO: Change this to a custom data point label so it can be centered and have an icon
+                textShiftX={-10}
                 customDataPoint={() => { return <></> }}
                 thickness={1}
                 initialSpacing={0}
                 adjustToWidth
+                yAxisColor={"black"}
+                yAxisExtraHeight={0}
+                yAxisTextStyle={{ color: 'white', fontSize: 8, textAlign: 'left' }}
+                yAxisOffset={data.length > 0 ? data[0].value / 2 : 0}
+                maxValue={data.length > 0 ? Math.max(...data.map(dataPoint => dataPoint.value)) : 0}
                 hideYAxisText
-                hideAxesAndRules
-                hideOrigin
+                //hideAxesAndRules
+                //hideRules
+                yAxisLabelWidth={0}
+                rulesType="dotted"
+                rulesColor={"hsl(0, 0%, 15%)"}
+                curved
                 startFillColor="white"
                 startOpacity={.2}
                 endFillColor="white"
