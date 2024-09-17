@@ -59,9 +59,9 @@ export default function CoinGraphScreen() {
         }
     }, [timeRange, folioEntry]);
 
-    const formattedCoinValue = convertToCurrencyFormat(folioEntry.currentPrice, CURRENCY_TYPE);
+    const formattedCoinValue = convertToCurrencyFormat(folioEntry.currentPrice);
 
-    const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h, CURRENCY_TYPE);
+    const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h);
 
     function timeRangeControlButton(value: string) {
         return <Button

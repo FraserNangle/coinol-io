@@ -1,10 +1,25 @@
+import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface CoinGraphProps {
     data: lineDataItem[],
 }
+
+export const customDataPointLabelComponent = (value: number, max: boolean) => {
+    return (
+        //TODO: detect if component is out of screen bounds and move it accordingly
+        <View style={styles.labelContainer}>
+            {!max && <MaterialIcons name="keyboard-arrow-up" color={"white"} size={10} />}
+            <Text style={styles.labelText}>{convertToCurrencyFormat(value)}</Text>
+            {max && <MaterialIcons name="keyboard-arrow-down" color={"white"} size={10} />}
+        </View>
+    );
+};
 
 export const CoinGraph: React.FC<CoinGraphProps> = ({
     data,
@@ -17,17 +32,12 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
                 lineGradient
                 height={300}
                 data={data}
-                textColor1="white"
-                textFontSize={12}
-                //TODO: Change this to a custom data point label so it can be centered and have an icon
-                textShiftX={-10}
                 customDataPoint={() => { return <></> }}
                 thickness={1}
                 initialSpacing={0}
                 adjustToWidth
                 yAxisColor={"black"}
                 yAxisExtraHeight={0}
-                yAxisTextStyle={{ color: 'white', fontSize: 8, textAlign: 'left' }}
                 yAxisOffset={data.length > 0 ? data[0].value / 2 : 0}
                 maxValue={data.length > 0 ? Math.max(...data.map(dataPoint => dataPoint.value)) : 0}
                 hideYAxisText
@@ -36,7 +46,7 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
                 yAxisLabelWidth={0}
                 rulesType="dotted"
                 rulesColor={"hsl(0, 0%, 15%)"}
-                curved
+                //curved
                 startFillColor="white"
                 startOpacity={.2}
                 endFillColor="white"
@@ -60,28 +70,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    spacer: {
-        flexGrow: 1,
-    },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    graph: {
-        alignSelf: 'center',
-        width: '100%',
-        aspectRatio: 2,
-    },
-    miniGraph: {
-        width: 40,
-        height: 35,
-        marginLeft: 5,
-    },
-    controlsScrollView: {
-        flexGrow: 1,
-        paddingHorizontal: 15,
-    },
-    controlsScrollViewContent: {
+    labelContainer: {
+        position: 'absolute',
+        alignContent: 'center',
         justifyContent: 'center',
+        alignItems: 'center',
+        width: 60,
+        height: 60
+    },
+    labelText: {
+        fontSize: 10,
+        color: 'white',
     },
 })

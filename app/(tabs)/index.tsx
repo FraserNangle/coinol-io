@@ -16,8 +16,7 @@ import { setUserFolio } from "../slices/userFolioSlice";
 import { RootState } from "../store/store";
 import { DonutChart } from "@/components/index/donutChart/donutChart";
 import { useSQLiteContext } from "expo-sqlite";
-
-export const CURRENCY_TYPE = "USD";
+import { CURRENCY_TYPE } from "./_layout";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
