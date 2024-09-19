@@ -12,6 +12,8 @@ import { Button } from "react-native-paper";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import { lineDataItem } from "gifted-charts-core";
 import { getHistoricalLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
+import { RootState } from "@/app/store/store";
+import { useSelector } from "react-redux";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -25,6 +27,8 @@ export default function CoinGraphScreen() {
     const { folioEntry }: { folioEntry: FolioEntry } = route.params as RouteParams;
 
     const navigation = useNavigation();
+
+    const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
     useEffect(() => {
         navigation.setOptions({ title: folioEntry.name });
@@ -52,15 +56,15 @@ export default function CoinGraphScreen() {
             startDate.setDate(startDate.getDate() - days);
             const formattedStartDate = startDate.toISOString().split('T')[0];
 
-            getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange).then((data) => {
+            getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange, currencyType).then((data) => {
                 setHistoricalData(data);
             });
         }
     }, [timeRange, folioEntry]);
 
-    const formattedCoinValue = convertToCurrencyFormat(folioEntry.currentPrice);
+    const formattedCoinValue = convertToCurrencyFormat(folioEntry.currentPrice, currencyType);
 
-    const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h);
+    const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h, currencyType);
 
     function timeRangeControlButton(value: string) {
         return <Button

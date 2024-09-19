@@ -1,21 +1,29 @@
+import { RootState } from "@/app/store/store";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React from "react";
 import { StyleSheet, View, Text } from "react-native";
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
+import { useSelector } from "react-redux";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+//const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface CoinGraphProps {
     data: lineDataItem[],
 }
 
-export const customDataPointLabelComponent = (value: number, max: boolean) => {
+export const customDataPointLabelComponent = (value: number, max: boolean, currencyType: string) => {
     return (
         //TODO: detect if component is out of screen bounds and move it accordingly
-        <View style={styles.labelContainer}>
+        <View style={styles.labelContainer} /* onLayout={(event) => {
+            event.target.measure(
+                (x, y, width, height, pageX, pageY) => {
+                    console.log('x: ' + x + ' y: ' + y + ' width: ' + width + ' height: ' + height + ' pageX: ' + pageX + ' pageY: ' + pageY);
+                },
+            );
+        }} */>
             {!max && <MaterialIcons name="keyboard-arrow-up" color={"white"} size={10} />}
-            <Text style={styles.labelText}>{convertToCurrencyFormat(value)}</Text>
+            <Text style={styles.labelText}>{convertToCurrencyFormat(value, currencyType)}</Text>
             {max && <MaterialIcons name="keyboard-arrow-down" color={"white"} size={10} />}
         </View>
     );

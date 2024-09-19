@@ -8,6 +8,7 @@ import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import { useSelector } from "react-redux";
 import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
 import { getPercentageChangeDisplay } from "../utils/getPercentageChange";
+import { RootState } from "../store/store";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: Readonly<{
@@ -27,8 +28,9 @@ export default function TabLayout() {
   const totalPortfolioPercentageChange24hr = useSelector(
     (state: any) => state?.totalPortfolioValue?.totalPortfolioPercentageChange24hr
   );
+  const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
-  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue);
+  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType);
 
   return (
     <Tabs
