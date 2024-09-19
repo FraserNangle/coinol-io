@@ -4,6 +4,7 @@ import totalPortfolioValueReducer from '../slices/totalPortfolioValueSlice';
 import userFolioReducer from '../slices/userFolioSlice';
 import allCoinDataReducer from '../slices/allCoinDataSlice';
 import lastTransactionReducer from '../slices/lastTransactionSlice';
+import currencyTypeReducer from '../slices/currencyTypeSlice';
 
 const store = configureStore({
     reducer: {
@@ -12,6 +13,7 @@ const store = configureStore({
         totalPortfolioValue: totalPortfolioValueReducer,
         userFolio: userFolioReducer,
         allCoinData: allCoinDataReducer,
+        currencyType: currencyTypeReducer,
     },
 });
 

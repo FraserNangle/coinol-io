@@ -9,9 +9,6 @@ import { useSelector } from "react-redux";
 import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
 import { getPercentageChangeDisplay } from "../utils/getPercentageChange";
 
-//TODO: refactor as a piece of state
-export const CURRENCY_TYPE = "USD";
-
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: Readonly<{
   name: React.ComponentProps<typeof MaterialIcons>["name"];

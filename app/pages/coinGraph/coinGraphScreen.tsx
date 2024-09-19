@@ -12,7 +12,6 @@ import { Button } from "react-native-paper";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import { lineDataItem } from "gifted-charts-core";
 import { getHistoricalLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
-import { CURRENCY_TYPE } from "@/app/(tabs)";
 
 type RouteParams = {
     folioEntry: FolioEntry;

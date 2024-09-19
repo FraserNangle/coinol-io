@@ -1,9 +1,7 @@
 import { lineDataItem } from "gifted-charts-core";
 import { coinMarketHistoricalData24hMock } from "../mocks/coinMarketHistoricalDataMock";
 import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
-import { CURRENCY_TYPE } from "../(tabs)";
-import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
-import { customDataPointLabelComponent } from "@/components/index/coinGraph/coinGraph";
+import { CustomDataPointLabelComponent } from "@/components/index/coinGraph/coinGraph";
 
 async function fetchHistoricalCoinData(coinId: string, startDate: string, endDate: string, interval: string) {
     if (process.env.NODE_ENV === 'development') {
@@ -58,7 +56,8 @@ export async function getHistoricalLineGraphDataForCoinId(coinId: string, startD
         data.push({
             value: dataPoint.current_price,
             hideDataPoint: dataPoint.current_price !== maxPrice && dataPoint.current_price !== minPrice,
-            dataPointLabelComponent: () => customDataPointLabelComponent(dataPoint.current_price, dataPoint.current_price === maxPrice),
+            dataPointLabelComponent: () =>
+                CustomDataPointLabelComponent(dataPoint.current_price, dataPoint.current_price === maxPrice),
             dataPointLabelShiftY: dataPointHeight,
             dataPointLabelShiftX: 24,
         });
