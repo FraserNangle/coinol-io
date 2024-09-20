@@ -13,7 +13,7 @@ import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import { lineDataItem } from "gifted-charts-core";
 import { getHistoricalLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
 import { RootState } from "@/app/store/store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -27,6 +27,7 @@ export default function CoinGraphScreen() {
     const { folioEntry }: { folioEntry: FolioEntry } = route.params as RouteParams;
 
     const navigation = useNavigation();
+    const dispatch = useDispatch();
 
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
@@ -56,7 +57,7 @@ export default function CoinGraphScreen() {
             startDate.setDate(startDate.getDate() - days);
             const formattedStartDate = startDate.toISOString().split('T')[0];
 
-            getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange, currencyType).then((data) => {
+            getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange, dispatch).then((data) => {
                 setHistoricalData(data);
             });
         }
@@ -105,7 +106,7 @@ export default function CoinGraphScreen() {
                         </View>
                     </View>
                     {historicalData.length > 0 && (
-                        <CoinGraph data={historicalData} />
+                        <CoinGraph data={historicalData} currencyType={currencyType} />
                     )}
                     <View style={styles.buttonContainer}>
                         {timeRangeControlButton("24H")}

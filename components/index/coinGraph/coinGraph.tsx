@@ -1,37 +1,90 @@
+import { DataPointLabelProps, setCoinGraphDataLabelProps } from "@/app/slices/coinGraphDataLabelPropsSlice";
 import { RootState } from "@/app/store/store";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import React from "react";
-import { StyleSheet, View, Text } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, View, Text, Dimensions, LayoutChangeEvent } from "react-native";
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
-import { useSelector } from "react-redux";
-
-//const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import { useDispatch, useSelector } from "react-redux";
+import { Dispatch, UnknownAction } from "redux";
 
 interface CoinGraphProps {
     data: lineDataItem[],
+    currencyType: string
+}
+interface DataPointLabelComponentProps {
+    currencyType: string,
+    dataPointLabelProps: DataPointLabelProps
 }
 
-export const customDataPointLabelComponent = (value: number, max: boolean, currencyType: string) => {
+export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolean, dispatch: Dispatch<UnknownAction>) => {
+    const screenWidth = Dimensions.get('window').width;
+    let xAdjustment = -30;
+
+    const handleLayout = (event: LayoutChangeEvent) => {
+        event.target.measure((x, y, width, height, pageX, pageY) => {
+            console.log('x: ' + x + ' y: ' + y + ' width: ' + width + ' height: ' + height + ' pageX: ' + pageX + ' pageY: ' + pageY);
+
+            if (pageX + width > screenWidth) {
+                xAdjustment = screenWidth - (pageX + width);
+                console.log('Component is out of screen on the right, adjust position by', xAdjustment);
+            } else if (pageX - width < 0) {
+                xAdjustment = width;
+                console.log('Component is out of screen on the left, adjust position by', xAdjustment);
+            } else {
+                xAdjustment = 0;
+            }
+            //TODO: this is setting the DataPointLabelProps in the redux store TWICE, once for the upper label and once for the lower label, so is overwriting the first one
+            //     need to set the DataPointLabelProps separately for each label (could be done using isMax boolean)
+            dispatch(setCoinGraphDataLabelProps({ x, y, width, height, pageX, pageY, value, isMax, xAdjustment }));
+        });
+    };
+
     return (
-        //TODO: detect if component is out of screen bounds and move it accordingly
-        <View style={styles.labelContainer} /* onLayout={(event) => {
-            event.target.measure(
-                (x, y, width, height, pageX, pageY) => {
-                    console.log('x: ' + x + ' y: ' + y + ' width: ' + width + ' height: ' + height + ' pageX: ' + pageX + ' pageY: ' + pageY);
-                },
-            );
-        }} */>
-            {!max && <MaterialIcons name="keyboard-arrow-up" color={"white"} size={10} />}
-            <Text style={styles.labelText}>{convertToCurrencyFormat(value, currencyType)}</Text>
-            {max && <MaterialIcons name="keyboard-arrow-down" color={"white"} size={10} />}
+        <View style={[styles.labelContainer, { right: xAdjustment }]} onLayout={handleLayout}>
+            {!isMax && <MaterialIcons name="keyboard-arrow-up" color={"white"} size={10} />}
+            <Text style={styles.labelText}>TESTER</Text>
+            {isMax && <MaterialIcons name="keyboard-arrow-down" color={"white"} size={10} />}
+        </View>
+    );
+};
+
+const UpperDataPointLabelComponent: React.FC<DataPointLabelComponentProps> = ({
+    currencyType,
+    dataPointLabelProps
+}: DataPointLabelComponentProps) => {
+    console.log('VISIBLE COMPONENT- x: ' + dataPointLabelProps.x + ' y: ' + dataPointLabelProps.y + ' width: ' + dataPointLabelProps.width + ' height: ' + dataPointLabelProps.height + ' pageX: ' + dataPointLabelProps.pageX + ' pageY: ' + dataPointLabelProps.pageY);
+
+    return (
+        <View style={[styles.labelContainer, { start: dataPointLabelProps.pageX /* + dataPointLabelProps.xAdjustment */, bottom: dataPointLabelProps.pageY - 92 }]}>
+            {!dataPointLabelProps.isMax && <MaterialIcons name="keyboard-arrow-up" color={"white"} size={10} />}
+            <Text style={styles.labelText}>{convertToCurrencyFormat(dataPointLabelProps.value, currencyType)}</Text>
+            {dataPointLabelProps.isMax && <MaterialIcons name="keyboard-arrow-down" color={"white"} size={10} />}
+        </View>
+    );
+};
+
+const LowerDataPointLabelComponent: React.FC<DataPointLabelComponentProps> = ({
+    currencyType,
+    dataPointLabelProps
+}: DataPointLabelComponentProps) => {
+    console.log('VISIBLE COMPONENT- x: ' + dataPointLabelProps.x + ' y: ' + dataPointLabelProps.y + ' width: ' + dataPointLabelProps.width + ' height: ' + dataPointLabelProps.height + ' pageX: ' + dataPointLabelProps.pageX + ' pageY: ' + dataPointLabelProps.pageY);
+
+    return (
+        <View style={[styles.labelContainer, { end: dataPointLabelProps.pageX /* + dataPointLabelProps.xAdjustment */, bottom: dataPointLabelProps.pageY }]}>
+            {!dataPointLabelProps.isMax && <MaterialIcons name="keyboard-arrow-up" color={"white"} size={10} />}
+            <Text style={styles.labelText}>{convertToCurrencyFormat(dataPointLabelProps.value, currencyType)}</Text>
+            {dataPointLabelProps.isMax && <MaterialIcons name="keyboard-arrow-down" color={"white"} size={10} />}
         </View>
     );
 };
 
 export const CoinGraph: React.FC<CoinGraphProps> = ({
     data,
+    currencyType
 }: CoinGraphProps) => {
+    const dataLabelProps = useSelector((state: RootState) => state.coinGraphDataLabelProps.coinGraphDataLabelProps);
+
     return (
         <View style={[styles.container, { backgroundColor: 'black' }]}>
             <LineChart
@@ -68,6 +121,12 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
                     radius: 5,
                 }}
             />
+            {dataLabelProps && (
+                <>
+                    <UpperDataPointLabelComponent currencyType={currencyType} dataPointLabelProps={dataLabelProps} />
+                    <LowerDataPointLabelComponent currencyType={currencyType} dataPointLabelProps={dataLabelProps} />
+                </>
+            )}
         </View>
     );
 };

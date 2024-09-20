@@ -1,9 +1,8 @@
 import { lineDataItem } from "gifted-charts-core";
 import { coinMarketHistoricalData24hMock } from "../mocks/coinMarketHistoricalDataMock";
 import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
-import { customDataPointLabelComponent } from "@/components/index/coinGraph/coinGraph";
-import { useSelector } from "react-redux";
-import { RootState } from "../store/store";
+import { DataPointLabelComponentLayoutSetter } from "@/components/index/coinGraph/coinGraph";
+import { Dispatch, UnknownAction } from "redux";
 
 async function fetchHistoricalCoinData(coinId: string, startDate: string, endDate: string, interval: string) {
     if (process.env.NODE_ENV === 'development') {
@@ -35,7 +34,7 @@ async function fetchHistoricalCoinData(coinId: string, startDate: string, endDat
     }
 }
 
-export async function getHistoricalLineGraphDataForCoinId(coinId: string, startDate: string, endDate: string, interval: string, currencyType: string): Promise<lineDataItem[]> {
+export async function getHistoricalLineGraphDataForCoinId(coinId: string, startDate: string, endDate: string, interval: string, dispatch: Dispatch<UnknownAction>): Promise<lineDataItem[]> {
     const historicalDataPointList: CoinMarketHistoricalDataPoint[] = await fetchHistoricalCoinData(coinId, startDate, endDate, interval);
     const data: lineDataItem[] = [];
 
@@ -58,7 +57,7 @@ export async function getHistoricalLineGraphDataForCoinId(coinId: string, startD
             value: dataPoint.current_price,
             hideDataPoint: dataPoint.current_price !== maxPrice && dataPoint.current_price !== minPrice,
             dataPointLabelComponent: () =>
-                customDataPointLabelComponent(dataPoint.current_price, dataPoint.current_price === maxPrice, currencyType),
+                DataPointLabelComponentLayoutSetter(dataPoint.current_price, dataPoint.current_price === maxPrice, dispatch),
             dataPointLabelShiftY: dataPointHeight,
             dataPointLabelShiftX: 24,
         });
