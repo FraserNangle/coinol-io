@@ -9,27 +9,31 @@ export interface DataPointLabelProps {
     pageY: number,
     value: number,
     isMax: boolean,
-    xAdjustment: number,
 }
 
 interface CoinGraphDataLabelPropsSliceState {
-    coinGraphDataLabelProps: DataPointLabelProps | null;
+    coinGraphDataLabelPropsMax: DataPointLabelProps | null;
+    coinGraphDataLabelPropsMin: DataPointLabelProps | null;
 }
 
 const initialState: CoinGraphDataLabelPropsSliceState = {
-    coinGraphDataLabelProps: null,
+    coinGraphDataLabelPropsMax: null,
+    coinGraphDataLabelPropsMin: null,
 };
 
 const coinGraphDataLabelPropsSlice = createSlice({
     name: "coinGraphDataLabelProps",
     initialState,
     reducers: {
-        setCoinGraphDataLabelProps: (state, action: PayloadAction<DataPointLabelProps | null>) => {
-            state.coinGraphDataLabelProps = action.payload;
+        setCoinGraphDataLabelPropsMax: (state, action: PayloadAction<DataPointLabelProps | null>) => {
+            state.coinGraphDataLabelPropsMax = action.payload;
+        },
+        setCoinGraphDataLabelPropsMin: (state, action: PayloadAction<DataPointLabelProps | null>) => {
+            state.coinGraphDataLabelPropsMin = action.payload;
         },
     },
 });
 
-export const { setCoinGraphDataLabelProps } = coinGraphDataLabelPropsSlice.actions;
+export const { setCoinGraphDataLabelPropsMax, setCoinGraphDataLabelPropsMin } = coinGraphDataLabelPropsSlice.actions;
 
 export default coinGraphDataLabelPropsSlice.reducer;

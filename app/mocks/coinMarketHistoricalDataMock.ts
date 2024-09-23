@@ -240,7 +240,7 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     ...Array.from({ length: 24 }, (_, i) => ({
         id: "bitcoin",
         date: new Date(new Date().setHours(new Date().getHours() - (i + 1))).toISOString(),
-        current_price: 48000 + Math.random() * 8000,
+        current_price: 56000 + Math.random() * 12000,
     })),
     ...Array.from({ length: 24 }, (_, i) => ({
         id: "cardano",
