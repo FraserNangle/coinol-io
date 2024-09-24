@@ -2,7 +2,7 @@ import { DataPointLabelProps, setCoinGraphDataLabelPropsMax, setCoinGraphDataLab
 import { RootState } from "@/app/store/store";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, Dimensions, LayoutChangeEvent } from "react-native";
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
@@ -21,8 +21,10 @@ export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolea
     const handleLayout = (event: LayoutChangeEvent) => {
         event.target.measure((x, y, width, height, pageX, pageY) => {
             if (isMax) {
+                console.log("Max: ", { x, y, width, height, pageX, pageY, value, isMax });
                 dispatch(setCoinGraphDataLabelPropsMax({ x, y, width, height, pageX, pageY, value, isMax }));
             } else {
+                console.log("Min: ", { x, y, width, height, pageX, pageY, value, isMax });
                 dispatch(setCoinGraphDataLabelPropsMin({ x, y, width, height, pageX, pageY, value, isMax }));
             }
         });
@@ -43,10 +45,20 @@ const DataPointLabelComponent: React.FC<DataPointLabelComponentProps> = ({
     const screenWidth = Dimensions.get('window').width;
     let xAdjustment = 0;
 
-    if (dataPointLabelProps.pageX + dataPointLabelProps.width > screenWidth) {
+    //TODO: if the label is going out of the screen because the data point is near the edge of the screen (but not past it),
+    // then the label will still display a right arrow and point to the wrong data point.
+    // need to fix this by adjusting the x position of only the text, if the halfway point of the label is not past the edge of the screen,
+    // but otherwise adjusting both as normal
+    if (dataPointLabelProps.pageX + (dataPointLabelProps.width) > screenWidth) {
         xAdjustment = screenWidth - (dataPointLabelProps.pageX + dataPointLabelProps.width);
         return (
-            <View style={[styles.labelContainer, { start: dataPointLabelProps.pageX + xAdjustment, top: dataPointLabelProps.pageY - 154, flexDirection: "row", justifyContent: 'flex-end' }]}>
+            <View style={[styles.labelContainer,
+            {
+                start: dataPointLabelProps.pageX + xAdjustment,
+                top: dataPointLabelProps.pageY - 154,
+                flexDirection: "row",
+                justifyContent: 'flex-end'
+            }]}>
                 <Text style={styles.labelText}>{convertToCurrencyFormat(dataPointLabelProps.value, currencyType)}</Text>
                 {<MaterialIcons name="keyboard-arrow-right" color={"white"} size={10} />}
             </View>
@@ -55,8 +67,11 @@ const DataPointLabelComponent: React.FC<DataPointLabelComponentProps> = ({
     } else if (dataPointLabelProps.pageX < 0) {
         xAdjustment = -dataPointLabelProps.pageX;
         return (
-            <View style={[styles.labelContainer, {
-                start: dataPointLabelProps.pageX + xAdjustment, top: dataPointLabelProps.pageY - 154, flexDirection: "row",
+            <View style={[styles.labelContainer,
+            {
+                start: dataPointLabelProps.pageX + xAdjustment,
+                top: dataPointLabelProps.pageY - 154,
+                flexDirection: "row",
                 justifyContent: 'flex-start',
             }]}>
                 {<MaterialIcons name="keyboard-arrow-left" color={"white"} size={10} />}
@@ -76,10 +91,19 @@ const DataPointLabelComponent: React.FC<DataPointLabelComponentProps> = ({
 
 export const CoinGraph: React.FC<CoinGraphProps> = ({
     data,
-    currencyType
+    currencyType,
 }: CoinGraphProps) => {
+    const [key, setKey] = useState(0);
     const dataLabelPropsMax = useSelector((state: RootState) => state.coinGraphDataLabelProps.coinGraphDataLabelPropsMax);
     const dataLabelPropsMin = useSelector((state: RootState) => state.coinGraphDataLabelProps.coinGraphDataLabelPropsMin);
+
+    // Force a rerender to update the dataLabelPropsMax and dataLabelPropsMin
+    const forceRerender = () => {
+        setKey(prevKey => prevKey + 1);
+    };
+    useEffect(() => {
+        forceRerender();
+    }, []);
 
     return (
         <View style={[styles.container, { backgroundColor: 'black' }]}>
@@ -93,7 +117,7 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
                 thickness={1}
                 initialSpacing={0}
                 adjustToWidth
-                yAxisColor={"black"}
+                yAxisColor={"transparent"}
                 yAxisExtraHeight={0}
                 yAxisOffset={data.length > 0 ? data[0].value / 2 : 0}
                 maxValue={data.length > 0 ? Math.max(...data.map(dataPoint => dataPoint.value)) : 0}

@@ -52,12 +52,11 @@ export async function getHistoricalLineGraphDataForCoinId(coinId: string, startD
         } else if (dataPoint.current_price == minPrice) {
             dataPointHeight = 25;
         }
-
         data.push({
             value: dataPoint.current_price,
             hideDataPoint: dataPoint.current_price !== maxPrice && dataPoint.current_price !== minPrice,
             dataPointLabelComponent: () =>
-                DataPointLabelComponentLayoutSetter(dataPoint.current_price, dataPoint.current_price === maxPrice, dispatch),
+                DataPointLabelComponentLayoutSetter(dataPoint.current_price, dataPoint.current_price == maxPrice, dispatch),
             dataPointLabelShiftY: dataPointHeight,
             dataPointLabelShiftX: 24,
         });

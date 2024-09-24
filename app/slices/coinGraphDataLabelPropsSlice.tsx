@@ -17,8 +17,8 @@ interface CoinGraphDataLabelPropsSliceState {
 }
 
 const initialState: CoinGraphDataLabelPropsSliceState = {
-    coinGraphDataLabelPropsMax: null,
-    coinGraphDataLabelPropsMin: null,
+    coinGraphDataLabelPropsMax: null as DataPointLabelProps | null,
+    coinGraphDataLabelPropsMin: null as DataPointLabelProps | null,
 };
 
 const coinGraphDataLabelPropsSlice = createSlice({
