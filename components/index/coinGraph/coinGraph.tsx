@@ -19,16 +19,16 @@ interface DataPointLabelComponentProps {
 export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolean) => {
     const handleLayout = (event: LayoutChangeEvent) => {
         event.persist(); // Prevent the event from being reused
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                event.target?.measure((x, y, width, height, pageX, pageY) => {
-                    if (isMax === true) {
-                        store.dispatch(setCoinGraphDataLabelPropsMax({ x, y, width, height, pageX, pageY, value, isMax }));
-                    } else if (isMax === false) {
-                        store.dispatch(setCoinGraphDataLabelPropsMin({ x, y, width, height, pageX, pageY, value, isMax }));
-                    }
-                });
-            }, 0); // Small delay to ensure the layout measurement is completed
+        console.log("currenttarget", event.currentTarget);
+        console.log("target", event.target);
+        console.log("nativeEvent", event.nativeEvent.layout);
+        event.currentTarget?.measure((x, y, width, height, pageX, pageY) => {
+            console.log("2: ", event.currentTarget);
+            if (isMax === true) {
+                store.dispatch(setCoinGraphDataLabelPropsMax({ x, y, width, height, pageX, pageY, value, isMax }));
+            } else if (isMax === false) {
+                store.dispatch(setCoinGraphDataLabelPropsMin({ x, y, width, height, pageX, pageY, value, isMax }));
+            }
         });
     };
 
