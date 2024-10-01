@@ -2,7 +2,6 @@ import { lineDataItem } from "gifted-charts-core";
 import { coinMarketHistoricalData24hMock } from "../mocks/coinMarketHistoricalDataMock";
 import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
 import { DataPointLabelComponentLayoutSetter } from "@/components/index/coinGraph/coinGraph";
-import { Dispatch, UnknownAction } from "redux";
 
 async function fetchHistoricalCoinData(coinId: string, startDate: string, endDate: string, interval: string) {
     if (process.env.NODE_ENV === 'development') {

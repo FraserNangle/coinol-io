@@ -54,6 +54,21 @@ export const getTransactionList = async (db: SQLiteDatabase) => {
   }
 }
 
+export const getTransactionListByCoinId = async (db: SQLiteDatabase, coinId: string) => {
+  if (!isGuest()) {
+    // If the user is not a guest, download the transactions from the server and save them to local storage
+    await downloadTransactionsToLocalStorage();
+  }
+
+  const transactions = await db.getAllAsync<UserTransaction>('SELECT * FROM transactions WHERE coinId = ?', [coinId]);
+
+  if (transactions.length > 0) {
+    return transactions;
+  } else {
+    return [];
+  }
+}
+
 async function downloadTransactionsToLocalStorage() {
   // download the transactions from the server and save them to local storage
   const response = await api.get<UserTransaction[]>('/holdings');

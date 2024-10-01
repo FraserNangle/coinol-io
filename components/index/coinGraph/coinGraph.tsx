@@ -2,7 +2,7 @@ import { DataPointLabelProps, setCoinGraphDataLabelPropsMax, setCoinGraphDataLab
 import store, { RootState } from "@/app/store/store";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { StyleSheet, View, Text, Dimensions, LayoutChangeEvent } from "react-native";
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";

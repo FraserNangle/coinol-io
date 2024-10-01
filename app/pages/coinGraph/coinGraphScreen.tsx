@@ -14,6 +14,10 @@ import { lineDataItem } from "gifted-charts-core";
 import { getHistoricalLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
 import { RootState } from "@/app/store/store";
 import { useSelector } from "react-redux";
+import { TransactionHistoryTable } from "@/components/index/transactionHistoryTable/transactionHistoryTable";
+import { UserTransaction } from "@/app/models/UserTransaction";
+import { getTransactionListByCoinId } from "@/app/services/transactionService";
+import { useSQLiteContext } from "expo-sqlite";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -21,12 +25,14 @@ type RouteParams = {
 
 export default function CoinGraphScreen() {
     const [timeRange, setTimeRange] = useState("24H");
-    const [historicalData, setHistoricalData] = useState<lineDataItem[]>([]);
+    const [historicalLineGraphData, setHistoricalLineGraphData] = useState<lineDataItem[]>([]);
+    const [userTransactionData, setUserTransactionData] = useState<UserTransaction[]>([]);
 
     const route = useRoute();
     const { folioEntry }: { folioEntry: FolioEntry } = route.params as RouteParams;
 
     const navigation = useNavigation();
+    const db = useSQLiteContext();
 
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
@@ -35,7 +41,7 @@ export default function CoinGraphScreen() {
     }, [navigation]);
 
     useEffect(() => {
-        const fetchHistoricalData = async () => {
+        const fetchHistoricalLineGraphData = async () => {
             if (folioEntry) {
                 let days: number;
 
@@ -61,8 +67,12 @@ export default function CoinGraphScreen() {
             }
         };
 
-        fetchHistoricalData().then((data) => {
-            setHistoricalData(data || []);
+        fetchHistoricalLineGraphData().then((data) => {
+            setHistoricalLineGraphData(data || []);
+        });
+
+        getTransactionListByCoinId(db, folioEntry.coinId).then((data) => {
+            setUserTransactionData(data || []);
         });
 
     }, [timeRange, folioEntry]);
@@ -109,8 +119,8 @@ export default function CoinGraphScreen() {
                             </Text>
                         </View>
                     </View>
-                    {historicalData.length > 0 && (
-                        <CoinGraph data={historicalData} currencyType={currencyType} />
+                    {historicalLineGraphData.length > 0 && (
+                        <CoinGraph data={historicalLineGraphData} currencyType={currencyType} />
                     )}
                     <View style={styles.buttonContainer}>
                         {timeRangeControlButton("24H")}
@@ -120,6 +130,7 @@ export default function CoinGraphScreen() {
                         {timeRangeControlButton("ALL")}
                     </View>
                     <View style={styles.tableContainer}>
+                        <TransactionHistoryTable data={userTransactionData} />
                     </View>
                 </View>
             }

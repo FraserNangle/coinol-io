@@ -12,6 +12,7 @@ import { useSelector } from "react-redux";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { RootState } from "@/app/store/store";
 import { useNavigation } from "@react-navigation/native";
+import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -23,11 +24,6 @@ if (Platform.OS === "android") {
 interface FolioTableProps {
   data: FolioEntry[];
 }
-
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
 
 const numberFormatter = new Intl.NumberFormat("en-US", {
   style: "decimal",
@@ -48,6 +44,8 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
   const selectedSectionId = useSelector(
     (state: RootState) => state.selectedSection.section?.details?.coinId
   );
+
+  const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
   const styles = getStyles();
 
@@ -137,7 +135,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                     <Text style={styles.bold}> {numberFormatter.format(folioEntry.quantity)}</Text>
                   </View>
                   <Text style={[styles.leftAlign, styles.normal]}>
-                    {currencyFormatter.format(folioEntry.currentPrice)}
+                    {convertToCurrencyFormat(folioEntry.currentPrice, currencyType)}
                   </Text>
                 </View>
               </DataTable.Cell>
@@ -157,7 +155,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                     styles.normal
                   }
                 >
-                  {currencyFormatter.format(folioEntry.quantity * folioEntry.currentPrice)}
+                  {convertToCurrencyFormat(folioEntry.quantity * folioEntry.currentPrice, currencyType)}
                 </Text>
               </DataTable.Cell>
             </DataTable.Row>
