@@ -19,11 +19,7 @@ interface DataPointLabelComponentProps {
 export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolean) => {
     const handleLayout = (event: LayoutChangeEvent) => {
         event.persist(); // Prevent the event from being reused
-        console.log("currenttarget", event.currentTarget);
-        console.log("target", event.target);
-        console.log("nativeEvent", event.nativeEvent.layout);
         event.currentTarget?.measure((x, y, width, height, pageX, pageY) => {
-            console.log("2: ", event.currentTarget);
             if (isMax === true) {
                 store.dispatch(setCoinGraphDataLabelPropsMax({ x, y, width, height, pageX, pageY, value, isMax }));
             } else if (isMax === false) {
@@ -33,9 +29,9 @@ export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolea
     };
 
     return (
-        <View style={[styles.labelContainer,/*  { opacity: 0 } */]} onLayout={handleLayout}>
+        <View style={[styles.labelContainer, { opacity: 0 }]} onLayout={handleLayout}>
             {!isMax && <MaterialIcons name="keyboard-arrow-up" color={"transparent"} size={0} />}
-            <Text style={[styles.labelText, /* { opacity: 0 } */]}>SETTER: {value.toString()}</Text>
+            <Text style={[styles.labelText, { opacity: 0 }]}>SETTER</Text>
             {isMax && <MaterialIcons name="keyboard-arrow-down" color={"transparent"} size={0} />}
         </View>
     );
@@ -97,8 +93,8 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
     currencyType,
 }: CoinGraphProps) => {
     const [key, setKey] = useState(0);
-    const dataLabelPropsMax = useSelector((state: RootState) => state.coinGraphDataLabelProps.coinGraphDataLabelPropsMax);
-    const dataLabelPropsMin = useSelector((state: RootState) => state.coinGraphDataLabelProps.coinGraphDataLabelPropsMin);
+    const dataLabelPropsMax = useSelector((state: RootState) => state.coinGraphDataLabelProps?.coinGraphDataLabelPropsMax);
+    const dataLabelPropsMin = useSelector((state: RootState) => state.coinGraphDataLabelProps?.coinGraphDataLabelPropsMin);
 
     // Force a rerender to update the dataLabelPropsMax and dataLabelPropsMin
     /* const forceRerender = () => {
