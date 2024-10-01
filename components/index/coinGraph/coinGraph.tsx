@@ -92,17 +92,8 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
     data,
     currencyType,
 }: CoinGraphProps) => {
-    const [key, setKey] = useState(0);
     const dataLabelPropsMax = useSelector((state: RootState) => state.coinGraphDataLabelProps?.coinGraphDataLabelPropsMax);
     const dataLabelPropsMin = useSelector((state: RootState) => state.coinGraphDataLabelProps?.coinGraphDataLabelPropsMin);
-
-    // Force a rerender to update the dataLabelPropsMax and dataLabelPropsMin
-    /* const forceRerender = () => {
-        setKey(prevKey => prevKey + 1);
-    };
-    useEffect(() => {
-        forceRerender();
-    }, []); */
 
     return (
         <View style={[styles.container, { backgroundColor: 'black' }]}>
