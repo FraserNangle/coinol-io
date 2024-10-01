@@ -18,7 +18,7 @@ async function fetchHistoricalCoinData(coinId: string, startDate: string, endDat
                         return coinDate >= start && coinDate <= end;
                     })
                 );
-            }, 100); // Simulate a delay of 1 second
+            }, 100); // Simulate a delay of .1 second
         });
     } else {
         // Fetch the data from backend in other environments
@@ -34,18 +34,19 @@ async function fetchHistoricalCoinData(coinId: string, startDate: string, endDat
     }
 }
 
-export async function getHistoricalLineGraphDataForCoinId(coinId: string, startDate: string, endDate: string, interval: string, dispatch: Dispatch<UnknownAction>): Promise<lineDataItem[]> {
+export async function getHistoricalLineGraphDataForCoinId(coinId: string, startDate: string, endDate: string, interval: string): Promise<lineDataItem[]> {
     const historicalDataPointList: CoinMarketHistoricalDataPoint[] = await fetchHistoricalCoinData(coinId, startDate, endDate, interval);
+
     const data: lineDataItem[] = [];
 
     // Sort the historicalDataPointList by date
-    historicalDataPointList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const sortedHistoricalDataPointList = historicalDataPointList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     // Find the maximum and minimum current_price in the historicalDataPointList
-    const maxPrice = Math.max(...historicalDataPointList.map(dataPoint => dataPoint.current_price));
-    const minPrice = Math.min(...historicalDataPointList.map(dataPoint => dataPoint.current_price));
+    const maxPrice = Math.max(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.current_price));
+    const minPrice = Math.min(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.current_price));
 
-    historicalDataPointList.forEach((dataPoint) => {
+    sortedHistoricalDataPointList.forEach((dataPoint) => {
         let dataPointHeight = 0;
         if (dataPoint.current_price == maxPrice) {
             dataPointHeight = -5;
@@ -55,8 +56,15 @@ export async function getHistoricalLineGraphDataForCoinId(coinId: string, startD
         data.push({
             value: dataPoint.current_price,
             hideDataPoint: dataPoint.current_price !== maxPrice && dataPoint.current_price !== minPrice,
-            dataPointLabelComponent: () =>
-                DataPointLabelComponentLayoutSetter(dataPoint.current_price, dataPoint.current_price == maxPrice, dispatch),
+            dataPointLabelComponent: () => {
+                if (dataPoint.current_price === minPrice) {
+                    return DataPointLabelComponentLayoutSetter(minPrice, false);
+                } else if (dataPoint.current_price === maxPrice) {
+                    return DataPointLabelComponentLayoutSetter(maxPrice, true);
+                } else {
+                    return null;
+                }
+            },
             dataPointLabelShiftY: dataPointHeight,
             dataPointLabelShiftX: 24,
         });

@@ -1,10 +1,38 @@
 import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
 
+const uniqueDates = new Set<string>();
+
+const bitcoinEntries24h = Array.from({ length: 24 }, (_, i) => {
+    let date;
+    do {
+        date = new Date(new Date().setHours(new Date().getHours() - (i + 1))).toISOString();
+    } while (uniqueDates.has(date));
+    uniqueDates.add(date);
+    return {
+        id: "bitcoin",
+        date,
+        current_price: 56001.32 + Math.random() * 12002.43,
+    };
+});
+
+const cardanoEntries24h = Array.from({ length: 24 }, (_, i) => {
+    let date;
+    do {
+        date = new Date(new Date().setHours(new Date().getHours() - (i + 1))).toISOString();
+    } while (uniqueDates.has(date));
+    uniqueDates.add(date);
+    return {
+        id: "cardano",
+        date,
+        current_price: 2.4031 + Math.random() * 1.50431,
+    };
+});
+
 export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = [
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
-        current_price: 50000,
+        current_price: 50000.324,
     },
     {
         id: "cardano",
@@ -24,7 +52,7 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString(),
-        current_price: 56000,
+        current_price: 56000.13,
     },
     {
         id: "cardano",
@@ -34,22 +62,22 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 4)).toISOString(),
-        current_price: 48000,
+        current_price: 48000.87,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 4)).toISOString(),
-        current_price: 2.40,
+        current_price: 2.4015,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
-        current_price: 50500,
+        current_price: 50500.3214,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
-        current_price: 2.60,
+        current_price: 2.60234,
     },
     {
         id: "cardano",
@@ -59,7 +87,7 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString(),
-        current_price: 51000,
+        current_price: 51000.143,
     },
     {
         id: "cardano",
@@ -69,97 +97,97 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 4)).toISOString(),
-        current_price: 48500,
+        current_price: 48500.9584,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 4)).toISOString(),
-        current_price: 2.520,
+        current_price: 2.52012,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
-        current_price: 50500,
+        current_price: 50500.21387,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
-        current_price: 2.60,
+        current_price: 2.6012,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 6)).toISOString(),
-        current_price: 49000,
+        current_price: 49000.65,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 6)).toISOString(),
-        current_price: 2.50,
+        current_price: 2.502,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString(),
-        current_price: 48500,
+        current_price: 48500.6534,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString(),
-        current_price: 2.45,
+        current_price: 2.45345,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 8)).toISOString(),
-        current_price: 50000,
+        current_price: 50000.123,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 8)).toISOString(),
-        current_price: 2.55,
+        current_price: 2.55123,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 9)).toISOString(),
-        current_price: 48700,
+        current_price: 48743.542,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 9)).toISOString(),
-        current_price: 3.10,
+        current_price: 3.12,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
-        current_price: 46800,
+        current_price: 46800.12,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
-        current_price: 3.070,
+        current_price: 3.0701,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 11)).toISOString(),
-        current_price: 46890,
+        current_price: 46890.776,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 11)).toISOString(),
-        current_price: 3.04,
+        current_price: 3.043,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 12)).toISOString(),
-        current_price: 49200,
+        current_price: 49202,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 12)).toISOString(),
-        current_price: 2.230,
+        current_price: 2.23013,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 13)).toISOString(),
-        current_price: 48500,
+        current_price: 48502.65,
     },
     {
         id: "cardano",
@@ -169,57 +197,57 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 14)).toISOString(),
-        current_price: 50000,
+        current_price: 50000.12,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 14)).toISOString(),
-        current_price: 2.55,
+        current_price: 2.5523,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 15)).toISOString(),
-        current_price: 49500,
+        current_price: 49503.65,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 15)).toISOString(),
-        current_price: 2.50,
+        current_price: 2.5025,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 16)).toISOString(),
-        current_price: 48200,
+        current_price: 48202.98,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 16)).toISOString(),
-        current_price: 2.20,
+        current_price: 2.204,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 17)).toISOString(),
-        current_price: 50500,
+        current_price: 50502.76,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 17)).toISOString(),
-        current_price: 2.60,
+        current_price: 2.621,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 18)).toISOString(),
-        current_price: 49000,
+        current_price: 49001.98,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 18)).toISOString(),
-        current_price: 2.50,
+        current_price: 2.5012,
     },
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 19)).toISOString(),
-        current_price: 48500,
+        current_price: 48500.98,
     },
     {
         id: "cardano",
@@ -229,22 +257,12 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "bitcoin",
         date: new Date(new Date().setDate(new Date().getDate() - 20)).toISOString(),
-        current_price: 50000,
+        current_price: 50000.78,
     },
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 20)).toISOString(),
         current_price: 2.55,
     },
-    // Entries for the last 24 hours
-    ...Array.from({ length: 24 }, (_, i) => ({
-        id: "bitcoin",
-        date: new Date(new Date().setHours(new Date().getHours() - (i + 1))).toISOString(),
-        current_price: 56000 + Math.random() * 12000,
-    })),
-    ...Array.from({ length: 24 }, (_, i) => ({
-        id: "cardano",
-        date: new Date(new Date().setHours(new Date().getHours() - (i + 1))).toISOString(),
-        current_price: 2.40 + Math.random() * 1.50, // Random price between 2.40 and 2.60
-    })),
+    ...bitcoinEntries24h, ...cardanoEntries24h,
 ];

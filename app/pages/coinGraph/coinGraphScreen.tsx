@@ -13,7 +13,7 @@ import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import { lineDataItem } from "gifted-charts-core";
 import { getHistoricalLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
 import { RootState } from "@/app/store/store";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -27,7 +27,6 @@ export default function CoinGraphScreen() {
     const { folioEntry }: { folioEntry: FolioEntry } = route.params as RouteParams;
 
     const navigation = useNavigation();
-    const dispatch = useDispatch();
 
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
@@ -36,31 +35,36 @@ export default function CoinGraphScreen() {
     }, [navigation]);
 
     useEffect(() => {
-        if (folioEntry) {
-            let days: number;
+        const fetchHistoricalData = async () => {
+            if (folioEntry) {
+                let days: number;
 
-            if (timeRange === "24H") {
-                days = 1;
-            } else if (timeRange === "7D") {
-                days = 7;
-            } else if (timeRange === "1M") {
-                days = 30;
-            } else if (timeRange === "1Y") {
-                days = 365;
-            } else {
-                days = 365 * 20;
+                if (timeRange === "24H") {
+                    days = 1;
+                } else if (timeRange === "7D") {
+                    days = 7;
+                } else if (timeRange === "1M") {
+                    days = 30;
+                } else if (timeRange === "1Y") {
+                    days = 365;
+                } else {
+                    days = 365 * 20;
+                }
+
+                const currentDate = new Date();
+                const endDate = currentDate.toISOString().split('T')[0];
+                const startDate = new Date(currentDate);
+                startDate.setDate(startDate.getDate() - days);
+                const formattedStartDate = startDate.toISOString().split('T')[0];
+
+                return await getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange);
             }
+        };
 
-            const currentDate = new Date();
-            const endDate = currentDate.toISOString().split('T')[0];
-            const startDate = new Date(currentDate);
-            startDate.setDate(startDate.getDate() - days);
-            const formattedStartDate = startDate.toISOString().split('T')[0];
+        fetchHistoricalData().then((data) => {
+            setHistoricalData(data || []);
+        });
 
-            getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange, dispatch).then((data) => {
-                setHistoricalData(data);
-            });
-        }
     }, [timeRange, folioEntry]);
 
     const formattedCoinValue = convertToCurrencyFormat(folioEntry.currentPrice, currencyType);

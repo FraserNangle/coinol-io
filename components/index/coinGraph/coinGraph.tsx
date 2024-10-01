@@ -1,12 +1,11 @@
 import { DataPointLabelProps, setCoinGraphDataLabelPropsMax, setCoinGraphDataLabelPropsMin } from "@/app/slices/coinGraphDataLabelPropsSlice";
-import { RootState } from "@/app/store/store";
+import store, { RootState } from "@/app/store/store";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, Dimensions, LayoutChangeEvent } from "react-native";
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
-import { Dispatch, UnknownAction } from "redux";
 
 interface CoinGraphProps {
     data: lineDataItem[],
@@ -17,22 +16,26 @@ interface DataPointLabelComponentProps {
     dataPointLabelProps: DataPointLabelProps
 }
 
-export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolean, dispatch: Dispatch<UnknownAction>) => {
+export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolean) => {
     const handleLayout = (event: LayoutChangeEvent) => {
-        event.target.measure((x, y, width, height, pageX, pageY) => {
-            if (isMax) {
-                console.log("Max: ", { x, y, width, height, pageX, pageY, value, isMax });
-                dispatch(setCoinGraphDataLabelPropsMax({ x, y, width, height, pageX, pageY, value, isMax }));
-            } else {
-                console.log("Min: ", { x, y, width, height, pageX, pageY, value, isMax });
-                dispatch(setCoinGraphDataLabelPropsMin({ x, y, width, height, pageX, pageY, value, isMax }));
-            }
+        event.persist(); // Prevent the event from being reused
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                event.target?.measure((x, y, width, height, pageX, pageY) => {
+                    if (isMax === true) {
+                        store.dispatch(setCoinGraphDataLabelPropsMax({ x, y, width, height, pageX, pageY, value, isMax }));
+                    } else if (isMax === false) {
+                        store.dispatch(setCoinGraphDataLabelPropsMin({ x, y, width, height, pageX, pageY, value, isMax }));
+                    }
+                });
+            }, 0); // Small delay to ensure the layout measurement is completed
         });
     };
+
     return (
-        <View style={[styles.labelContainer, { opacity: 0 }]} onLayout={handleLayout}>
+        <View style={[styles.labelContainer,/*  { opacity: 0 } */]} onLayout={handleLayout}>
             {!isMax && <MaterialIcons name="keyboard-arrow-up" color={"transparent"} size={0} />}
-            <Text style={[styles.labelText, { opacity: 0 }]}>SETTER</Text>
+            <Text style={[styles.labelText, /* { opacity: 0 } */]}>SETTER: {value.toString()}</Text>
             {isMax && <MaterialIcons name="keyboard-arrow-down" color={"transparent"} size={0} />}
         </View>
     );
@@ -98,12 +101,12 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
     const dataLabelPropsMin = useSelector((state: RootState) => state.coinGraphDataLabelProps.coinGraphDataLabelPropsMin);
 
     // Force a rerender to update the dataLabelPropsMax and dataLabelPropsMin
-    const forceRerender = () => {
+    /* const forceRerender = () => {
         setKey(prevKey => prevKey + 1);
     };
     useEffect(() => {
         forceRerender();
-    }, []);
+    }, []); */
 
     return (
         <View style={[styles.container, { backgroundColor: 'black' }]}>
