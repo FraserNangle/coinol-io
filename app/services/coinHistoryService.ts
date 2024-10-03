@@ -33,7 +33,7 @@ async function fetchHistoricalCoinData(coinId: string, startDate: string, endDat
     }
 }
 
-export async function getHistoricalLineGraphDataForCoinId(coinId: string, startDate: string, endDate: string, interval: string): Promise<lineDataItem[]> {
+export async function getHistoricalLineGraphDataForCoinId(coinId: string, startDate: string, endDate: string, interval: string, currencyType: string): Promise<lineDataItem[]> {
     const historicalDataPointList: CoinMarketHistoricalDataPoint[] = await fetchHistoricalCoinData(coinId, startDate, endDate, interval);
 
     const data: lineDataItem[] = [];
@@ -57,9 +57,9 @@ export async function getHistoricalLineGraphDataForCoinId(coinId: string, startD
             hideDataPoint: dataPoint.current_price !== maxPrice && dataPoint.current_price !== minPrice,
             dataPointLabelComponent: () => {
                 if (dataPoint.current_price === minPrice) {
-                    return DataPointLabelComponentLayoutSetter(minPrice, false);
+                    return DataPointLabelComponentLayoutSetter(minPrice, false, currencyType);
                 } else if (dataPoint.current_price === maxPrice) {
-                    return DataPointLabelComponentLayoutSetter(maxPrice, true);
+                    return DataPointLabelComponentLayoutSetter(maxPrice, true, currencyType);
                 } else {
                     return null;
                 }

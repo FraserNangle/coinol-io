@@ -63,7 +63,7 @@ export default function CoinGraphScreen() {
                 startDate.setDate(startDate.getDate() - days);
                 const formattedStartDate = startDate.toISOString().split('T')[0];
 
-                return await getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange);
+                return await getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange, currencyType);
             }
         };
 
@@ -148,7 +148,6 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-evenly",
-        padding: 10,
     },
     subtitleContainer: {
         flexDirection: "row",

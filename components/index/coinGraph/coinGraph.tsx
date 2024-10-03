@@ -16,7 +16,7 @@ interface DataPointLabelComponentProps {
     dataPointLabelProps: DataPointLabelProps
 }
 
-export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolean) => {
+export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolean, currencyType: string) => {
     const handleLayout = (event: LayoutChangeEvent) => {
         event.persist(); // Prevent the event from being reused
         event.currentTarget?.measure((x, y, width, height, pageX, pageY) => {
@@ -29,10 +29,10 @@ export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolea
     };
 
     return (
-        <View style={[styles.labelContainer, { opacity: 0 }]} onLayout={handleLayout}>
-            {!isMax && <MaterialIcons name="keyboard-arrow-up" color={"transparent"} size={0} />}
-            <Text style={[styles.labelText, { opacity: 0 }]}>SETTER</Text>
-            {isMax && <MaterialIcons name="keyboard-arrow-down" color={"transparent"} size={0} />}
+        <View style={[styles.labelContainer]} onLayout={handleLayout}>
+            {!isMax && <MaterialIcons name="keyboard-arrow-up" color={"white"} size={10} />}
+            <Text style={styles.labelText}>{convertToCurrencyFormat(value, currencyType)}</Text>
+            {isMax && <MaterialIcons name="keyboard-arrow-down" color={"white"} size={10} />}
         </View>
     );
 };
@@ -96,10 +96,11 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
     const dataLabelPropsMin = useSelector((state: RootState) => state.coinGraphDataLabelProps?.coinGraphDataLabelPropsMin);
 
     return (
-        <View style={[styles.container, { backgroundColor: 'black' }]}>
+        <View style={styles.container}>
             <LineChart
                 areaChart
                 color={"white"}
+                backgroundColor={"transparent"}
                 lineGradient
                 height={300}
                 data={data}
@@ -115,6 +116,10 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
                 //hideAxesAndRules
                 //hideRules
                 yAxisLabelWidth={0}
+                xAxisLabelsHeight={0}
+                xAxisIndicesWidth={0}
+                xAxisThickness={0}
+                noOfSectionsBelowXAxis={0}
                 rulesType="dotted"
                 rulesColor={"hsl(0, 0%, 15%)"}
                 //curved
@@ -131,12 +136,12 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
                     radius: 5,
                 }}
             />
-            {dataLabelPropsMax && dataLabelPropsMin && (
+            {/* {dataLabelPropsMax && dataLabelPropsMin && (
                 <>
                     <DataPointLabelComponent currencyType={currencyType} dataPointLabelProps={dataLabelPropsMax} />
                     <DataPointLabelComponent currencyType={currencyType} dataPointLabelProps={dataLabelPropsMin} />
                 </>
-            )}
+            )} */}
         </View>
     );
 };

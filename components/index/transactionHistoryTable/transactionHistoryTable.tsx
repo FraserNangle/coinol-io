@@ -85,7 +85,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                     <DataTable.Header>
                         <DataTable.Title onPress={() => handleSort("date")}>
                             <Text style={styles.mainDataTableTitle}>
-                                Date{getSortIndicator("date")}
+                                History{getSortIndicator("date")}
                             </Text>
                         </DataTable.Title>
                         <DataTable.Title numeric onPress={() => handleSort("quantity")}>
