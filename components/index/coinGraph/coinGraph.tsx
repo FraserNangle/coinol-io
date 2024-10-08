@@ -1,15 +1,18 @@
+import { FolioEntry } from "@/app/models/FolioEntry";
 import { DataPointLabelProps, setCoinGraphDataLabelPropsMax, setCoinGraphDataLabelPropsMin } from "@/app/slices/coinGraphDataLabelPropsSlice";
-import store, { RootState } from "@/app/store/store";
+import store from "@/app/store/store";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
+import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, View, Text, Dimensions, LayoutChangeEvent } from "react-native";
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
-import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 interface CoinGraphProps {
     data: lineDataItem[],
-    currencyType: string
+    currencyType: string,
+    folioEntry: FolioEntry
 }
 interface DataPointLabelComponentProps {
     currencyType: string,
@@ -91,12 +94,39 @@ const DataPointLabelComponent: React.FC<DataPointLabelComponentProps> = ({
 export const CoinGraph: React.FC<CoinGraphProps> = ({
     data,
     currencyType,
+    folioEntry
 }: CoinGraphProps) => {
-    const dataLabelPropsMax = useSelector((state: RootState) => state.coinGraphDataLabelProps?.coinGraphDataLabelPropsMax);
-    const dataLabelPropsMin = useSelector((state: RootState) => state.coinGraphDataLabelProps?.coinGraphDataLabelPropsMin);
+    const [selectedDataPointValue, setSelectedDataPointValue] = useState<number>(0);
+
+    const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h, currencyType);
+
+    function handleDataPointSelect(dataPoint: lineDataItem) {
+        setSelectedDataPointValue(dataPoint.value);
+    }
 
     return (
         <View style={styles.container}>
+            <View style={styles.titleContainer}>
+                <View style={styles.subtitleContainer}>
+                    <Text style={styles.headerTitle}>
+                        {convertToCurrencyFormat(selectedDataPointValue ?? folioEntry.currentPrice, currencyType)}
+                    </Text>
+                </View>
+
+                <View style={styles.subtitleContainer}>
+                    <Text
+                    >
+                        {formatted24hChangeCoinValue}
+                    </Text>
+                    <Text style={[
+                        styles.percentageContainer,
+                        folioEntry.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
+                    ]}
+                    >
+                        {getPercentageChangeDisplay(folioEntry.priceChangePercentage24h)}%
+                    </Text>
+                </View>
+            </View>
             <LineChart
                 areaChart
                 color={"white"}
@@ -130,10 +160,12 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
                 isAnimated
                 animationDuration={600}
                 pointerConfig={{
+                    pointerStripUptoDataPoint: true,
+                    strokeDashArray: [2, 5],
                     pointerStripColor: 'white',
-                    pointerStripWidth: 1,
-                    pointerColor: 'white',
-                    radius: 5,
+                    pointerStripWidth: 2,
+                    pointerColor: 'transparent',
+                    pointerLabelComponent: (items: lineDataItem[]) => (handleDataPointSelect(items[0]), <></>)
                 }}
             />
             {/* {dataLabelPropsMax && dataLabelPropsMin && (
@@ -147,8 +179,57 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: {
+    screenContainer: {
         flex: 1,
+        justifyContent: "flex-start",
+        backgroundColor: "black",
+    },
+    titleContainer: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-evenly",
+    },
+    subtitleContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    buttonContainer: {
+        flexDirection: "row",
+        justifyContent: "space-evenly",
+    },
+    button: {
+        margin: 5,
+    },
+    headerTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        textAlign: "center",
+        color: "white",
+    },
+    tableContainer: {
+        flex: 1,
+        justifyContent: "center",
+        width: "100%",
+        backgroundColor: "rgba(255,255,255,0.1)",
+        borderRadius: 10,
+    },
+    title: {
+        fontSize: 20,
+        textAlign: "center",
+    },
+    percentageContainer: {
+        borderRadius: 10,
+        marginLeft: 10,
+        padding: 5,
+    },
+    positive: {
+        color: "#00ff00",
+    },
+    negative: {
+        color: "red",
+    },
+    container: {
+        //flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },

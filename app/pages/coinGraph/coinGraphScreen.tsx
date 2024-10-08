@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import {
     StyleSheet,
 } from "react-native";
-import { View, Text } from "@/components/Themed";
+import { View } from "@/components/Themed";
 import { useNavigation } from "expo-router";
 import { useRoute } from "@react-navigation/native";
 import { CoinGraph } from "@/components/index/coinGraph/coinGraph";
 import { FolioEntry } from "@/app/models/FolioEntry";
-import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { Button } from "react-native-paper";
-import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import { lineDataItem } from "gifted-charts-core";
 import { getHistoricalLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
 import { RootState } from "@/app/store/store";
@@ -77,10 +75,6 @@ export default function CoinGraphScreen() {
 
     }, [timeRange, folioEntry]);
 
-    const formattedCoinValue = convertToCurrencyFormat(folioEntry.currentPrice, currencyType);
-
-    const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h, currencyType);
-
     function timeRangeControlButton(value: string) {
         return <Button
             buttonColor="hsl(0, 0%, 15%)"
@@ -98,29 +92,12 @@ export default function CoinGraphScreen() {
                 <View
                     style={styles.screenContainer}
                 >
-                    <View style={styles.titleContainer}>
-                        <View style={styles.subtitleContainer}>
-                            <Text style={styles.headerTitle}>
-                                {formattedCoinValue}
-                            </Text>
-                        </View>
-
-                        <View style={styles.subtitleContainer}>
-                            <Text
-                            >
-                                {formatted24hChangeCoinValue}
-                            </Text>
-                            <Text style={[
-                                styles.percentageContainer,
-                                folioEntry.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
-                            ]}
-                            >
-                                {getPercentageChangeDisplay(folioEntry.priceChangePercentage24h)}%
-                            </Text>
-                        </View>
-                    </View>
                     {historicalLineGraphData.length > 0 && (
-                        <CoinGraph data={historicalLineGraphData} currencyType={currencyType} />
+                        <CoinGraph
+                            data={historicalLineGraphData}
+                            currencyType={currencyType}
+                            folioEntry={folioEntry}
+                        />
                     )}
                     <View style={styles.buttonContainer}>
                         {timeRangeControlButton("24H")}
@@ -144,15 +121,6 @@ const styles = StyleSheet.create({
         justifyContent: "flex-start",
         backgroundColor: "black",
     },
-    titleContainer: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-evenly",
-    },
-    subtitleContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
     buttonContainer: {
         flexDirection: "row",
         justifyContent: "space-evenly",
@@ -160,37 +128,11 @@ const styles = StyleSheet.create({
     button: {
         margin: 5,
     },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: "bold",
-        textAlign: "center",
-        color: "white",
-    },
     tableContainer: {
         flex: 1,
         justifyContent: "center",
         width: "100%",
         backgroundColor: "rgba(255,255,255,0.1)",
         borderRadius: 10,
-    },
-    container: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    title: {
-        fontSize: 20,
-        textAlign: "center",
-    },
-    percentageContainer: {
-        borderRadius: 10,
-        marginLeft: 10,
-        padding: 5,
-    },
-    positive: {
-        color: "#00ff00",
-    },
-    negative: {
-        color: "red",
     },
 });
