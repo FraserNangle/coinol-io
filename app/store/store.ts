@@ -5,7 +5,6 @@ import userFolioReducer from '../slices/userFolioSlice';
 import allCoinDataReducer from '../slices/allCoinDataSlice';
 import lastTransactionReducer from '../slices/lastTransactionSlice';
 import currencyTypeReducer from '../slices/currencyTypeSlice';
-import coinGraphDataLabelPropsReducer from '../slices/coinGraphDataLabelPropsSlice';
 
 const store = configureStore({
     reducer: {
@@ -15,7 +14,6 @@ const store = configureStore({
         userFolio: userFolioReducer,
         allCoinData: allCoinDataReducer,
         currencyType: currencyTypeReducer,
-        coinGraphDataLabelProps: coinGraphDataLabelPropsReducer,
     },
 });
 
