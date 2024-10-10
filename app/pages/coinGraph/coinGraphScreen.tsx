@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
+    Dimensions,
     StyleSheet,
 } from "react-native";
 import { View } from "@/components/Themed";
@@ -9,21 +10,25 @@ import { CoinGraph } from "@/components/index/coinGraph/coinGraph";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { Button } from "react-native-paper";
 import { lineDataItem } from "gifted-charts-core";
-import { getHistoricalLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
+import { getLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
 import { RootState } from "@/app/store/store";
 import { useSelector } from "react-redux";
 import { TransactionHistoryTable } from "@/components/index/transactionHistoryTable/transactionHistoryTable";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { getTransactionListByCoinId } from "@/app/services/transactionService";
 import { useSQLiteContext } from "expo-sqlite";
+import { LineGraph } from "@/components/index/coinGraphScreen/lineGraph";
+import { LineGraphDataItem } from "@/app/models/LineGraphDataItem";
 
 type RouteParams = {
     folioEntry: FolioEntry;
 };
 
 export default function CoinGraphScreen() {
+    const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
     const [timeRange, setTimeRange] = useState("24H");
-    const [historicalLineGraphData, setHistoricalLineGraphData] = useState<lineDataItem[]>([]);
+    const [historicalLineGraphData, setHistoricalLineGraphData] = useState<LineGraphDataItem[]>([]);
     const [userTransactionData, setUserTransactionData] = useState<UserTransaction[]>([]);
 
     const route = useRoute();
@@ -41,19 +46,14 @@ export default function CoinGraphScreen() {
     useEffect(() => {
         const fetchHistoricalLineGraphData = async () => {
             if (folioEntry) {
-                let days: number;
+                const timeRangeToDays: { [key: string]: number } = {
+                    "24H": 1,
+                    "7D": 7,
+                    "1M": 30,
+                    "1Y": 365
+                };
 
-                if (timeRange === "24H") {
-                    days = 1;
-                } else if (timeRange === "7D") {
-                    days = 7;
-                } else if (timeRange === "1M") {
-                    days = 30;
-                } else if (timeRange === "1Y") {
-                    days = 365;
-                } else {
-                    days = 365 * 20;
-                }
+                let days: number = timeRangeToDays[timeRange] ?? 365 * 20;
 
                 const currentDate = new Date();
                 const endDate = currentDate.toISOString().split('T')[0];
@@ -61,7 +61,7 @@ export default function CoinGraphScreen() {
                 startDate.setDate(startDate.getDate() - days);
                 const formattedStartDate = startDate.toISOString().split('T')[0];
 
-                return await getHistoricalLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange, currencyType);
+                return await getLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange, screenWidth, screenHeight / 4);
             }
         };
 
@@ -77,7 +77,7 @@ export default function CoinGraphScreen() {
 
     function timeRangeControlButton(value: string) {
         return <Button
-            buttonColor="hsl(0, 0%, 15%)"
+            buttonColor="transparent"
             textColor={value === timeRange ? "white" : "hsl(0, 0%, 60%)"}
             style={[styles.button, value === timeRange ? { borderColor: 'white' } : { borderColor: 'hsl(0, 0%, 15%)' }]}
             onPress={() => setTimeRange(value)}
@@ -93,11 +93,15 @@ export default function CoinGraphScreen() {
                     style={styles.screenContainer}
                 >
                     {historicalLineGraphData.length > 0 && (
-                        <CoinGraph
-                            data={historicalLineGraphData}
-                            currencyType={currencyType}
-                            folioEntry={folioEntry}
-                        />
+                        <View style={styles.graphContainer}>
+                            <LineGraph
+                                data={historicalLineGraphData}
+                                currencyType={currencyType}
+                                folioEntry={folioEntry}
+                                width={screenWidth}
+                                height={screenHeight} >
+                            </LineGraph>
+                        </View>
                     )}
                     <View style={styles.buttonContainer}>
                         {timeRangeControlButton("24H")}
@@ -122,6 +126,7 @@ const styles = StyleSheet.create({
         backgroundColor: "black",
     },
     buttonContainer: {
+        backgroundColor: "transparent",
         flexDirection: "row",
         justifyContent: "space-evenly",
     },
@@ -131,8 +136,10 @@ const styles = StyleSheet.create({
     tableContainer: {
         flex: 1,
         justifyContent: "center",
-        width: "100%",
-        backgroundColor: "rgba(255,255,255,0.1)",
-        borderRadius: 10,
+        backgroundColor: "transparent",
+    },
+    graphContainer: {
+        flex: 1,
+        justifyContent: "center",
     },
 });

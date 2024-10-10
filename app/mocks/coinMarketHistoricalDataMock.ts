@@ -2,7 +2,7 @@ import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
 
 const uniqueDates = new Set<string>();
 
-const bitcoinEntries24h = Array.from({ length: 24 }, (_, i) => {
+const bitcoinEntries24h = Array.from({ length: 23 }, (_, i) => {
     let date;
     do {
         date = new Date(new Date().setHours(new Date().getHours() - (i + 1))).toISOString();
@@ -15,7 +15,7 @@ const bitcoinEntries24h = Array.from({ length: 24 }, (_, i) => {
     };
 });
 
-const cardanoEntries24h = Array.from({ length: 24 }, (_, i) => {
+const cardanoEntries24h = Array.from({ length: 23 }, (_, i) => {
     let date;
     do {
         date = new Date(new Date().setHours(new Date().getHours() - (i + 1))).toISOString();
@@ -37,7 +37,7 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
-        current_price: 3.223,
+        current_price: 1.223,
     },
     {
         id: "bitcoin",
@@ -80,119 +80,84 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
         current_price: 2.60234,
     },
     {
-        id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
-        current_price: 2.45,
-    },
-    {
         id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 6)).toISOString(),
         current_price: 51000.143,
     },
     {
         id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 6)).toISOString(),
         current_price: 2.55,
     },
     {
         id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 4)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString(),
         current_price: 48500.9584,
     },
     {
         id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 4)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString(),
         current_price: 2.52012,
     },
     {
         id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 8)).toISOString(),
         current_price: 50500.21387,
     },
     {
         id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 8)).toISOString(),
         current_price: 2.6012,
     },
     {
         id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 6)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 9)).toISOString(),
         current_price: 49000.65,
     },
     {
         id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 6)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 9)).toISOString(),
         current_price: 2.502,
     },
     {
         id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
         current_price: 48500.6534,
     },
     {
         id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
         current_price: 2.45345,
     },
     {
         id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 8)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 11)).toISOString(),
         current_price: 50000.123,
     },
     {
         id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 8)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 11)).toISOString(),
         current_price: 2.55123,
     },
     {
         id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 9)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 12)).toISOString(),
         current_price: 48743.542,
     },
     {
         id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 9)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 12)).toISOString(),
         current_price: 3.12,
     },
     {
         id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 13)).toISOString(),
         current_price: 46800.12,
     },
     {
         id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
+        date: new Date(new Date().setDate(new Date().getDate() - 13)).toISOString(),
         current_price: 3.0701,
-    },
-    {
-        id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 11)).toISOString(),
-        current_price: 46890.776,
-    },
-    {
-        id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 11)).toISOString(),
-        current_price: 3.043,
-    },
-    {
-        id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 12)).toISOString(),
-        current_price: 49202,
-    },
-    {
-        id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 12)).toISOString(),
-        current_price: 2.23013,
-    },
-    {
-        id: "bitcoin",
-        date: new Date(new Date().setDate(new Date().getDate() - 13)).toISOString(),
-        current_price: 48502.65,
-    },
-    {
-        id: "cardano",
-        date: new Date(new Date().setDate(new Date().getDate() - 13)).toISOString(),
-        current_price: 2.45,
     },
     {
         id: "bitcoin",

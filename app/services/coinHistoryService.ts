@@ -2,6 +2,7 @@ import { lineDataItem } from "gifted-charts-core";
 import { coinMarketHistoricalData24hMock } from "../mocks/coinMarketHistoricalDataMock";
 import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
 import { DataPointLabelComponentLayoutSetter } from "@/components/index/coinGraph/coinGraph";
+import { LineGraphDataItem } from "../models/LineGraphDataItem";
 
 async function fetchHistoricalCoinData(coinId: string, startDate: string, endDate: string, interval: string) {
     if (process.env.NODE_ENV === 'development') {
@@ -70,4 +71,32 @@ export async function getHistoricalLineGraphDataForCoinId(coinId: string, startD
     });
 
     return data;
+}
+
+export async function getLineGraphDataForCoinId(coinId: string, startDate: string, endDate: string, interval: string, width: number, height: number): Promise<LineGraphDataItem[]> {
+    const historicalDataPointList: CoinMarketHistoricalDataPoint[] = await fetchHistoricalCoinData(coinId, startDate, endDate, interval);
+
+    // Sort the historicalDataPointList by date
+    const sortedHistoricalDataPointList = historicalDataPointList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Find the maximum and minimum current_price in the historicalDataPointList
+    const maxPrice = Math.max(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.current_price));
+    const minPrice = Math.min(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.current_price));
+
+    // Find the maximum and minimum date in the historicalDataPointList
+    const maxDate = new Date(sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].date).getTime();
+    const minDate = new Date(sortedHistoricalDataPointList[0].date).getTime();
+
+    // Define the dimensions of the chart
+    const chartWidth = width;
+    const chartHeight = height;
+
+    // Map the data points to x and y coordinates
+    const lineGraphData: LineGraphDataItem[] = sortedHistoricalDataPointList.map(dataPoint => {
+        const x = ((new Date(dataPoint.date).getTime() - minDate) / (maxDate - minDate)) * chartWidth;
+        const y = ((dataPoint.current_price - minPrice) / (maxPrice - minPrice)) * chartHeight;
+        return { x, y };
+    });
+
+    return lineGraphData;
 }
