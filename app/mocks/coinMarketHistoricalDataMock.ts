@@ -24,7 +24,7 @@ const cardanoEntries24h = Array.from({ length: 23 }, (_, i) => {
     return {
         id: "cardano",
         date,
-        current_price: 2.4031 + Math.random() * 1.50431,
+        current_price: 1.4031 + Math.random() * 1.50431,
     };
 });
 
@@ -37,7 +37,7 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
-        current_price: 1.223,
+        current_price: 2.223,
     },
     {
         id: "bitcoin",

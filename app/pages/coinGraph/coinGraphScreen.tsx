@@ -6,11 +6,9 @@ import {
 import { View } from "@/components/Themed";
 import { useNavigation } from "expo-router";
 import { useRoute } from "@react-navigation/native";
-import { CoinGraph } from "@/components/index/coinGraph/coinGraph";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { Button } from "react-native-paper";
-import { lineDataItem } from "gifted-charts-core";
-import { getLineGraphDataForCoinId } from "@/app/services/coinHistoryService";
+import { fetchHistoricalCoinData } from "@/app/services/coinHistoryService";
 import { RootState } from "@/app/store/store";
 import { useSelector } from "react-redux";
 import { TransactionHistoryTable } from "@/components/index/transactionHistoryTable/transactionHistoryTable";
@@ -18,7 +16,7 @@ import { UserTransaction } from "@/app/models/UserTransaction";
 import { getTransactionListByCoinId } from "@/app/services/transactionService";
 import { useSQLiteContext } from "expo-sqlite";
 import { LineGraph } from "@/components/index/coinGraphScreen/lineGraph";
-import { LineGraphDataItem } from "@/app/models/LineGraphDataItem";
+import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -28,7 +26,7 @@ export default function CoinGraphScreen() {
     const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
     const [timeRange, setTimeRange] = useState("24H");
-    const [historicalLineGraphData, setHistoricalLineGraphData] = useState<LineGraphDataItem[]>([]);
+    const [historicalLineGraphData, setHistoricalLineGraphData] = useState<CoinMarketHistoricalDataPoint[]>([]);
     const [userTransactionData, setUserTransactionData] = useState<UserTransaction[]>([]);
 
     const route = useRoute();
@@ -61,7 +59,7 @@ export default function CoinGraphScreen() {
                 startDate.setDate(startDate.getDate() - days);
                 const formattedStartDate = startDate.toISOString().split('T')[0];
 
-                return await getLineGraphDataForCoinId(folioEntry.coinId, formattedStartDate, endDate, timeRange, screenWidth, screenHeight / 4);
+                return await fetchHistoricalCoinData(folioEntry.coinId, formattedStartDate, endDate, timeRange);
             }
         };
 

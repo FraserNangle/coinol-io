@@ -1,3 +1,4 @@
+import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { LineGraphDataItem } from "@/app/models/LineGraphDataItem";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
@@ -7,8 +8,10 @@ import React, { useState } from "react";
 import { StyleSheet, View, Text, LayoutChangeEvent } from "react-native";
 import Svg, { ClipPath, Defs, G, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 
+type TextAlign = "auto" | "center" | "left" | "right" | "justify";
+
 interface LineGraphProps {
-    data: LineGraphDataItem[],
+    data: CoinMarketHistoricalDataPoint[],
     currencyType: string,
     folioEntry: FolioEntry,
     width: number,
@@ -30,13 +33,31 @@ export const LineGraph: React.FC<LineGraphProps> = ({
 
     const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h, currencyType);
 
-    const pathData = data.map((point, index) => {
+    // Sort the historicalDataPointList by date
+    const sortedHistoricalDataPointList = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Find the maximum and minimum current_price in the historicalDataPointList
+    const maxPrice = Math.max(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.current_price));
+    const minPrice = Math.min(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.current_price));
+
+    // Find the maximum and minimum date in the historicalDataPointList
+    const maxDate = new Date(sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].date).getTime();
+    const minDate = new Date(sortedHistoricalDataPointList[0].date).getTime();
+
+    // Map the data points to x and y coordinates
+    const lineGraphData: LineGraphDataItem[] = sortedHistoricalDataPointList.map(dataPoint => {
+        const x = ((new Date(dataPoint.date).getTime() - minDate) / (maxDate - minDate)) * width;
+        const y = ((dataPoint.current_price - minPrice) / (maxPrice - minPrice)) * (viewLayout.height / 2);
+        return { x, y };
+    });
+
+    const pathData = lineGraphData.map((point, index) => {
         const invertedY = viewLayout.height - point.y;
         return `${index === 0 ? 'M' : 'L'} ${point.x} ${invertedY}`;
     }).join(' ');
 
-    const maxDataPoint = data.reduce((max, point) => (point.y > max.y ? point : max), data[0]);
-    const minDataPoint = data.reduce((min, point) => (point.y < min.y ? point : min), data[0]);
+    const maxDataPoint = lineGraphData.reduce((max, point) => (point.y > max.y ? point : max), lineGraphData[0]);
+    const minDataPoint = lineGraphData.reduce((min, point) => (point.y < min.y ? point : min), lineGraphData[0]);
 
     const handleLayout = (event: LayoutChangeEvent) => {
         const { width, height } = event.nativeEvent.layout;
@@ -57,16 +78,20 @@ export const LineGraph: React.FC<LineGraphProps> = ({
 
     let minIcon = 'keyboard-arrow-up';
     let maxIcon = 'keyboard-arrow-down';
+    let minTextAlign: TextAlign = 'center';
+    let maxTextAlign: TextAlign = 'center';
 
     if (minDataPoint.x - textWidth / 2 < 0) {
         minIcon = 'keyboard-arrow-left';
-        minTextAdjustedX = minDataPoint.x;
+        minTextAlign = 'left';
+        minTextAdjustedX = minDataPoint.x + iconWidth;
         minTextAdjustedY = minDataPoint.y + textHeight / 2;
         minIconAdjustedX = minDataPoint.x;
         minIconAdjustedY += iconWidth / 2;
     } else if (minDataPoint.x + textWidth / 2 > viewLayout.width) {
         minIcon = 'keyboard-arrow-right';
-        minTextAdjustedX = minDataPoint.x - textWidth;
+        minTextAlign = 'right';
+        minTextAdjustedX = minDataPoint.x - textWidth - iconWidth;
         minTextAdjustedY = minDataPoint.y + textHeight / 2;
         minIconAdjustedX = minDataPoint.x - iconWidth;
         minIconAdjustedY += iconWidth / 2;
@@ -76,13 +101,15 @@ export const LineGraph: React.FC<LineGraphProps> = ({
 
     if (maxDataPoint.x - textWidth / 2 < 0) {
         maxIcon = 'keyboard-arrow-left';
-        maxTextAdjustedX = maxDataPoint.x;
+        maxTextAlign = 'left';
+        maxTextAdjustedX = maxDataPoint.x + iconWidth;
         maxTextAdjustedY = maxDataPoint.y + textHeight / 2;
         maxIconAdjustedX = maxDataPoint.x;
         maxIconAdjustedY += iconWidth / 2;
     } else if (maxDataPoint.x + textWidth / 2 > viewLayout.width) {
         maxIcon = 'keyboard-arrow-right';
-        maxTextAdjustedX = maxDataPoint.x - textWidth;
+        maxTextAlign = 'right';
+        maxTextAdjustedX = maxDataPoint.x - textWidth - iconWidth;
         maxTextAdjustedY = maxDataPoint.y + textHeight / 2;
         maxIconAdjustedX = maxDataPoint.x - iconWidth;
         maxIconAdjustedY += iconWidth;
@@ -115,7 +142,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                 </View>
             </View>
             <View style={styles.lineGraph}>
-                <Svg width={width} height={height} translateY={height / 4}>
+                <Svg width={width} height={height} translateY={height / 6}>
                     <Defs>
                         <LinearGradient id={`grad-${pathData}`} x1="50%" y1="100%" x2="50%" y2="0%">
                             <Stop offset="0%" stopColor="transparent" stopOpacity="0" />
@@ -123,8 +150,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                         </LinearGradient>
                         <ClipPath id={`clip-${pathData}`}>
                             <Path d={`M0,${height}
-                            L0,${viewLayout.height - data[0].y}
-                            L${width},${viewLayout.height - data[data.length - 1].y}
+                            L0,${viewLayout.height - lineGraphData[0].y}
+                            L${width},${viewLayout.height - lineGraphData[lineGraphData.length - 1].y}
                             L${width},${height} ${pathData} Z`} />
                         </ClipPath>
                     </Defs>
@@ -142,15 +169,14 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                             style={[styles.dataLabel, {
                                 left: maxTextAdjustedX,
                                 top: viewLayout.height - maxTextAdjustedY,
-                                backgroundColor: "rgba(255, 0, 255, 0.4)"
+                                textAlign: maxTextAlign
                             }]}
                         >
-                            Max
+                            {convertToCurrencyFormat(maxPrice, currencyType)}
                         </Text>
                         <MaterialIcons style={[styles.dataLabel, {
                             left: maxIconAdjustedX,
                             top: viewLayout.height - maxIconAdjustedY,
-                            backgroundColor: "rgba(255, 0, 255, 0.4)",
                             width: 12,
                             height: 12
                         }]} name={maxIcon} color={"white"} size={10} />
@@ -159,15 +185,14 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                             style={[styles.dataLabel, {
                                 left: minTextAdjustedX,
                                 top: viewLayout.height - minTextAdjustedY,
-                                backgroundColor: "rgba(255, 0, 0, 0.4)"
+                                textAlign: minTextAlign
                             }]}
                         >
-                            {minDataPoint.y}
+                            {convertToCurrencyFormat(minPrice, currencyType)}
                         </Text>
                         <MaterialIcons style={[styles.dataLabel, {
                             left: minIconAdjustedX,
                             top: viewLayout.height - minIconAdjustedY,
-                            backgroundColor: "rgba(255, 0, 255, 0.4)",
                             width: 12,
                             height: 12
                         }]} name={minIcon} color={"white"} size={10} />
