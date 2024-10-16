@@ -30,7 +30,7 @@ export default function TabLayout() {
   );
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
-  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType);
+  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType, true);
 
   return (
     <Tabs

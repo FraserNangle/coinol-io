@@ -135,7 +135,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                     <Text style={styles.bold}> {numberFormatter.format(folioEntry.quantity)}</Text>
                   </View>
                   <Text style={[styles.leftAlign, styles.normal]}>
-                    {convertToCurrencyFormat(folioEntry.currentPrice, currencyType)}
+                    {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, true)}
                   </Text>
                 </View>
               </DataTable.Cell>
@@ -155,7 +155,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                     styles.normal
                   }
                 >
-                  {convertToCurrencyFormat(folioEntry.quantity * folioEntry.currentPrice, currencyType)}
+                  {convertToCurrencyFormat(folioEntry.quantity * folioEntry.currentPrice, currencyType, true)}
                 </Text>
               </DataTable.Cell>
             </DataTable.Row>

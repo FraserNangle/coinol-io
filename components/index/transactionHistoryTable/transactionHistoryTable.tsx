@@ -82,7 +82,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
         <PaperProvider>
             <ScrollView>
                 <DataTable>
-                    <DataTable.Header>
+                    <DataTable.Header style={[{ borderColor: "rgba(255, 255, 255, 0.2)", borderBottomWidth: .5 }]}>
                         <DataTable.Title onPress={() => handleSort("date")}>
                             <Text style={styles.mainDataTableTitle}>
                                 History{getSortIndicator("date")}
@@ -144,19 +144,19 @@ const getStyles = () =>
     StyleSheet.create({
         bold: {
             fontWeight: "bold",
-            color: "#fff",
+            color: "white",
         },
         normal: {
-            color: "#fff",
+            color: "white",
         },
         mainDataTableTitle: {
             fontSize: 14,
-            fontWeight: "bold",
-            color: "#fff",
+            fontWeight: "400",
+            color: "white",
         },
         dataTableTitle: {
             fontWeight: "200",
-            color: "#fff",
+            color: "white",
         },
         positive: {
             color: "#00ff00",
@@ -175,9 +175,6 @@ const getStyles = () =>
         },
         row: {
             flexDirection: "row",
-        },
-        highlightedRow: {
-            backgroundColor: "#222",
-            flexDirection: "row",
+            borderColor: "rgba(255, 255, 255, 0.2)",
         },
     });

@@ -17,6 +17,7 @@ import { getTransactionListByCoinId } from "@/app/services/transactionService";
 import { useSQLiteContext } from "expo-sqlite";
 import { LineGraph } from "@/components/index/coinGraphScreen/lineGraph";
 import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
+import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -44,14 +45,7 @@ export default function CoinGraphScreen() {
     useEffect(() => {
         const fetchHistoricalLineGraphData = async () => {
             if (folioEntry) {
-                const timeRangeToDays: { [key: string]: number } = {
-                    "24H": 1,
-                    "7D": 7,
-                    "1M": 30,
-                    "1Y": 365
-                };
-
-                let days: number = timeRangeToDays[timeRange] ?? 365 * 20;
+                let days: number = getDaysFromTimeRange(timeRange);
 
                 const currentDate = new Date();
                 const endDate = currentDate.toISOString().split('T')[0];
@@ -76,8 +70,9 @@ export default function CoinGraphScreen() {
     function timeRangeControlButton(value: string) {
         return <Button
             buttonColor="transparent"
-            textColor={value === timeRange ? "white" : "hsl(0, 0%, 60%)"}
-            style={[styles.button, value === timeRange ? { borderColor: 'white' } : { borderColor: 'hsl(0, 0%, 15%)' }]}
+            textColor={"white"}
+            rippleColor="white"
+            style={[styles.button, value === timeRange ? { opacity: 1 } : { opacity: .5 }]}
             onPress={() => setTimeRange(value)}
             mode="outlined">
             {value}
@@ -97,7 +92,9 @@ export default function CoinGraphScreen() {
                                 currencyType={currencyType}
                                 folioEntry={folioEntry}
                                 width={screenWidth}
-                                height={screenHeight} >
+                                height={screenHeight}
+                                timeRange={timeRange}
+                            >
                             </LineGraph>
                         </View>
                     )}
@@ -129,7 +126,8 @@ const styles = StyleSheet.create({
         justifyContent: "space-evenly",
     },
     button: {
-        margin: 5,
+        borderColor: "white",
+        borderRadius: 10,
     },
     tableContainer: {
         flex: 1,

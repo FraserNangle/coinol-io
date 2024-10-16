@@ -2,9 +2,10 @@ import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { LineGraphDataItem } from "@/app/models/LineGraphDataItem";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
+import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, LayoutChangeEvent } from "react-native";
 import Svg, { ClipPath, Defs, G, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 
@@ -15,7 +16,8 @@ interface LineGraphProps {
     currencyType: string,
     folioEntry: FolioEntry,
     width: number,
-    height: number
+    height: number,
+    timeRange: string,
 }
 
 const textWidth = 60;
@@ -28,10 +30,10 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     folioEntry,
     width,
     height,
+    timeRange
 }: LineGraphProps) => {
     const [viewLayout, setViewLayout] = useState({ width: 0, height: 0 });
-
-    const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h, currencyType);
+    const [priceChangeAmount, setPriceChangeAmount] = useState(0);
 
     // Sort the historicalDataPointList by date
     const sortedHistoricalDataPointList = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -64,6 +66,35 @@ export const LineGraph: React.FC<LineGraphProps> = ({
         setViewLayout({ width, height });
     };
 
+    const getDataAtDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const day = date.getDate();
+
+        const dataPointsFromSameDay = sortedHistoricalDataPointList.filter(dataPoint => {
+            const dataPointDate = new Date(dataPoint.date);
+            return dataPointDate.getFullYear() === year &&
+                dataPointDate.getMonth() === month &&
+                dataPointDate.getDate() === day;
+        });
+
+        if (dataPointsFromSameDay.length === 0) {
+            return sortedHistoricalDataPointList[0]; // Return the earliest data point if no data for the specified date
+        }
+
+        dataPointsFromSameDay.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        return dataPointsFromSameDay[0];
+    };
+
+    const getPriceChangeFromDataPointAtDate = (date: Date) => {
+        const dataPointAtDate = getDataAtDate(date);
+        if (dataPointAtDate) {
+            return sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price - dataPointAtDate.current_price;
+        }
+        return 0;
+    };
+
     // Adjust the text label position if it goes outside the bounds
     let minTextAdjustedX = Math.max(0, Math.min(minDataPoint.x - textWidth / 2, viewLayout.width - textWidth));
     let minTextAdjustedY = Math.max(0, Math.min(minDataPoint.y - textHeight / 2, viewLayout.height - textHeight));
@@ -74,7 +105,6 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     let minIconAdjustedY = Math.max(0, Math.min(minDataPoint.y - iconWidth / 2, viewLayout.height - iconWidth));
     let maxIconAdjustedX = Math.max(0, Math.min(maxDataPoint.x - iconWidth / 2, viewLayout.width - iconWidth));
     let maxIconAdjustedY = Math.max(0, Math.min(maxDataPoint.y - iconWidth / 2, viewLayout.height - iconWidth));
-
 
     let minIcon = 'keyboard-arrow-up';
     let maxIcon = 'keyboard-arrow-down';
@@ -105,7 +135,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
         maxTextAdjustedX = maxDataPoint.x + iconWidth;
         maxTextAdjustedY = maxDataPoint.y + textHeight / 2;
         maxIconAdjustedX = maxDataPoint.x;
-        maxIconAdjustedY += iconWidth / 2;
+        maxIconAdjustedY += iconWidth;
     } else if (maxDataPoint.x + textWidth / 2 > viewLayout.width) {
         maxIcon = 'keyboard-arrow-right';
         maxTextAlign = 'right';
@@ -118,20 +148,39 @@ export const LineGraph: React.FC<LineGraphProps> = ({
         maxTextAdjustedY += (textWidth / 2) + (iconWidth / 2);
     }
 
+    useEffect(() => {
+        if (data.length > 0) {
+            let days: number = getDaysFromTimeRange(timeRange);
+
+            const currentDate = new Date();
+            const pastDate = new Date(currentDate);
+            pastDate.setDate(currentDate.getDate() - days);
+
+            setPriceChangeAmount(getPriceChangeFromDataPointAtDate(pastDate));
+        }
+    }, [data, timeRange]);
+
+
     return (
         <View style={styles.container} onLayout={handleLayout}>
-            <View style={styles.titleContainer}>
-                <View style={styles.subtitleContainer}>
+            <View style={styles.pricingContainer}>
+                <View>
                     <Text style={styles.headerTitle}>
-                        {convertToCurrencyFormat(folioEntry.currentPrice, currencyType)}
+                        {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, false)}
+                    </Text>
+                    <Text style={[styles.priceChangeText, {
+                        color: priceChangeAmount >= 0 ? "#00ff00" : "red",
+                    }]}>
+                        {convertToCurrencyFormat(priceChangeAmount, currencyType, true)}
+                        <MaterialIcons style={[styles.profitIndicatorIcon, {
+                            color: priceChangeAmount >= 0 ? "#00ff00" : "red",
+                            width: 12,
+                            height: 12
+                        }]} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
                     </Text>
                 </View>
 
-                <View style={styles.subtitleContainer}>
-                    <Text
-                    >
-                        {formatted24hChangeCoinValue}
-                    </Text>
+                <View>
                     <Text style={[
                         styles.percentageContainer,
                         folioEntry.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
@@ -145,8 +194,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                 <Svg width={width} height={height} translateY={height / 6}>
                     <Defs>
                         <LinearGradient id={`grad-${pathData}`} x1="50%" y1="100%" x2="50%" y2="0%">
-                            <Stop offset="0%" stopColor="transparent" stopOpacity="0" />
-                            <Stop offset="100%" stopColor="green" stopOpacity=".8" />
+                            <Stop offset="50%" stopColor="transparent" stopOpacity="0" />
+                            <Stop offset="100%" stopColor="white" stopOpacity="1" />
                         </LinearGradient>
                         <ClipPath id={`clip-${pathData}`}>
                             <Path d={`M0,${height}
@@ -172,7 +221,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 textAlign: maxTextAlign
                             }]}
                         >
-                            {convertToCurrencyFormat(maxPrice, currencyType)}
+                            {convertToCurrencyFormat(maxPrice, currencyType, true)}
                         </Text>
                         <MaterialIcons style={[styles.dataLabel, {
                             left: maxIconAdjustedX,
@@ -188,7 +237,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 textAlign: minTextAlign
                             }]}
                         >
-                            {convertToCurrencyFormat(minPrice, currencyType)}
+                            {convertToCurrencyFormat(minPrice, currencyType, true)}
                         </Text>
                         <MaterialIcons style={[styles.dataLabel, {
                             left: minIconAdjustedX,
@@ -204,24 +253,23 @@ export const LineGraph: React.FC<LineGraphProps> = ({
 };
 
 const styles = StyleSheet.create({
-    titleContainer: {
+    pricingContainer: {
         display: "flex",
         flexDirection: "row",
-        justifyContent: "space-evenly",
-    },
-    subtitleContainer: {
-        flexDirection: "row",
-        alignItems: "center",
+        alignSelf: "flex-start",
+        paddingTop: 10,
+        paddingLeft: 10,
     },
     headerTitle: {
         fontSize: 20,
         fontWeight: "bold",
-        textAlign: "center",
+        textAlign: "left",
         color: "white",
     },
-    title: {
-        fontSize: 20,
-        textAlign: "center",
+    priceChangeText: {
+        color: "white",
+        textAlign: "left",
+        textAlignVertical: "center",
     },
     percentageContainer: {
         borderRadius: 10,
@@ -244,7 +292,6 @@ const styles = StyleSheet.create({
         alignContent: 'center',
         justifyContent: 'center',
         alignItems: 'center',
-
     },
     dataLabel: {
         position: 'absolute',
@@ -258,5 +305,16 @@ const styles = StyleSheet.create({
         width: textWidth,
         height: textHeight,
         fontSize: 10
+    },
+    profitIndicatorIcon: {
+        position: 'absolute',
+        alignContent: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: "center",
+        textAlignVertical: "center",
+        backgroundColor: "transparent",
+        color: "white",
+        fontSize: 16
     },
 })

@@ -16,7 +16,7 @@ export const DataPointLabelComponentLayoutSetter = (value: number, isMax: boolea
     return (
         <View style={[styles.labelContainer]}>
             {!isMax && <MaterialIcons name="keyboard-arrow-up" color={"white"} size={10} />}
-            <Text style={styles.labelText}>{convertToCurrencyFormat(value, currencyType)}</Text>
+            <Text style={styles.labelText}>{convertToCurrencyFormat(value, currencyType, true)}</Text>
             {isMax && <MaterialIcons name="keyboard-arrow-down" color={"white"} size={10} />}
         </View>
     );
@@ -29,7 +29,7 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
 }: CoinGraphProps) => {
     const [selectedDataPointValue, setSelectedDataPointValue] = useState<number>(0);
 
-    const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h, currencyType);
+    const formatted24hChangeCoinValue = convertToCurrencyFormat(folioEntry.priceChange24h, currencyType, true);
 
     function handleDataPointSelect(dataPoint: lineDataItem) {
         setSelectedDataPointValue(dataPoint.value);
@@ -40,7 +40,7 @@ export const CoinGraph: React.FC<CoinGraphProps> = ({
             <View style={styles.titleContainer}>
                 <View style={styles.subtitleContainer}>
                     <Text style={styles.headerTitle}>
-                        {convertToCurrencyFormat(selectedDataPointValue ?? folioEntry.currentPrice, currencyType)}
+                        {convertToCurrencyFormat(selectedDataPointValue ?? folioEntry.currentPrice, currencyType, false)}
                     </Text>
                 </View>
 
