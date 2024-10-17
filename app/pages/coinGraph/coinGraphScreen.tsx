@@ -134,6 +134,7 @@ const styles = StyleSheet.create({
     button: {
         borderColor: "white",
         borderRadius: 10,
+        borderWidth: 2,
     },
     tableContainer: {
         flex: 1,

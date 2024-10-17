@@ -125,7 +125,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                                 <DataTable.Cell numeric>
                                     <MaterialIcons style={{
                                         color: userTransactionEntry.type === "BUY" ? "#00ff00" : "red",
-                                    }} name={userTransactionEntry.type === "BUY" ? "add-circle" : "remove-circle"} size={30} />
+                                    }} name={userTransactionEntry.type === "BUY" ? "add-circle-outline" : "remove-circle-outline"} size={30} />
                                 </DataTable.Cell>
                             </DataTable.Row>
                         );

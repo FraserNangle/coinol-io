@@ -177,10 +177,20 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     return (
         <View style={styles.container} onLayout={handleLayout}>
             <View style={styles.pricingContainer}>
-                <View>
+                <View style={styles.pricingTitle}>
                     <Text style={styles.headerTitle}>
                         {convertToCurrencyFormat(sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price, currencyType, false)}
                     </Text>
+                    <Text style={[
+                        styles.percentageContainer,
+                        priceChangePercentage > 0 ? styles.positive : styles.negative,
+                    ]}
+                    >
+                        {getPercentageChangeDisplay(priceChangePercentage)}%
+                    </Text>
+                </View>
+                <View>
+
                     <Text style={[styles.priceChangeText, {
                         color: 'hsl(0, 0%, 80%)',
                     }]}>
@@ -190,22 +200,12 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                         }} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
                     </Text>
                 </View>
-
-                <View>
-                    <Text style={[
-                        styles.percentageContainer,
-                        priceChangePercentage > 0 ? styles.positive : styles.negative,
-                    ]}
-                    >
-                        {getPercentageChangeDisplay(priceChangePercentage)}%
-                    </Text>
-                </View>
             </View>
             <View style={styles.lineGraph}>
                 <Svg width={width} height={height} translateY={height / 6}>
                     <Defs>
                         <LinearGradient id={`grad-${pathData}`} x1="50%" y1="100%" x2="50%" y2="0%">
-                            <Stop offset="50%" stopColor="transparent" stopOpacity="0" />
+                            <Stop offset="60%" stopColor="transparent" stopOpacity="0" />
                             <Stop offset="100%" stopColor="white" stopOpacity="1" />
                         </LinearGradient>
                         <ClipPath id={`clip-${pathData}`}>
@@ -237,7 +237,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 strokeDasharray="4 2"
                             />
                         ))}
-                        <Path d={pathData} stroke="white" strokeWidth="1" fill="none" />
+                        <Path d={pathData} stroke="white" strokeWidth="2" fill="none" />
                         <Text
                             style={[styles.dataLabel, {
                                 left: maxTextAdjustedX,
@@ -279,10 +279,16 @@ export const LineGraph: React.FC<LineGraphProps> = ({
 const styles = StyleSheet.create({
     pricingContainer: {
         display: "flex",
-        flexDirection: "row",
+        flexDirection: "column",
         alignSelf: "flex-start",
-        paddingTop: 10,
-        paddingLeft: 10,
+        alignItems: "flex-start",
+        paddingTop: 20,
+        paddingLeft: 20,
+    },
+    pricingTitle: {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
     },
     headerTitle: {
         fontSize: 20,
@@ -296,9 +302,10 @@ const styles = StyleSheet.create({
         textAlignVertical: "center",
     },
     percentageContainer: {
-        borderRadius: 10,
-        marginLeft: 10,
-        padding: 5,
+        textAlign: "left",
+        textAlignVertical: "center",
+        paddingLeft: 5,
+        fontSize: 15,
     },
     positive: {
         color: "#00ff00",
