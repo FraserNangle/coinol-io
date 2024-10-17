@@ -3,7 +3,7 @@ import {
     Dimensions,
     StyleSheet,
 } from "react-native";
-import { View } from "@/components/Themed";
+import { View, Text } from "@/components/Themed";
 import { useNavigation } from "expo-router";
 import { useRoute } from "@react-navigation/native";
 import { FolioEntry } from "@/app/models/FolioEntry";
@@ -81,11 +81,18 @@ export default function CoinGraphScreen() {
 
     return (
         <>
-            {
+            {historicalLineGraphData.length === 0 && (
+                <View style={styles.errorText}>
+                    <Text style={{ fontSize: 20, }}>
+                        Unable to find your {folioEntry.name} history!
+                    </Text>
+                </View>
+            )}
+            {historicalLineGraphData.length > 0 && (
                 <View
                     style={styles.screenContainer}
                 >
-                    {historicalLineGraphData.length > 0 && (
+                    <>
                         <View style={styles.graphContainer}>
                             <LineGraph
                                 data={historicalLineGraphData}
@@ -97,19 +104,18 @@ export default function CoinGraphScreen() {
                             >
                             </LineGraph>
                         </View>
-                    )}
-                    <View style={styles.buttonContainer}>
-                        {timeRangeControlButton("24H")}
-                        {timeRangeControlButton("7D")}
-                        {timeRangeControlButton("1M")}
-                        {timeRangeControlButton("1Y")}
-                        {timeRangeControlButton("ALL")}
-                    </View>
-                    <View style={styles.tableContainer}>
-                        <TransactionHistoryTable data={userTransactionData} />
-                    </View>
+                        <View style={styles.buttonContainer}>
+                            {timeRangeControlButton("24H")}
+                            {timeRangeControlButton("7D")}
+                            {timeRangeControlButton("1M")}
+                            {timeRangeControlButton("1Y")}
+                            {timeRangeControlButton("ALL")}
+                        </View><View style={styles.tableContainer}>
+                            <TransactionHistoryTable data={userTransactionData} />
+                        </View>
+                    </>
                 </View>
-            }
+            )}
         </>
     );
 }
@@ -137,5 +143,11 @@ const styles = StyleSheet.create({
     graphContainer: {
         flex: 1,
         justifyContent: "center",
+    },
+    errorText: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 20,
     },
 });

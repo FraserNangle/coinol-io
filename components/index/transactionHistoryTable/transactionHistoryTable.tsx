@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { ScrollView } from "react-native-gesture-handler";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -111,7 +112,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                                         <Text style={[styles.leftAlign, styles.bold]}>
                                             {new Date(userTransactionEntry.date).toLocaleDateString()}
                                         </Text>
-                                        <Text style={[styles.leftAlign, styles.normal]}>
+                                        <Text style={[styles.leftAlign, styles.light]}>
                                             {new Date(userTransactionEntry.date).toLocaleTimeString()}
                                         </Text>
                                     </View>
@@ -122,14 +123,9 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                                     </Text>
                                 </DataTable.Cell>
                                 <DataTable.Cell numeric>
-                                    <Text
-                                        style={[
-                                            styles.rightAlign,
-                                            userTransactionEntry.type === "BUY" ? styles.positive : styles.negative,
-                                        ]}
-                                    >
-                                        {userTransactionEntry.type}
-                                    </Text>
+                                    <MaterialIcons style={{
+                                        color: userTransactionEntry.type === "BUY" ? "#00ff00" : "red",
+                                    }} name={userTransactionEntry.type === "BUY" ? "add-circle" : "remove-circle"} size={30} />
                                 </DataTable.Cell>
                             </DataTable.Row>
                         );
@@ -148,6 +144,10 @@ const getStyles = () =>
         },
         normal: {
             color: "white",
+        },
+        light: {
+            fontWeight: "100",
+            color: "white"
         },
         mainDataTableTitle: {
             fontSize: 14,

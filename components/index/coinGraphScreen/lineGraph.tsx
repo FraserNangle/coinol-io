@@ -7,7 +7,7 @@ import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, LayoutChangeEvent } from "react-native";
-import Svg, { ClipPath, Defs, G, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import Svg, { ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 
 type TextAlign = "auto" | "center" | "left" | "right" | "justify";
 
@@ -34,6 +34,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
 }: LineGraphProps) => {
     const [viewLayout, setViewLayout] = useState({ width: 0, height: 0 });
     const [priceChangeAmount, setPriceChangeAmount] = useState(0);
+    const [priceChangePercentage, setPriceChangePercentage] = useState(0);
 
     // Sort the historicalDataPointList by date
     const sortedHistoricalDataPointList = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -91,6 +92,18 @@ export const LineGraph: React.FC<LineGraphProps> = ({
         const dataPointAtDate = getDataAtDate(date);
         if (dataPointAtDate) {
             return sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price - dataPointAtDate.current_price;
+        }
+        return 0;
+    };
+
+    const getPriceChangePercentageFromDataPointAtDate = (date: Date) => {
+        const dataPointAtDate = getDataAtDate(date);
+        if (dataPointAtDate) {
+            const latestPrice = sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price;
+            const originalPrice = dataPointAtDate.current_price;
+            const priceChange = latestPrice - originalPrice;
+            const percentageChange = (priceChange / originalPrice) * 100;
+            return percentageChange;
         }
         return 0;
     };
@@ -157,36 +170,34 @@ export const LineGraph: React.FC<LineGraphProps> = ({
             pastDate.setDate(currentDate.getDate() - days);
 
             setPriceChangeAmount(getPriceChangeFromDataPointAtDate(pastDate));
+            setPriceChangePercentage(getPriceChangePercentageFromDataPointAtDate(pastDate));
         }
     }, [data, timeRange]);
-
 
     return (
         <View style={styles.container} onLayout={handleLayout}>
             <View style={styles.pricingContainer}>
                 <View>
                     <Text style={styles.headerTitle}>
-                        {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, false)}
+                        {convertToCurrencyFormat(sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price, currencyType, false)}
                     </Text>
                     <Text style={[styles.priceChangeText, {
-                        color: priceChangeAmount >= 0 ? "#00ff00" : "red",
+                        color: 'hsl(0, 0%, 80%)',
                     }]}>
                         {convertToCurrencyFormat(priceChangeAmount, currencyType, true)}
-                        <MaterialIcons style={[styles.profitIndicatorIcon, {
+                        <MaterialIcons style={{
                             color: priceChangeAmount >= 0 ? "#00ff00" : "red",
-                            width: 12,
-                            height: 12
-                        }]} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
+                        }} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
                     </Text>
                 </View>
 
                 <View>
                     <Text style={[
                         styles.percentageContainer,
-                        folioEntry.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
+                        priceChangePercentage > 0 ? styles.positive : styles.negative,
                     ]}
                     >
-                        {getPercentageChangeDisplay(folioEntry.priceChangePercentage24h)}%
+                        {getPercentageChangeDisplay(priceChangePercentage)}%
                     </Text>
                 </View>
             </View>
@@ -213,6 +224,19 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                             fill={`url(#grad-${pathData})`}
                             clipPath={`url(#clip-${pathData})`}
                         />
+                        {Array.from({ length: 10 }).map((_, index) => (
+                            <Line
+                                key={index}
+                                x1="0"
+                                y1={(index + 1) * (height / 20)}
+                                x2={width}
+                                y2={(index + 1) * (height / 20)}
+                                stroke="white"
+                                strokeOpacity={0.2}
+                                strokeWidth="0.5"
+                                strokeDasharray="4 2"
+                            />
+                        ))}
                         <Path d={pathData} stroke="white" strokeWidth="1" fill="none" />
                         <Text
                             style={[styles.dataLabel, {
@@ -305,16 +329,5 @@ const styles = StyleSheet.create({
         width: textWidth,
         height: textHeight,
         fontSize: 10
-    },
-    profitIndicatorIcon: {
-        position: 'absolute',
-        alignContent: 'center',
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: "center",
-        textAlignVertical: "center",
-        backgroundColor: "transparent",
-        color: "white",
-        fontSize: 16
     },
 })
