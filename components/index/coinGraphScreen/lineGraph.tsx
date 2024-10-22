@@ -1,12 +1,11 @@
 import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
-import { FolioEntry } from "@/app/models/FolioEntry";
 import { LineGraphDataItem } from "@/app/models/LineGraphDataItem";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, LayoutChangeEvent } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { StyleSheet, View, Text, LayoutChangeEvent, Animated } from "react-native";
 import Svg, { ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 
 type TextAlign = "auto" | "center" | "left" | "right" | "justify";
@@ -14,7 +13,6 @@ type TextAlign = "auto" | "center" | "left" | "right" | "justify";
 interface LineGraphProps {
     data: CoinMarketHistoricalDataPoint[],
     currencyType: string,
-    folioEntry: FolioEntry,
     width: number,
     height: number,
     timeRange: string,
@@ -24,10 +22,11 @@ const textWidth = 60;
 const textHeight = 20;
 const iconWidth = 12;
 
+const AnimatedStop = Animated.createAnimatedComponent(Stop);
+
 export const LineGraph: React.FC<LineGraphProps> = ({
     data,
     currencyType,
-    folioEntry,
     width,
     height,
     timeRange
@@ -35,6 +34,20 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     const [viewLayout, setViewLayout] = useState({ width: 0, height: 0 });
     const [priceChangeAmount, setPriceChangeAmount] = useState(0);
     const [priceChangePercentage, setPriceChangePercentage] = useState(0);
+    const animatedValue = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.timing(animatedValue, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: false,
+        }).start();
+    }, [animatedValue, timeRange]);
+
+    const stopOffset = animatedValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 0],
+    });
 
     // Sort the historicalDataPointList by date
     const sortedHistoricalDataPointList = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -204,9 +217,9 @@ export const LineGraph: React.FC<LineGraphProps> = ({
             <View style={styles.lineGraph}>
                 <Svg width={width} height={height} translateY={height / 6}>
                     <Defs>
-                        <LinearGradient id={`grad-${pathData}`} x1="50%" y1="100%" x2="50%" y2="0%">
-                            <Stop offset="60%" stopColor="transparent" stopOpacity="0" />
-                            <Stop offset="100%" stopColor="white" stopOpacity="1" />
+                        <LinearGradient id={`grad-${pathData}`} x1="50%" y1="40%" x2="50%" y2="0%">
+                            <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
+                            <Stop offset={1} stopColor="#00ff00" stopOpacity="1" />
                         </LinearGradient>
                         <ClipPath id={`clip-${pathData}`}>
                             <Path d={`M0,${height}
@@ -251,8 +264,9 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                             left: maxIconAdjustedX,
                             top: viewLayout.height - maxIconAdjustedY,
                             width: 12,
-                            height: 12
-                        }]} name={maxIcon} color={"white"} size={10} />
+                            height: 12,
+                            color: "#00ff00"
+                        }]} name={maxIcon} color={"#00ff00"} size={10} />
 
                         <Text
                             style={[styles.dataLabel, {
@@ -267,8 +281,9 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                             left: minIconAdjustedX,
                             top: viewLayout.height - minIconAdjustedY,
                             width: 12,
-                            height: 12
-                        }]} name={minIcon} color={"white"} size={10} />
+                            height: 12,
+                            color: "red"
+                        }]} name={minIcon} color={"red"} size={10} />
                     </G>
                 </Svg>
             </View>
@@ -332,7 +347,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
         textAlignVertical: "center",
         backgroundColor: "transparent",
-        color: "white",
+        color: "hsl(0, 0%, 80%)",
         width: textWidth,
         height: textHeight,
         fontSize: 10

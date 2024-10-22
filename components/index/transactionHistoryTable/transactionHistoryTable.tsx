@@ -81,7 +81,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
 
     return (
         <PaperProvider>
-            <ScrollView>
+            <ScrollView fadingEdgeLength={25}>
                 <DataTable>
                     <DataTable.Header style={[{ borderColor: "rgba(255, 255, 255, 0.2)", borderBottomWidth: .5 }]}>
                         <DataTable.Title onPress={() => handleSort("date")}>
