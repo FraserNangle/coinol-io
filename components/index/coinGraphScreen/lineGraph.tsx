@@ -5,8 +5,8 @@ import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View, Text, LayoutChangeEvent, Animated } from "react-native";
-import Svg, { ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import { StyleSheet, View, Text, LayoutChangeEvent, Animated, PanResponder, PanResponderInstance } from "react-native";
+import Svg, { Circle, ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 
 type TextAlign = "auto" | "center" | "left" | "right" | "justify";
 
@@ -34,6 +34,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     const [viewLayout, setViewLayout] = useState({ width: 0, height: 0 });
     const [priceChangeAmount, setPriceChangeAmount] = useState(0);
     const [priceChangePercentage, setPriceChangePercentage] = useState(0);
+    const [highlightedDataPoint, setHighlightedDataPoint] = useState<LineGraphDataItem | null>(null);
+    const [panResponder, setPanResponder] = useState<PanResponderInstance>();
     const animatedValue = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
@@ -64,7 +66,9 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     const lineGraphData: LineGraphDataItem[] = sortedHistoricalDataPointList.map(dataPoint => {
         const x = ((new Date(dataPoint.date).getTime() - minDate) / (maxDate - minDate)) * width;
         const y = ((dataPoint.current_price - minPrice) / (maxPrice - minPrice)) * (viewLayout.height / 2);
-        return { x, y };
+        const value = dataPoint.current_price;
+        const date = dataPoint.date;
+        return { x, y, value, date };
     });
 
     const pathData = lineGraphData.map((point, index) => {
@@ -99,26 +103,6 @@ export const LineGraph: React.FC<LineGraphProps> = ({
         dataPointsFromSameDay.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         return dataPointsFromSameDay[0];
-    };
-
-    const getPriceChangeFromDataPointAtDate = (date: Date) => {
-        const dataPointAtDate = getDataAtDate(date);
-        if (dataPointAtDate) {
-            return sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price - dataPointAtDate.current_price;
-        }
-        return 0;
-    };
-
-    const getPriceChangePercentageFromDataPointAtDate = (date: Date) => {
-        const dataPointAtDate = getDataAtDate(date);
-        if (dataPointAtDate) {
-            const latestPrice = sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price;
-            const originalPrice = dataPointAtDate.current_price;
-            const priceChange = latestPrice - originalPrice;
-            const percentageChange = (priceChange / originalPrice) * 100;
-            return percentageChange;
-        }
-        return 0;
     };
 
     // Adjust the text label position if it goes outside the bounds
@@ -182,17 +166,56 @@ export const LineGraph: React.FC<LineGraphProps> = ({
             const pastDate = new Date(currentDate);
             pastDate.setDate(currentDate.getDate() - days);
 
+            const getPriceChangeFromDataPointAtDate = (date: Date) => {
+                const dataPointAtDate = getDataAtDate(date);
+                if (dataPointAtDate) {
+                    return highlightedDataPoint?.value ?
+                        highlightedDataPoint?.value - dataPointAtDate.current_price :
+                        sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price - dataPointAtDate.current_price;
+                }
+                return 0;
+            };
+
+            const getPriceChangePercentageFromDataPointAtDate = (date: Date) => {
+                const dataPointAtDate = getDataAtDate(date);
+                if (dataPointAtDate) {
+                    const latestPrice = highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price;
+                    const originalPrice = dataPointAtDate.current_price;
+                    const priceChange = latestPrice - originalPrice;
+                    const percentageChange = (priceChange / originalPrice) * 100;
+                    return percentageChange;
+                }
+                return 0;
+            };
+
             setPriceChangeAmount(getPriceChangeFromDataPointAtDate(pastDate));
             setPriceChangePercentage(getPriceChangePercentageFromDataPointAtDate(pastDate));
         }
-    }, [data, timeRange]);
+    }, [data, timeRange, highlightedDataPoint]);
+
+    useEffect(() => {
+        setPanResponder(PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderMove: (evt, gestureState) => {
+                const touchX = gestureState.moveX;
+                const closestDataPoint = lineGraphData.reduce((prev, curr) => {
+                    return Math.abs(curr.x - touchX) < Math.abs(prev.x - touchX) ? curr : prev;
+                }, lineGraphData[0]);
+                setHighlightedDataPoint(closestDataPoint);
+            },
+            onPanResponderRelease: () => {
+                setHighlightedDataPoint(null);
+            },
+        }));
+    }, [timeRange, data, pathData]);
 
     return (
-        <View style={styles.container} onLayout={handleLayout}>
+        <View style={styles.container} onLayout={handleLayout} {...panResponder?.panHandlers}>
             <View style={styles.pricingContainer}>
                 <View style={styles.pricingTitle}>
                     <Text style={styles.headerTitle}>
-                        {convertToCurrencyFormat(sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price, currencyType, false)}
+                        {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price, currencyType, false)}
                     </Text>
                     <Text style={[
                         styles.percentageContainer,
@@ -203,7 +226,6 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                     </Text>
                 </View>
                 <View>
-
                     <Text style={[styles.priceChangeText, {
                         color: 'hsl(0, 0%, 80%)',
                     }]}>
@@ -213,15 +235,20 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                         }} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
                     </Text>
                 </View>
+                <View>
+                    <Text style={[styles.priceChangeText]}>
+                        {highlightedDataPoint ? new Date(highlightedDataPoint.date).toLocaleDateString() + " at " + new Date(highlightedDataPoint.date).toLocaleTimeString() : ''}
+                    </Text>
+                </View>
             </View>
             <View style={styles.lineGraph}>
                 <Svg width={width} height={height} translateY={height / 6}>
                     <Defs>
-                        <LinearGradient id={`grad-${pathData}`} x1="50%" y1="40%" x2="50%" y2="0%">
+                        <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="40%" x2="50%" y2="0%">
                             <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
-                            <Stop offset={1} stopColor="#00ff00" stopOpacity="1" />
+                            <Stop offset={1} stopColor="orange" stopOpacity="1" />
                         </LinearGradient>
-                        <ClipPath id={`clip-${pathData}`}>
+                        <ClipPath id={`clip-${pathData}-${timeRange}`}>
                             <Path d={`M0,${height}
                             L0,${viewLayout.height - lineGraphData[0].y}
                             L${width},${viewLayout.height - lineGraphData[lineGraphData.length - 1].y}
@@ -234,8 +261,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                             y="0"
                             width={width}
                             height={height}
-                            fill={`url(#grad-${pathData})`}
-                            clipPath={`url(#clip-${pathData})`}
+                            fill={`url(#grad-${pathData}-${timeRange})`}
+                            clipPath={`url(#clip-${pathData}-${timeRange})`}
                         />
                         {Array.from({ length: 10 }).map((_, index) => (
                             <Line
@@ -251,6 +278,14 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                             />
                         ))}
                         <Path d={pathData} stroke="white" strokeWidth="2" fill="none" />
+                        {highlightedDataPoint && (
+                            <Circle
+                                cx={highlightedDataPoint.x}
+                                cy={viewLayout.height - highlightedDataPoint.y}
+                                r={4}
+                                fill="orange"
+                            />
+                        )}
                         <Text
                             style={[styles.dataLabel, {
                                 left: maxTextAdjustedX,

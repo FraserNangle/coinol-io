@@ -97,7 +97,6 @@ export default function CoinGraphScreen() {
                             <LineGraph
                                 data={historicalLineGraphData}
                                 currencyType={currencyType}
-                                folioEntry={folioEntry}
                                 width={screenWidth}
                                 height={screenHeight}
                                 timeRange={timeRange}
