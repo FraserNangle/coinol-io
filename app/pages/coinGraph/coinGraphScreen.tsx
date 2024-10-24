@@ -48,10 +48,10 @@ export default function CoinGraphScreen() {
                 let days: number = getDaysFromTimeRange(timeRange);
 
                 const currentDate = new Date();
-                const endDate = currentDate.toISOString().split('T')[0];
+                const endDate = currentDate.toISOString();
                 const startDate = new Date(currentDate);
                 startDate.setDate(startDate.getDate() - days);
-                const formattedStartDate = startDate.toISOString().split('T')[0];
+                const formattedStartDate = startDate.toISOString();
 
                 return await fetchHistoricalCoinData(folioEntry.coinId, formattedStartDate, endDate, timeRange);
             }

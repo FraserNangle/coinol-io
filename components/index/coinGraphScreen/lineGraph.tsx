@@ -236,7 +236,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                     </Text>
                 </View>
                 <View>
-                    <Text style={[styles.priceChangeText]}>
+                    <Text style={[styles.dateLabelText, { color: 'hsl(0, 0%, 80%)' }]}>
                         {highlightedDataPoint ? new Date(highlightedDataPoint.date).toLocaleDateString() + " at " + new Date(highlightedDataPoint.date).toLocaleTimeString() : ''}
                     </Text>
                 </View>
@@ -277,7 +277,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 strokeDasharray="4 2"
                             />
                         ))}
-                        <Path d={pathData} stroke="white" strokeWidth="2" fill="none" />
+                        <Path d={pathData} stroke="white" strokeWidth="1" fill="none" />
                         {highlightedDataPoint && (
                             <Circle
                                 cx={highlightedDataPoint.x}
@@ -350,6 +350,12 @@ const styles = StyleSheet.create({
         color: "white",
         textAlign: "left",
         textAlignVertical: "center",
+    },
+    dateLabelText: {
+        color: "hsl(0, 0%, 80%)",
+        textAlign: "left",
+        textAlignVertical: "center",
+        fontSize: 12,
     },
     percentageContainer: {
         textAlign: "left",

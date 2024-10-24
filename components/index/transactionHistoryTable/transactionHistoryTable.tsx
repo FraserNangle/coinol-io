@@ -109,7 +109,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                             >
                                 <DataTable.Cell>
                                     <View style={styles.column}>
-                                        <Text style={[styles.leftAlign, styles.bold]}>
+                                        <Text style={[styles.leftAlign, styles.normal]}>
                                             {new Date(userTransactionEntry.date).toLocaleDateString()}
                                         </Text>
                                         <Text style={[styles.leftAlign, styles.light]}>

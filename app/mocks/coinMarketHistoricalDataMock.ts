@@ -1,30 +1,22 @@
 import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
 
-const uniqueDates = new Set<string>();
-
-const bitcoinEntries24h = Array.from({ length: 23 }, (_, i) => {
-    let date;
-    do {
-        date = new Date(new Date().setHours(new Date().getHours() - (i + 1))).toISOString();
-    } while (uniqueDates.has(date));
-    uniqueDates.add(date);
+const bitcoinEntries24h = Array.from({ length: 24 }, (_, i) => {
+    const date = new Date();
+    date.setHours(date.getHours() - i);
     return {
         id: "bitcoin",
         date,
-        current_price: 56001.32 + Math.random() * 12002.43,
+        current_price: 56001.32 + Math.random() * 2002.43,
     };
 });
 
-const cardanoEntries24h = Array.from({ length: 23 }, (_, i) => {
-    let date;
-    do {
-        date = new Date(new Date().setHours(new Date().getHours() - (i + 1))).toISOString();
-    } while (uniqueDates.has(date));
-    uniqueDates.add(date);
+const cardanoEntries24h = Array.from({ length: 24 }, (_, i) => {
+    const date = new Date();
+    date.setHours(date.getHours() - i);
     return {
         id: "cardano",
-        date,
-        current_price: 1.4031 + Math.random() * 1.50431,
+        date: date.toISOString(),
+        current_price: 1.4031 + Math.random() * 1.10431,
     };
 });
 
