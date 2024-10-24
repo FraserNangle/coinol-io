@@ -219,7 +219,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                     </Text>
                     <Text style={[
                         styles.percentageContainer,
-                        priceChangePercentage > 0 ? styles.positive : styles.negative,
+                        priceChangePercentage >= 0 ? styles.positive : styles.negative,
                     ]}
                     >
                         {getPercentageChangeDisplay(priceChangePercentage)}%
@@ -246,7 +246,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                     <Defs>
                         <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="40%" x2="50%" y2="0%">
                             <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
-                            <Stop offset={1} stopColor="orange" stopOpacity="1" />
+                            <Stop offset={1} stopColor="white" stopOpacity="1" />
                         </LinearGradient>
                         <ClipPath id={`clip-${pathData}-${timeRange}`}>
                             <Path d={`M0,${height}
@@ -279,12 +279,21 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                         ))}
                         <Path d={pathData} stroke="white" strokeWidth="1" fill="none" />
                         {highlightedDataPoint && (
-                            <Circle
-                                cx={highlightedDataPoint.x}
-                                cy={viewLayout.height - highlightedDataPoint.y}
-                                r={4}
-                                fill="orange"
-                            />
+                            <>
+                                <Circle
+                                    cx={highlightedDataPoint.x}
+                                    cy={viewLayout.height - highlightedDataPoint.y}
+                                    r={2}
+                                    fill="grey"
+                                />
+                                <Circle
+                                    cx={highlightedDataPoint.x}
+                                    cy={viewLayout.height - highlightedDataPoint.y}
+                                    r={6}
+                                    fill={highlightedDataPoint.value >= sortedHistoricalDataPointList[0].current_price ? "#00ff00" : "red"}
+                                    opacity={0.5}
+                                />
+                            </>
                         )}
                         <Text
                             style={[styles.dataLabel, {
