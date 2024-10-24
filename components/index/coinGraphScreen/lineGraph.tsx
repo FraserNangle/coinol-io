@@ -7,6 +7,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, Text, LayoutChangeEvent, Animated, PanResponder, PanResponderInstance } from "react-native";
 import Svg, { Circle, ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import * as Haptics from 'expo-haptics';
 
 type TextAlign = "auto" | "center" | "left" | "right" | "justify";
 
@@ -190,6 +191,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
 
             setPriceChangeAmount(getPriceChangeFromDataPointAtDate(pastDate));
             setPriceChangePercentage(getPriceChangePercentageFromDataPointAtDate(pastDate));
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
         }
     }, [data, timeRange, highlightedDataPoint]);
 
