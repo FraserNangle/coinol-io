@@ -79,7 +79,7 @@ export const coinMarketHistoricalData24hMock: CoinMarketHistoricalDataPoint[] = 
     {
         id: "cardano",
         date: new Date(new Date().setDate(new Date().getDate() - 6)).toISOString(),
-        current_price: 2.55,
+        current_price: 2.52,
     },
     {
         id: "bitcoin",

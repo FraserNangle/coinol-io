@@ -5,7 +5,7 @@ import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View, Text, LayoutChangeEvent, Animated, PanResponder, PanResponderInstance } from "react-native";
+import { StyleSheet, View, Text, LayoutChangeEvent, Animated, PanResponder, PanResponderInstance, TouchableOpacity } from "react-native";
 import Svg, { Circle, ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import * as Haptics from 'expo-haptics';
 
@@ -159,6 +159,23 @@ export const LineGraph: React.FC<LineGraphProps> = ({
         maxTextAdjustedY += (textWidth / 2) + (iconWidth / 2);
     }
 
+    const getPriceChange = (date: Date, returnPercentage: boolean = false) => {
+        const dataPointAtDate = getDataAtDate(date);
+        if (dataPointAtDate) {
+            const latestPrice = highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price;
+            const originalPrice = dataPointAtDate.current_price;
+            const priceChange = latestPrice - originalPrice;
+
+            if (returnPercentage) {
+                const percentageChange = (priceChange / originalPrice) * 100;
+                return percentageChange;
+            }
+
+            return priceChange;
+        }
+        return 0;
+    };
+
     useEffect(() => {
         if (data.length > 0) {
             let days: number = getDaysFromTimeRange(timeRange);
@@ -167,30 +184,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
             const pastDate = new Date(currentDate);
             pastDate.setDate(currentDate.getDate() - days);
 
-            const getPriceChangeFromDataPointAtDate = (date: Date) => {
-                const dataPointAtDate = getDataAtDate(date);
-                if (dataPointAtDate) {
-                    return highlightedDataPoint?.value ?
-                        highlightedDataPoint?.value - dataPointAtDate.current_price :
-                        sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price - dataPointAtDate.current_price;
-                }
-                return 0;
-            };
-
-            const getPriceChangePercentageFromDataPointAtDate = (date: Date) => {
-                const dataPointAtDate = getDataAtDate(date);
-                if (dataPointAtDate) {
-                    const latestPrice = highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price;
-                    const originalPrice = dataPointAtDate.current_price;
-                    const priceChange = latestPrice - originalPrice;
-                    const percentageChange = (priceChange / originalPrice) * 100;
-                    return percentageChange;
-                }
-                return 0;
-            };
-
-            setPriceChangeAmount(getPriceChangeFromDataPointAtDate(pastDate));
-            setPriceChangePercentage(getPriceChangePercentageFromDataPointAtDate(pastDate));
+            setPriceChangeAmount(getPriceChange(pastDate, false));
+            setPriceChangePercentage(getPriceChange(pastDate, true));
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
         }
     }, [data, timeRange, highlightedDataPoint]);
@@ -214,33 +209,35 @@ export const LineGraph: React.FC<LineGraphProps> = ({
 
     return (
         <View style={styles.container} onLayout={handleLayout} {...panResponder?.panHandlers}>
-            <View style={styles.pricingContainer}>
-                <View style={styles.pricingTitle}>
-                    <Text style={styles.headerTitle}>
-                        {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price, currencyType, false)}
-                    </Text>
-                    <Text style={[
-                        styles.percentageContainer,
-                        priceChangePercentage >= 0 ? styles.positive : styles.negative,
-                    ]}
-                    >
-                        {getPercentageChangeDisplay(priceChangePercentage)}%
-                    </Text>
-                </View>
-                <View>
-                    <Text style={[styles.priceChangeText, {
-                        color: 'hsl(0, 0%, 80%)',
-                    }]}>
-                        {convertToCurrencyFormat(priceChangeAmount, currencyType, true)}
-                        <MaterialIcons style={{
-                            color: priceChangeAmount >= 0 ? "#00ff00" : "red",
-                        }} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
-                    </Text>
-                </View>
-                <View>
-                    <Text style={[styles.dateLabelText, { color: 'hsl(0, 0%, 80%)' }]}>
-                        {highlightedDataPoint ? new Date(highlightedDataPoint.date).toLocaleDateString() + " at " + new Date(highlightedDataPoint.date).toLocaleTimeString() : ''}
-                    </Text>
+            <View style={[{ justifyContent: 'space-between', flexDirection: 'row' }]}>
+                <View style={[styles.pricingContainer]}>
+                    <View style={styles.pricingTitle}>
+                        <Text style={styles.headerTitle}>
+                            {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price, currencyType, false)}
+                        </Text>
+                        <Text style={[
+                            styles.percentageContainer,
+                            priceChangePercentage >= 0 ? styles.positive : styles.negative,
+                        ]}
+                        >
+                            {getPercentageChangeDisplay(priceChangePercentage)}%
+                        </Text>
+                    </View>
+                    <View>
+                        <Text style={[styles.priceChangeText, {
+                            color: 'hsl(0, 0%, 80%)',
+                        }]}>
+                            {convertToCurrencyFormat(priceChangeAmount, currencyType, true)}
+                            <MaterialIcons style={{
+                                color: priceChangeAmount >= 0 ? "#00ff00" : "red",
+                            }} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
+                        </Text>
+                    </View>
+                    <View>
+                        <Text style={[styles.dateLabelText, { color: 'hsl(0, 0%, 80%)' }]}>
+                            {highlightedDataPoint ? new Date(highlightedDataPoint.date).toLocaleDateString() + " at " + new Date(highlightedDataPoint.date).toLocaleTimeString() : ''}
+                        </Text>
+                    </View>
                 </View>
             </View>
             <View style={styles.lineGraph}>
@@ -333,7 +330,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                     </G>
                 </Svg>
             </View>
-        </View>
+        </View >
     );
 };
 
@@ -383,7 +380,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
     },
     lineGraph: {
         flex: 1,

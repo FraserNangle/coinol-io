@@ -21,6 +21,7 @@ import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 
 type RouteParams = {
     folioEntry: FolioEntry;
+    refresh: () => void;
 };
 
 export default function CoinGraphScreen() {
@@ -37,35 +38,31 @@ export default function CoinGraphScreen() {
     const db = useSQLiteContext();
 
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
+    const refresh = useSelector((state: RootState) => state.coinGraphRefresh.refresh);
+
 
     useEffect(() => {
         navigation.setOptions({ title: folioEntry.name });
     }, [navigation]);
 
+    const fetchData = async () => {
+        if (folioEntry) {
+            let days: number = getDaysFromTimeRange(timeRange);
+            const currentDate = new Date();
+            const endDate = currentDate.toISOString();
+            const startDate = new Date(currentDate);
+            startDate.setDate(startDate.getDate() - days);
+            const formattedStartDate = startDate.toISOString();
+            const historicalData = await fetchHistoricalCoinData(folioEntry.coinId, formattedStartDate, endDate, timeRange);
+            setHistoricalLineGraphData(historicalData || []);
+            const transactionData = await getTransactionListByCoinId(db, folioEntry.coinId);
+            setUserTransactionData(transactionData || []);
+        }
+    };
+
     useEffect(() => {
-        const fetchHistoricalLineGraphData = async () => {
-            if (folioEntry) {
-                let days: number = getDaysFromTimeRange(timeRange);
-
-                const currentDate = new Date();
-                const endDate = currentDate.toISOString();
-                const startDate = new Date(currentDate);
-                startDate.setDate(startDate.getDate() - days);
-                const formattedStartDate = startDate.toISOString();
-
-                return await fetchHistoricalCoinData(folioEntry.coinId, formattedStartDate, endDate, timeRange);
-            }
-        };
-
-        fetchHistoricalLineGraphData().then((data) => {
-            setHistoricalLineGraphData(data || []);
-        });
-
-        getTransactionListByCoinId(db, folioEntry.coinId).then((data) => {
-            setUserTransactionData(data || []);
-        });
-
-    }, [timeRange, folioEntry]);
+        fetchData();
+    }, [timeRange, folioEntry, refresh]);
 
     function timeRangeControlButton(value: string) {
         return <Button
