@@ -7,7 +7,7 @@ import { View, Text } from "@/components/Themed";
 import { useNavigation } from "expo-router";
 import { useRoute } from "@react-navigation/native";
 import { FolioEntry } from "@/app/models/FolioEntry";
-import { Button } from "react-native-paper";
+import { ActivityIndicator, Button } from "react-native-paper";
 import { fetchHistoricalCoinData } from "@/app/services/coinHistoryService";
 import { RootState } from "@/app/store/store";
 import { useSelector } from "react-redux";
@@ -21,7 +21,6 @@ import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 
 type RouteParams = {
     folioEntry: FolioEntry;
-    refresh: () => void;
 };
 
 export default function CoinGraphScreen() {
@@ -30,6 +29,8 @@ export default function CoinGraphScreen() {
     const [timeRange, setTimeRange] = useState("24H");
     const [historicalLineGraphData, setHistoricalLineGraphData] = useState<CoinMarketHistoricalDataPoint[]>([]);
     const [userTransactionData, setUserTransactionData] = useState<UserTransaction[]>([]);
+    const [isLoadingHistoricalData, setIsLoadingHistoricalData] = useState(true);
+    const [isLoadingTransactionData, setIsLoadingTransactionData] = useState(true);
 
     const route = useRoute();
     const { folioEntry }: { folioEntry: FolioEntry } = route.params as RouteParams;
@@ -45,24 +46,37 @@ export default function CoinGraphScreen() {
         navigation.setOptions({ title: folioEntry.name });
     }, [navigation]);
 
-    const fetchData = async () => {
-        if (folioEntry) {
-            let days: number = getDaysFromTimeRange(timeRange);
-            const currentDate = new Date();
-            const endDate = currentDate.toISOString();
-            const startDate = new Date(currentDate);
-            startDate.setDate(startDate.getDate() - days);
-            const formattedStartDate = startDate.toISOString();
-            const historicalData = await fetchHistoricalCoinData(folioEntry.coinId, formattedStartDate, endDate, timeRange);
-            setHistoricalLineGraphData(historicalData || []);
-            const transactionData = await getTransactionListByCoinId(db, folioEntry.coinId);
-            setUserTransactionData(transactionData || []);
-        }
+    const fetchHistoricalLineGraphData = async (folioEntry: FolioEntry, timeRange: string) => {
+        setIsLoadingHistoricalData(true);
+        let days: number = getDaysFromTimeRange(timeRange);
+        const currentDate = new Date();
+        const endDate = currentDate.toISOString();
+        const startDate = new Date(currentDate);
+        startDate.setDate(startDate.getDate() - days);
+        const formattedStartDate = startDate.toISOString();
+        const historicalData = await fetchHistoricalCoinData(folioEntry.coinId, formattedStartDate, endDate, timeRange);
+        setHistoricalLineGraphData(historicalData || []);
+        setIsLoadingHistoricalData(false);
+    };
+
+    const fetchUserTransactionData = async (folioEntry: FolioEntry) => {
+        setIsLoadingTransactionData(true);
+        const transactionData = await getTransactionListByCoinId(db, folioEntry.coinId);
+        setUserTransactionData(transactionData || []);
+        setIsLoadingTransactionData(false);
     };
 
     useEffect(() => {
-        fetchData();
+        if (folioEntry) {
+            fetchHistoricalLineGraphData(folioEntry, timeRange);
+        }
     }, [timeRange, folioEntry, refresh]);
+
+    useEffect(() => {
+        if (folioEntry) {
+            fetchUserTransactionData(folioEntry);
+        }
+    }, [folioEntry, refresh]);
 
     function timeRangeControlButton(value: string) {
         return <Button
@@ -78,19 +92,14 @@ export default function CoinGraphScreen() {
 
     return (
         <>
-            {historicalLineGraphData.length === 0 && (
-                <View style={styles.errorText}>
-                    <Text style={{ fontSize: 20, }}>
-                        Unable to find your {folioEntry.name} history!
-                    </Text>
-                </View>
-            )}
-            {historicalLineGraphData.length > 0 && (
-                <View
-                    style={styles.screenContainer}
-                >
-                    <>
-                        <View style={styles.graphContainer}>
+            <View style={styles.screenContainer}>
+                <>
+                    <View style={styles.graphContainer}>
+                        {isLoadingHistoricalData ? (
+                            <View style={styles.loadingContainer}>
+                                <ActivityIndicator size="large" color="white" />
+                            </View>
+                        ) : (
                             <LineGraph
                                 data={historicalLineGraphData}
                                 currencyType={currencyType}
@@ -99,19 +108,26 @@ export default function CoinGraphScreen() {
                                 timeRange={timeRange}
                             >
                             </LineGraph>
-                        </View>
-                        <View style={styles.buttonContainer}>
-                            {timeRangeControlButton("24H")}
-                            {timeRangeControlButton("7D")}
-                            {timeRangeControlButton("1M")}
-                            {timeRangeControlButton("1Y")}
-                            {timeRangeControlButton("ALL")}
-                        </View><View style={styles.tableContainer}>
+                        )}
+                    </View>
+                    <View style={styles.buttonContainer}>
+                        {timeRangeControlButton("24H")}
+                        {timeRangeControlButton("7D")}
+                        {timeRangeControlButton("1M")}
+                        {timeRangeControlButton("1Y")}
+                        {timeRangeControlButton("ALL")}
+                    </View>
+                    <View style={styles.tableContainer}>
+                        {isLoadingTransactionData ? (
+                            <View style={styles.loadingContainer}>
+                                <ActivityIndicator size="large" color="white" />
+                            </View>
+                        ) : (
                             <TransactionHistoryTable data={userTransactionData} />
-                        </View>
-                    </>
-                </View>
-            )}
+                        )}
+                    </View>
+                </>
+            </View>
         </>
     );
 }
@@ -146,5 +162,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         fontSize: 20,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "black",
     },
 });

@@ -15,7 +15,7 @@ export async function fetchHistoricalCoinData(coinId: string, startDate: string,
                         return coinDate >= start && coinDate <= end;
                     })
                 );
-            }, 100); // Simulate a delay of .1 second
+            }, 500); // Simulate a delay of .5 second
         });
     } else {
         // Fetch the data from backend in other environments
