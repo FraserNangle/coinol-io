@@ -8,6 +8,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, Text, LayoutChangeEvent, Animated, PanResponder, PanResponderInstance, TouchableOpacity } from "react-native";
 import Svg, { Circle, ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import * as Haptics from 'expo-haptics';
+import { useAnimatedProps, useSharedValue, withTiming } from "react-native-reanimated";
+import { AnimatedPath } from "@/components/Animation";
 
 type TextAlign = "auto" | "center" | "left" | "right" | "justify";
 
@@ -38,6 +40,17 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     const [highlightedDataPoint, setHighlightedDataPoint] = useState<LineGraphDataItem | null>(null);
     const [panResponder, setPanResponder] = useState<PanResponderInstance>();
     const animatedValue = useRef(new Animated.Value(0)).current;
+    const strokeDashoffset = useSharedValue(2000);
+
+    useEffect(() => {
+        strokeDashoffset.value = withTiming(0, { duration: 1000 });
+    }, [data]);
+
+    const animatedPathProps = useAnimatedProps(() => {
+        return {
+            strokeDashoffset: strokeDashoffset.value,
+        };
+    });
 
     useEffect(() => {
         Animated.timing(animatedValue, {
@@ -243,7 +256,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
             <View style={styles.lineGraph}>
                 <Svg width={width} height={height} translateY={height / 6}>
                     <Defs>
-                        <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="40%" x2="50%" y2="0%">
+                        <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="35%" x2="50%" y2="0%">
                             <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
                             <Stop offset={1} stopColor="white" stopOpacity="1" />
                         </LinearGradient>
@@ -276,7 +289,14 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 strokeDasharray="4 2"
                             />
                         ))}
-                        <Path d={pathData} stroke="white" strokeWidth="1" fill="none" />
+                        <AnimatedPath
+                            d={pathData}
+                            stroke="white"
+                            strokeWidth="1"
+                            fill="none"
+                            strokeDasharray={2000} // Adjust this value based on the length of your path
+                            animatedProps={animatedPathProps}
+                        />
                         {highlightedDataPoint && (
                             <>
                                 <Circle

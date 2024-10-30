@@ -12,7 +12,7 @@ import {
 import {
     totalAnimationTime,
     AnimatedPath,
-} from "@/app/styling/donutChartAnimation";
+} from "@/components/Animation";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
 import { RootState } from "@/app/store/store";
 import { SectionFolioEntry } from "@/app/models/FolioEntry";
@@ -32,7 +32,6 @@ export const Section: React.FC<SectionProps> = ({
     outerRadius,
     color
 }: SectionProps) => {
-
     const dispatch = useDispatch();
     const selectedSection = useSelector(
         (state: RootState) => state.selectedSection.section
