@@ -191,7 +191,7 @@ export default function AddTransactionBuySellScreen() {
                     const newHolding: UserTransaction = {
                         id: randomUUID(),
                         coinId: item.id,
-                        date: date.toLocaleDateString(),
+                        date: date.toISOString(),
                         quantity: Number(total),
                         type: transactionType,
                     };

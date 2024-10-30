@@ -16,8 +16,7 @@ import { setUserFolio } from "../slices/userFolioSlice";
 import { RootState } from "../store/store";
 import { DonutChart } from "@/components/index/donutChart/donutChart";
 import { useSQLiteContext } from "expo-sqlite";
-
-const CURRENCY_TYPE = "USD";
+import { setCurrencyType } from "../slices/currencyTypeSlice";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
@@ -30,6 +29,11 @@ export default function TabOneScreen() {
 
   let userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
   let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
+  let currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
+
+  useEffect(() => {
+    dispatch(setCurrencyType("USD"));
+  }, []);
 
   useEffect(() => {
     fetchUserFolio(db).then((data) => {
@@ -101,7 +105,7 @@ export default function TabOneScreen() {
                 width={screenWidth * 0.95}
                 height={screenHeight / 2}
                 backgroundColor={"black"}
-                currencyTicker={CURRENCY_TYPE}
+                currencyTicker={currencyType}
               />
             </View>
             <View style={styles.tableContainer}>

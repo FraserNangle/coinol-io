@@ -1,7 +1,6 @@
 import { SQLiteDatabase } from "expo-sqlite";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
-import * as SecureStore from 'expo-secure-store';
 
 export interface ICoinStorageService {
   addTransactionData: (transaction: UserTransaction) => Promise<void>;
@@ -47,6 +46,21 @@ export const getTransactionList = async (db: SQLiteDatabase) => {
   }
 
   const transactions = await db.getAllAsync<UserTransaction>('SELECT * FROM transactions');
+
+  if (transactions.length > 0) {
+    return transactions;
+  } else {
+    return [];
+  }
+}
+
+export const getTransactionListByCoinId = async (db: SQLiteDatabase, coinId: string) => {
+  if (!isGuest()) {
+    // If the user is not a guest, download the transactions from the server and save them to local storage
+    await downloadTransactionsToLocalStorage();
+  }
+
+  const transactions = await db.getAllAsync<UserTransaction>('SELECT * FROM transactions WHERE coinId = ?', [coinId]);
 
   if (transactions.length > 0) {
     return transactions;

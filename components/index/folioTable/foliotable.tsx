@@ -11,6 +11,8 @@ import {
 import { useSelector } from "react-redux";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { RootState } from "@/app/store/store";
+import { useNavigation } from "@react-navigation/native";
+import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -22,11 +24,6 @@ if (Platform.OS === "android") {
 interface FolioTableProps {
   data: FolioEntry[];
 }
-
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
 
 const numberFormatter = new Intl.NumberFormat("en-US", {
   style: "decimal",
@@ -45,10 +42,14 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
 
   const selectedSectionId = useSelector(
-    (state: RootState) => state.selectedSection.section?.details?.id
+    (state: RootState) => state.selectedSection.section?.details?.coinId
   );
 
+  const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
+
   const styles = getStyles();
+
+  const navigation = useNavigation();
 
   const sortedData = React.useMemo(() => {
     return [...props.data].sort((a, b) => {
@@ -114,14 +115,15 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
           </DataTable.Title>
         </DataTable.Header>
 
-        {sortedData.map((item) => {
+        {sortedData.map((folioEntry) => {
           const priceDifferenceDisplay =
-            getPriceDifferenceDisplay(item.priceChangePercentage24h);
+            getPriceDifferenceDisplay(folioEntry.priceChangePercentage24h);
           return (
             <DataTable.Row
-              key={item?.coinId}
+              onPress={() => { navigation.navigate("pages/coinGraph/coinGraphScreen", { folioEntry: folioEntry }) }}
+              key={folioEntry?.coinId}
               style={
-                selectedSectionId == item?.coinId
+                selectedSectionId == folioEntry?.coinId
                   ? styles.highlightedRow
                   : styles.row
               }
@@ -129,11 +131,11 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
               <DataTable.Cell>
                 <View style={styles.column}>
                   <View style={styles.row}>
-                    <Text style={styles.ticker}>{item.ticker.toUpperCase()}</Text>
-                    <Text style={styles.bold}> {numberFormatter.format(item.quantity)}</Text>
+                    <Text style={styles.ticker}>{folioEntry.ticker.toUpperCase()}</Text>
+                    <Text style={styles.bold}> {numberFormatter.format(folioEntry.quantity)}</Text>
                   </View>
                   <Text style={[styles.leftAlign, styles.normal]}>
-                    {currencyFormatter.format(item.currentPrice)}
+                    {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, true)}
                   </Text>
                 </View>
               </DataTable.Cell>
@@ -141,7 +143,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                 <Text
                   style={[
                     styles.rightAlign,
-                    item.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
+                    folioEntry.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
                   ]}
                 >
                   {priceDifferenceDisplay}
@@ -153,7 +155,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                     styles.normal
                   }
                 >
-                  {currencyFormatter.format(item.quantity * item.currentPrice)}
+                  {convertToCurrencyFormat(folioEntry.quantity * folioEntry.currentPrice, currencyType, true)}
                 </Text>
               </DataTable.Cell>
             </DataTable.Row>

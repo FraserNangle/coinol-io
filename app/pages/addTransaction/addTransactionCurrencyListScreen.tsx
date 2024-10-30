@@ -126,7 +126,6 @@ const styles = StyleSheet.create({
   row: {
     flex: 1,
     flexDirection: "row",
-    //justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: 'hsl(0, 0%, 15%)',
   }

@@ -3,14 +3,16 @@ import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useState } from "react";
-import { Provider } from "react-redux";
+import React, { useEffect, useRef, useState } from "react";
+import { Provider, useDispatch } from "react-redux";
 import store from "./store/store";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, Animated, TouchableOpacity, View } from "react-native";
 import { initiateGuestUser } from "./services/apiService";
 import { SQLiteProvider } from 'expo-sqlite';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RootSiblingParent } from 'react-native-root-siblings';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { triggerRefresh } from "./slices/coinGraphRefreshSlice";
 
 
 export {
@@ -66,33 +68,75 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <Provider store={store}>
+      <RootLayoutNav />
+    </Provider>);
 }
 
 function RootLayoutNav() {
+  const dispatch = useDispatch();
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  const startAnimation = () => {
+    rotateAnim.setValue(0);
+    Animated.timing(rotateAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <SQLiteProvider databaseName="transaction.db">
+
       <RootSiblingParent>
         <GestureHandlerRootView >
-          <Provider store={store}>
-            <ThemeProvider value={DarkTheme}>
-              <Stack
-                screenOptions={{
-                  animation: "slide_from_right",
-                }}>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-                <Stack.Screen
-                  name="pages/addTransaction/addTransactionCurrencyListScreen"
-                  options={{ presentation: "fullScreenModal", title: "Select Currency" }}
-                />
-                <Stack.Screen
-                  name="pages/addTransaction/addTransactionScreen"
-                  options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
-                />
-              </Stack>
-            </ThemeProvider>
-          </Provider>
+          <ThemeProvider value={DarkTheme}>
+            <Stack
+              screenOptions={{
+                animation: "slide_from_right",
+              }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+              <Stack.Screen
+                name="pages/addTransaction/addTransactionCurrencyListScreen"
+                options={{ presentation: "fullScreenModal", title: "Select Currency" }}
+              />
+              <Stack.Screen
+                name="pages/addTransaction/addTransactionScreen"
+                options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
+              />
+              <Stack.Screen
+                name="pages/coinGraph/coinGraphScreen"
+                options={{
+                  presentation: "fullScreenModal",
+                  title: "Coin Graph",
+                  headerStyle: { backgroundColor: 'black' },
+                  headerTitleAlign: 'center',
+                  headerRight: () => (
+                    <View style={[{ justifyContent: 'center' }]}>
+                      <TouchableOpacity onPress={() => {
+                        startAnimation();
+                        dispatch(triggerRefresh());
+                      }}>
+                        <Animated.View style={{ transform: [{ rotate }] }}>
+                          <MaterialIcons style={[{
+                            color: 'white',
+                          }]} name={"refresh"} size={30} />
+                        </Animated.View>
+                      </TouchableOpacity>
+                    </View>
+                  ),
+                }}
+              />
+            </Stack>
+          </ThemeProvider>
         </GestureHandlerRootView>
       </RootSiblingParent>
     </SQLiteProvider>

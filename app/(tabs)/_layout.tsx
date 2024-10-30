@@ -6,8 +6,9 @@ import { Link, Tabs } from "expo-router";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import { useSelector } from "react-redux";
-
-const CURRENCY_TYPE = "USD";
+import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
+import { getPercentageChangeDisplay } from "../utils/getPercentageChange";
+import { RootState } from "../store/store";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: Readonly<{
@@ -27,17 +28,9 @@ export default function TabLayout() {
   const totalPortfolioPercentageChange24hr = useSelector(
     (state: any) => state?.totalPortfolioValue?.totalPortfolioPercentageChange24hr
   );
+  const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
-  const getPercentageChangeDisplay = (percentageChange: number) => {
-    return percentageChange > 0
-      ? `+${percentageChange.toFixed(2)}`
-      : `${percentageChange.toFixed(2)}`;
-  };
-
-  const formattedTotalPortfolioValue = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: CURRENCY_TYPE,
-  }).format(totalPortfolioValue);
+  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType, true);
 
   return (
     <Tabs
@@ -140,18 +133,16 @@ const styles = StyleSheet.create({
     color: "white",
   },
   percentageContainer: {
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 1,
     borderRadius: 10,
     marginLeft: 10,
     padding: 5,
   },
   positive: {
-    color: "#00ff00",
-    backgroundColor: "rgba(0, 255, 0, 0.2)",
+    color: "white",
+    backgroundColor: "green",
   },
   negative: {
-    color: "red",
-    backgroundColor: "rgba(255, 105, 180, 0.2)",
+    color: "white",
+    backgroundColor: "red",
   },
 });
