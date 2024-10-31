@@ -69,8 +69,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     const sortedHistoricalDataPointList = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     // Find the maximum and minimum current_price in the historicalDataPointList
-    const maxPrice = Math.max(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.current_price));
-    const minPrice = Math.min(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.current_price));
+    const maxPrice = Math.max(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.currentPrice));
+    const minPrice = Math.min(...sortedHistoricalDataPointList.map(dataPoint => dataPoint.currentPrice));
 
     // Find the maximum and minimum date in the historicalDataPointList
     const maxDate = new Date(sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].date).getTime();
@@ -79,8 +79,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     // Map the data points to x and y coordinates
     const lineGraphData: LineGraphDataItem[] = sortedHistoricalDataPointList.map(dataPoint => {
         const x = ((new Date(dataPoint.date).getTime() - minDate) / (maxDate - minDate)) * width;
-        const y = ((dataPoint.current_price - minPrice) / (maxPrice - minPrice)) * (viewLayout.height / 2);
-        const value = dataPoint.current_price;
+        const y = ((dataPoint.currentPrice - minPrice) / (maxPrice - minPrice)) * (viewLayout.height / 2);
+        const value = dataPoint.currentPrice;
         const date = dataPoint.date;
         return { x, y, value, date };
     });
@@ -175,8 +175,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     const getPriceChange = (date: Date, returnPercentage: boolean = false) => {
         const dataPointAtDate = getDataAtDate(date);
         if (dataPointAtDate) {
-            const latestPrice = highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price;
-            const originalPrice = dataPointAtDate.current_price;
+            const latestPrice = highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].currentPrice;
+            const originalPrice = dataPointAtDate.currentPrice;
             const priceChange = latestPrice - originalPrice;
 
             if (returnPercentage) {
@@ -226,7 +226,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                 <View style={[styles.pricingContainer]}>
                     <View style={styles.pricingTitle}>
                         <Text style={styles.headerTitle}>
-                            {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].current_price, currencyType, false)}
+                            {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].currentPrice, currencyType, false)}
                         </Text>
                         <Text style={[
                             styles.percentageContainer,
@@ -309,7 +309,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                     cx={highlightedDataPoint.x}
                                     cy={viewLayout.height - highlightedDataPoint.y}
                                     r={6}
-                                    fill={highlightedDataPoint.value >= sortedHistoricalDataPointList[0].current_price ? "#00ff00" : "red"}
+                                    fill={highlightedDataPoint.value >= sortedHistoricalDataPointList[0].currentPrice ? "#00ff00" : "red"}
                                     opacity={0.5}
                                 />
                             </>
