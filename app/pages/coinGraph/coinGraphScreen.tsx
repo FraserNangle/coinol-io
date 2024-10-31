@@ -3,12 +3,11 @@ import {
     Dimensions,
     StyleSheet,
 } from "react-native";
-import { View, Text } from "@/components/Themed";
+import { View } from "@/components/Themed";
 import { useNavigation } from "expo-router";
 import { useRoute } from "@react-navigation/native";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { ActivityIndicator, Button } from "react-native-paper";
-import { fetchHistoricalCoinData } from "@/app/services/coinHistoryService";
 import { RootState } from "@/app/store/store";
 import { useSelector } from "react-redux";
 import { TransactionHistoryTable } from "@/components/index/transactionHistoryTable/transactionHistoryTable";
@@ -18,6 +17,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import { LineGraph } from "@/components/index/coinGraphScreen/lineGraph";
 import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
 import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
+import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -46,17 +46,25 @@ export default function CoinGraphScreen() {
         navigation.setOptions({ title: folioEntry.name });
     }, [navigation]);
 
-    const fetchHistoricalLineGraphData = async (folioEntry: FolioEntry, timeRange: string) => {
+    const fetchHistoricalLineGraphData = async (folioEntry: FolioEntry) => {
         setIsLoadingHistoricalData(true);
-        let days: number = getDaysFromTimeRange(timeRange);
-        const currentDate = new Date();
-        const endDate = currentDate.toISOString();
-        const startDate = new Date(currentDate);
-        startDate.setDate(startDate.getDate() - days);
-        const formattedStartDate = startDate.toISOString();
-        const historicalData = await fetchHistoricalCoinData(folioEntry.coinId, formattedStartDate, endDate, timeRange);
+        const historicalData = await getCoinHistoryDataPoints(db, folioEntry.coinId);
         setHistoricalLineGraphData(historicalData || []);
         setIsLoadingHistoricalData(false);
+    };
+
+    const filterHistoricalLineGraphDataByDate = (historicalData: CoinMarketHistoricalDataPoint[]) => {
+        let days: number = getDaysFromTimeRange(timeRange);
+        const currentDate = new Date();
+        const startDate = new Date(currentDate);
+        startDate.setDate(startDate.getDate() - days);
+
+        return historicalData
+            .filter((coin) => {
+                const coinDate = new Date(coin.date);
+                return coinDate >= startDate && coinDate <= currentDate;
+            });
+
     };
 
     const fetchUserTransactionData = async (folioEntry: FolioEntry) => {
@@ -68,9 +76,15 @@ export default function CoinGraphScreen() {
 
     useEffect(() => {
         if (folioEntry) {
-            fetchHistoricalLineGraphData(folioEntry, timeRange);
+            fetchHistoricalLineGraphData(folioEntry);
         }
-    }, [timeRange, folioEntry, refresh]);
+    }, []);
+
+    useEffect(() => {
+        if (folioEntry) {
+            fetchHistoricalLineGraphData(folioEntry);
+        }
+    }, [refresh]);
 
     useEffect(() => {
         if (folioEntry) {
@@ -91,44 +105,42 @@ export default function CoinGraphScreen() {
     }
 
     return (
-        <>
-            <View style={styles.screenContainer}>
-                <>
-                    <View style={styles.graphContainer}>
-                        {isLoadingHistoricalData ? (
-                            <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color="white" />
-                            </View>
-                        ) : (
-                            <LineGraph
-                                data={historicalLineGraphData}
-                                currencyType={currencyType}
-                                width={screenWidth}
-                                height={screenHeight}
-                                timeRange={timeRange}
-                            >
-                            </LineGraph>
-                        )}
-                    </View>
-                    <View style={styles.buttonContainer}>
-                        {timeRangeControlButton("24H")}
-                        {timeRangeControlButton("7D")}
-                        {timeRangeControlButton("1M")}
-                        {timeRangeControlButton("1Y")}
-                        {timeRangeControlButton("ALL")}
-                    </View>
-                    <View style={styles.tableContainer}>
-                        {isLoadingTransactionData ? (
-                            <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color="white" />
-                            </View>
-                        ) : (
-                            <TransactionHistoryTable data={userTransactionData} />
-                        )}
-                    </View>
-                </>
-            </View>
-        </>
+        <View style={styles.screenContainer}>
+            <>
+                <View style={styles.graphContainer}>
+                    {isLoadingHistoricalData ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="large" color="white" />
+                        </View>
+                    ) : (
+                        <LineGraph
+                            data={filterHistoricalLineGraphDataByDate(historicalLineGraphData)}
+                            currencyType={currencyType}
+                            width={screenWidth}
+                            height={screenHeight}
+                            timeRange={timeRange}
+                        >
+                        </LineGraph>
+                    )}
+                </View>
+                <View style={styles.buttonContainer}>
+                    {timeRangeControlButton("24H")}
+                    {timeRangeControlButton("7D")}
+                    {timeRangeControlButton("1M")}
+                    {timeRangeControlButton("1Y")}
+                    {timeRangeControlButton("ALL")}
+                </View>
+                <View style={styles.tableContainer}>
+                    {isLoadingTransactionData ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="large" color="white" />
+                        </View>
+                    ) : (
+                        <TransactionHistoryTable data={userTransactionData} />
+                    )}
+                </View>
+            </>
+        </View>
     );
 }
 
@@ -145,7 +157,7 @@ const styles = StyleSheet.create({
     },
     button: {
         borderColor: "white",
-        borderRadius: 10,
+        borderRadius: 5,
         borderWidth: 2,
     },
     tableContainer: {

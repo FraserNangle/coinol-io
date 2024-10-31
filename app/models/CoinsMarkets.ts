@@ -33,7 +33,7 @@ export interface CoinsMarkets {
 }
 
 export interface CoinMarketHistoricalDataPoint {
-    id: string;
+    coinId: string;
     date: string;
-    current_price: number;
+    currentPrice: number;
 }

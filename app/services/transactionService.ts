@@ -2,13 +2,6 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
 
-export interface ICoinStorageService {
-  addTransactionData: (transaction: UserTransaction) => Promise<void>;
-  getCoinQuantity: (coinId: string) => Promise<number>;
-  updateCoinData: (coinId: string, newQuantity: number) => Promise<void>;
-  removeCoinData: (coinId: string) => Promise<void>;
-}
-
 export const addTransactionData = async (db: SQLiteDatabase, newTransaction: UserTransaction) => {
   await db.execAsync(
     `CREATE TABLE IF NOT EXISTS transactions (
