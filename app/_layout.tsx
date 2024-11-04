@@ -106,11 +106,21 @@ function RootLayoutNav() {
               <Stack.Screen name="modal" options={{ presentation: "modal" }} />
               <Stack.Screen
                 name="pages/addTransaction/addTransactionCurrencyListScreen"
-                options={{ presentation: "fullScreenModal", title: "Select Currency" }}
+                options={{
+                  presentation: "fullScreenModal",
+                  title: "Select Currency",
+                  headerStyle: { backgroundColor: 'black' },
+                  headerTitleAlign: 'center',
+                }}
               />
               <Stack.Screen
                 name="pages/addTransaction/addTransactionScreen"
-                options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
+                options={{
+                  presentation: "fullScreenModal",
+                  title: "Add Transaction",
+                  headerStyle: { backgroundColor: 'black' },
+                  headerTitleAlign: 'center',
+                }}
               />
               <Stack.Screen
                 name="pages/coinGraph/coinGraphScreen"

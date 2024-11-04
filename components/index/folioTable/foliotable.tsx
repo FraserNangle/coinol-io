@@ -13,6 +13,7 @@ import { FolioEntry } from "@/app/models/FolioEntry";
 import { RootState } from "@/app/store/store";
 import { useNavigation } from "@react-navigation/native";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
+import { hexToRgba } from "@/app/utils/hexToRgba";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -41,8 +42,8 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
   const [sortField, setSortField] = React.useState<SortField>("total");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
 
-  const selectedSectionId = useSelector(
-    (state: RootState) => state.selectedSection.section?.details?.coinId
+  const selectedSection = useSelector(
+    (state: RootState) => state.selectedSection.section
   );
 
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
@@ -97,7 +98,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
   return (
     <PaperProvider>
       <DataTable>
-        <DataTable.Header>
+        <DataTable.Header style={[{ borderColor: "rgba(255, 255, 255, 0.2)", borderBottomWidth: .5, borderTopWidth: .5 }]}>
           <DataTable.Title onPress={() => handleSort("ticker")}>
             <Text style={styles.mainDataTableTitle}>
               Coins{getSortIndicator("ticker")}
@@ -122,10 +123,9 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
             <DataTable.Row
               onPress={() => { navigation.navigate("pages/coinGraph/coinGraphScreen", { folioEntry: folioEntry }) }}
               key={folioEntry?.coinId}
-              style={
-                selectedSectionId == folioEntry?.coinId
-                  ? styles.highlightedRow
-                  : styles.row
+              style={[styles.row, selectedSection?.details?.coinId == folioEntry?.coinId
+                ? { backgroundColor: hexToRgba(selectedSection?.details?.color, 0.15) } // Adjust alpha value here
+                : { backgroundColor: "transparent" }]
               }
             >
               <DataTable.Cell>
@@ -174,10 +174,14 @@ const getStyles = () =>
     },
     bold: {
       fontWeight: "bold",
-      color: "#fff",
+      color: "white",
     },
     normal: {
-      color: "#fff",
+      color: "white",
+    },
+    light: {
+      fontWeight: "100",
+      color: "white"
     },
     mainDataTableTitle: {
       fontSize: 14,
@@ -205,9 +209,6 @@ const getStyles = () =>
     },
     row: {
       flexDirection: "row",
-    },
-    highlightedRow: {
-      backgroundColor: "#222",
-      flexDirection: "row",
+      borderColor: "rgba(255, 255, 255, 0.2)",
     },
   });

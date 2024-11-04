@@ -49,6 +49,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Portfolio",
+          tabBarActiveBackgroundColor: "black",
+          tabBarInactiveBackgroundColor: "black",
           tabBarLabel: () => null,
           headerTitle: () => (
             <View style={styles.titleContainer}>
@@ -92,6 +94,8 @@ export default function TabLayout() {
         name="plusMenu"
         options={{
           headerShown: false,
+          tabBarActiveBackgroundColor: "black",
+          tabBarInactiveBackgroundColor: "black",
           headerTitle: () => null,
           tabBarLabel: () => null,
           tabBarIcon: ({ color }) => (
@@ -103,6 +107,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="two"
         options={{
+          tabBarActiveBackgroundColor: "black",
+          tabBarInactiveBackgroundColor: "black",
           tabBarLabel: () => null,
           tabBarShowLabel: true,
           headerTitle: () => (

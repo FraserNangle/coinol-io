@@ -3,7 +3,7 @@ import {
     Dimensions,
     StyleSheet,
 } from "react-native";
-import { View } from "@/components/Themed";
+import { View, Text } from "@/components/Themed";
 import { useNavigation } from "expo-router";
 import { useRoute } from "@react-navigation/native";
 import { FolioEntry } from "@/app/models/FolioEntry";
@@ -78,12 +78,6 @@ export default function CoinGraphScreen() {
         if (folioEntry) {
             fetchHistoricalLineGraphData(folioEntry);
         }
-    }, []);
-
-    useEffect(() => {
-        if (folioEntry) {
-            fetchHistoricalLineGraphData(folioEntry);
-        }
     }, [refresh]);
 
     useEffect(() => {
@@ -94,12 +88,13 @@ export default function CoinGraphScreen() {
 
     function timeRangeControlButton(value: string) {
         return <Button
-            buttonColor="transparent"
+            buttonColor="black"
             textColor={"white"}
             rippleColor="white"
+            labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
             style={[styles.button, value === timeRange ? { opacity: 1 } : { opacity: .5 }]}
             onPress={() => setTimeRange(value)}
-            mode="outlined">
+            mode="contained">
             {value}
         </Button>;
     }
@@ -108,20 +103,32 @@ export default function CoinGraphScreen() {
         <View style={styles.screenContainer}>
             <>
                 <View style={styles.graphContainer}>
-                    {isLoadingHistoricalData ? (
-                        <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color="white" />
-                        </View>
-                    ) : (
-                        <LineGraph
-                            data={filterHistoricalLineGraphDataByDate(historicalLineGraphData)}
-                            currencyType={currencyType}
-                            width={screenWidth}
-                            height={screenHeight}
-                            timeRange={timeRange}
-                        >
-                        </LineGraph>
-                    )}
+                    {(() => {
+                        if (isLoadingHistoricalData) {
+                            return (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator size="large" color="white" />
+                                </View>
+                            );
+                        } else if (historicalLineGraphData.length > 0) {
+                            return (
+                                <LineGraph
+                                    data={filterHistoricalLineGraphDataByDate(historicalLineGraphData)}
+                                    currencyType={currencyType}
+                                    width={screenWidth}
+                                    height={screenHeight}
+                                    timeRange={timeRange}
+                                >
+                                </LineGraph>
+                            );
+                        } else {
+                            return (
+                                <View style={styles.errorText}>
+                                    <Text>Failed to load chart data</Text>
+                                </View>
+                            );
+                        }
+                    })()}
                 </View>
                 <View style={styles.buttonContainer}>
                     {timeRangeControlButton("24H")}
@@ -156,9 +163,11 @@ const styles = StyleSheet.create({
         justifyContent: "space-evenly",
     },
     button: {
-        borderColor: "white",
-        borderRadius: 5,
-        borderWidth: 2,
+        width: "20%",
+        borderRadius: 0,
+        borderWidth: 0,
+        borderTopWidth: 2,
+        borderColor: "rgba(255, 255, 255, 1)",
     },
     tableContainer: {
         flex: 1,

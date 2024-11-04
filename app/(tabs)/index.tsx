@@ -121,21 +121,20 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   screenContainer: {
     alignItems: "center",
-    justifyContent: "flex-start", // Align items to the start of the screen
+    justifyContent: "flex-start",
     backgroundColor: "black",
   },
   donutContainer: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start", // Align items to the start of the container
+    justifyContent: "flex-start",
     backgroundColor: "black",
   },
   tableContainer: {
     flex: 1,
     justifyContent: "center",
     width: "100%",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 10, // Rounded corners
+    backgroundColor: "black",
   },
   tradeButtonContainer: {
     justifyContent: "center",

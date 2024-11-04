@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setAllCoinData } from "@/app/slices/allCoinDataSlice";
 import { RootState } from "@/app/store/store";
 import { Coin } from "@/app/models/Coin";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function AddTransactionCurrencyListScreen() {
   const [query, setQuery] = useState("");
@@ -45,21 +46,21 @@ export default function AddTransactionCurrencyListScreen() {
     <View style={styles.screenContainer}>
       <View style={styles.tableContainer}>
         <TextInput
-          selectionColor={'hsl(0, 0%, 60%)'}
+          selectionColor={'hsl(0, 0%, 30%)'}
           cursorColor="white"
           maxLength={60}
           textAlign="right"
           multiline={false}
           numberOfLines={1}
           inputMode="search"
-          placeholderTextColor={'hsl(0, 0%, 60%)'}
+          placeholderTextColor={'hsl(0, 0%, 30%)'}
           textColor="white"
           style={styles.searchBar}
           value={query}
           placeholder="Search..."
           onChangeText={handleSearch}
-          underlineColor="transparent"
-          activeUnderlineColor="transparent"
+          underlineColor="rgba(255, 255, 255, 0.3)"
+          activeUnderlineColor="rgba(255, 255, 255, 0.5)"
         />
         <FlatList
           data={filteredData}
@@ -70,14 +71,14 @@ export default function AddTransactionCurrencyListScreen() {
                 navigation.navigate("pages/addTransaction/addTransactionScreen", { item: item })
               }
             >
-              <DataTable.Row key={item.name}>
+              <DataTable.Row key={item.name} style={[{ borderColor: "rgba(255, 255, 255, 0.3)", borderBottomWidth: .5 }]}>
                 <DataTable.Cell>
                   <View style={styles.row}>
-                    <Text>
-                      {item.name}
+                    <Text style={[styles.bold, { paddingRight: 5 }]}>
+                      {item.symbol.toUpperCase()}
                     </Text>
-                    <Text style={styles.bold}>
-                      {' (' + item.symbol.toUpperCase() + ')'}
+                    <Text style={styles.light}>
+                      {item.name}
                     </Text>
                   </View>
                 </DataTable.Cell>
@@ -100,10 +101,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     width: "100%",
-    backgroundColor: 'hsl(0, 0%, 15%)',
+    backgroundColor: 'black',
   },
   searchBar: {
-    backgroundColor: 'hsl(0, 0%, 5%)',
+    backgroundColor: 'black',
     fontWeight: "bold",
     color: "white",
   },
@@ -113,6 +114,10 @@ const styles = StyleSheet.create({
   },
   normal: {
     color: "#fff",
+  },
+  light: {
+    fontWeight: "100",
+    color: "white"
   },
   rightAlign: {
     textAlign: "right",
@@ -127,6 +132,5 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: 'hsl(0, 0%, 15%)',
   }
 });

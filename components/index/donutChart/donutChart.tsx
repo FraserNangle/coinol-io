@@ -2,12 +2,13 @@ import React, {
     useState,
     useEffect,
     useCallback,
+    useRef,
 } from "react";
-import { View, StyleSheet, Image, Dimensions } from "react-native";
+import { View, StyleSheet, Image, Dimensions, Animated } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
 import { donutChartColors } from "@/app/styling/donutChartColors";
-import Svg, { G, Text, Circle } from "react-native-svg";
+import Svg, { G, Text, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { Section } from "./section";
 import { RootState } from "@/app/store/store";
 import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
@@ -24,6 +25,8 @@ interface DonutChartProps {
     backgroundColor: string,
     currencyTicker: string,
 }
+
+const AnimatedStop = Animated.createAnimatedComponent(Stop);
 
 export const DonutChart: React.FC<DonutChartProps> = ({
     data,
@@ -47,6 +50,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [sortedData, setSortedData] = useState<FolioEntry[]>([]);
     const [sections, setSections] = useState<SectionFolioEntry[]>([]);
     const [refreshCount, setRefreshCount] = useState(0);
+    const radialGradientValue = useRef(new Animated.Value(0)).current;
 
     const centerX = width / 2;
     const centerY = height / 2;
@@ -64,6 +68,19 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     useEffect(() => {
         forceRefresh();
     }, [data]);
+
+    useEffect(() => {
+        Animated.timing(radialGradientValue, {
+            toValue: 100,
+            duration: 3000,
+            useNativeDriver: false,
+        }).start();
+    }, []);
+
+    const stopOffset = radialGradientValue.interpolate({
+        inputRange: [0, 100],
+        outputRange: [0, .5],
+    });
 
     useEffect(() => {
         if (totalPortfolioValue === 0) {
@@ -268,6 +285,36 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 }}
             >
                 <Svg width={width} height={height}>
+                    <Defs>
+                        <RadialGradient
+                            id="grad"
+                            cx="50%"
+                            cy="50%"
+                            r="50%"
+                            fx="50%"
+                            fy="50%"
+                        >
+                            <Stop offset="0%" stopColor={selectedSection?.details?.color} stopOpacity="1" />
+                            <AnimatedStop offset={stopOffset} stopColor={selectedSection?.details?.color} stopOpacity="0" />
+                        </RadialGradient>
+                        <RadialGradient
+                            id="innerGrad"
+                            cx="50%"
+                            cy="50%"
+                            r="50%"
+                            fx="50%"
+                            fy="50%"
+                        >
+                            <Stop offset={0.8} stopColor="black" stopOpacity="1" />
+                            <Stop offset={1} stopColor="transparent" stopOpacity=".8" />
+                        </RadialGradient>
+                    </Defs>
+                    <G x={width / 2} y={height / 2}>
+                        <Circle
+                            r={outerRadius + 200}
+                            fill="url(#grad)"
+                        />
+                    </G>
                     <G x={width / 2} y={height / 2}>
                         {sections.map((section, index) => {
                             const colorIndex = interpolate(
@@ -292,7 +339,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                         })}
                         <Circle
                             r={outerRadius - thickness}
-                            fill={backgroundColor}
+                            fill="url(#innerGrad)"
                             onPressIn={toggleDisplayMode}
                         />
                         {selectedSection && (
