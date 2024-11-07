@@ -146,18 +146,13 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [sortedData, outerRadius, totalPortfolioValue, minSliceAngle, donutChartColors]);
 
     useEffect(() => {
-        if (sections.length > 0 &&
-            selectedSection === undefined ||
-            sections.find(section => section.coinId === selectedSection?.details?.coinId) === undefined) {
-            dispatch(
-                setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
-            );
-        }
-    }, [sections]);
-
-    // If lastTransaction is set, find the section with the same id and setSelectedSection with its details
-    useEffect(() => {
         if (sections.length > 0) {
+            if (sections?.find(section => section.coinId === selectedSection?.details?.coinId) === undefined) {
+                dispatch(
+                    setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
+                );
+                return;
+            }
             const lastTransactionSection = sections.find(section => section.coinId === lastTransaction?.coinId);
 
             const matchingSection = lastTransactionSection || sections[selectedSection?.index ?? 0];

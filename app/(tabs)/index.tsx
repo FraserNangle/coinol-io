@@ -65,7 +65,7 @@ export default function TabOneScreen() {
 
   return (
     <>
-      {
+      {!isLoadingFolioData &&
         userFolio.length === 0 && (
           <View style={styles.container}>
             <Link href="/plusMenu" asChild>
