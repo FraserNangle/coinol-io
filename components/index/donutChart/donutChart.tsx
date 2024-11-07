@@ -77,7 +77,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         radialGradientValue.setValue(0);
         Animated.timing(radialGradientValue, {
             toValue: 100,
-            duration: 3000,
+            duration: 3300,
             useNativeDriver: false,
         }).start();
     }, [data]);
@@ -95,14 +95,11 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [data, totalPortfolioValue]);
 
     useEffect(() => {
-        setSections([]);
         let startAngle = -Math.PI / 2;
         let accumulatedValue = 0;
 
-
-        setSections(sortedData.map((folioEntry) => {
+        const newSections = sortedData.map((folioEntry) => {
             const gapSize = 2 / outerRadius;
-
             const sliceAngle = Math.max(
                 2 * Math.PI * ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue),
                 minSliceAngle
@@ -119,22 +116,20 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             startAngle = endAngle + gapSize;
             accumulatedValue += (folioEntry.quantity * folioEntry.currentPrice);
             return s;
-        }));
+        });
 
-    }, [sortedData]);
-
-    // prevents donut from wrapping more than 360 degrees
-    useEffect(() => {
-        const totalAngle = sections.reduce(
+        const totalAngle = newSections.reduce(
             (total, section) => total + (section.endAngle - section.startAngle),
             0
         );
 
-        if (totalAngle > 2 * Math.PI) {
-            const scale = (2 * Math.PI) / totalAngle;
-            let startAngle = -Math.PI / 2;
+        const totalGapSize = 2 * newSections.length / outerRadius;
 
-            setSections(sections.map((section) => {
+        if (totalAngle + totalGapSize > 2 * Math.PI) {
+            const scale = (2 * Math.PI) / totalAngle;
+            startAngle = -Math.PI / 2;
+
+            const scaledSections = newSections.map((section) => {
                 const gapSize = 2 / outerRadius;
                 const sliceAngle = (section.endAngle - section.startAngle) * scale;
                 const startAngleGap = startAngle + gapSize * scale;
@@ -142,9 +137,13 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 const s = { ...section, startAngle: startAngleGap, endAngle };
                 startAngle = endAngle + gapSize * scale;
                 return s;
-            }));
+            });
+
+            setSections(scaledSections);
+        } else {
+            setSections(newSections);
         }
-    }, [sections]);
+    }, [sortedData, outerRadius, totalPortfolioValue, minSliceAngle, donutChartColors]);
 
     useEffect(() => {
         if (sections.length > 0 &&
