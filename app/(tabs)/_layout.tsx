@@ -1,13 +1,12 @@
 import React from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Link, Tabs } from "expo-router";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import { useSelector } from "react-redux";
 import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
-import { getPercentageChangeDisplay } from "../utils/getPercentageChange";
+import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange";
 import { RootState } from "../store/store";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -60,12 +59,12 @@ export default function TabLayout() {
                     {formattedTotalPortfolioValue}
                   </Text>
 
-                  <Text style={[
-                    styles.percentageContainer,
-                    totalPortfolioPercentageChange24hr > 0 ? styles.positive : styles.negative,
-                  ]}
+                  <Text style={[styles.percentageContainer, { color: totalPortfolioPercentageChange24hr >= 0 ? "#00ff00" : "red" }]}
                   >
-                    {getPercentageChangeDisplay(totalPortfolioPercentageChange24hr)}%
+                    {getPercentageChangeDisplayNoSymbol(totalPortfolioPercentageChange24hr)}%
+                    <MaterialIcons style={{
+                      color: totalPortfolioPercentageChange24hr >= 0 ? "#00ff00" : "red",
+                    }} name={totalPortfolioPercentageChange24hr >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
                   </Text>
                 </>
               )}
@@ -78,8 +77,8 @@ export default function TabLayout() {
             <Link href="/modal" asChild>
               <Pressable>
                 {({ pressed }) => (
-                  <FontAwesome
-                    name="user"
+                  <MaterialIcons
+                    name="person"
                     size={25}
                     color={"white"}
                     style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
@@ -133,22 +132,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
     color: "white",
   },
   percentageContainer: {
-    borderRadius: 10,
     marginLeft: 10,
-    padding: 5,
-  },
-  positive: {
     color: "white",
-    backgroundColor: "green",
-  },
-  negative: {
-    color: "white",
-    backgroundColor: "red",
   },
 });

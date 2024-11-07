@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -91,27 +91,19 @@ export default function TabOneScreen() {
       }
       {
         userFolio.length > 0 && (
-          <ScrollView
-            contentContainerStyle={styles.screenContainer}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            fadingEdgeLength={25}
-            removeClippedSubviews={true}
-          >
+          <View style={styles.screenContainer}>
             <View style={styles.donutContainer}>
               <DonutChart
                 data={userFolio}
                 width={screenWidth * 0.95}
                 height={screenHeight / 2}
                 backgroundColor={"black"}
-                currencyTicker={currencyType}
-              />
+                currencyTicker={currencyType} />
             </View>
             <View style={styles.tableContainer}>
               <FolioTable data={userFolio} />
             </View>
-          </ScrollView>
+          </View>
         )
       }
     </>
@@ -120,6 +112,7 @@ export default function TabOneScreen() {
 
 const styles = StyleSheet.create({
   screenContainer: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "flex-start",
     backgroundColor: "black",

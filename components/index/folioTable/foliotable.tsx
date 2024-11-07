@@ -7,13 +7,14 @@ import {
   LayoutAnimation,
   UIManager,
   Platform,
+  ScrollView,
 } from "react-native";
 import { useSelector } from "react-redux";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { RootState } from "@/app/store/store";
 import { useNavigation } from "@react-navigation/native";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
-import { hexToRgba } from "@/app/utils/hexToRgba";
+import { useEffect, useRef } from "react";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -41,6 +42,9 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
 
   const [sortField, setSortField] = React.useState<SortField>("total");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const ROW_HEIGHT = 50;
 
   const selectedSection = useSelector(
     (state: RootState) => state.selectedSection.section
@@ -95,74 +99,90 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
     return sortOrder === "asc" ? " ↓" : " ↑";
   };
 
-  return (
-    <PaperProvider>
-      <DataTable>
-        <DataTable.Header style={[{ borderColor: "rgba(255, 255, 255, 0.2)", borderBottomWidth: .5, borderTopWidth: .5 }]}>
-          <DataTable.Title onPress={() => handleSort("ticker")}>
-            <Text style={styles.mainDataTableTitle}>
-              Coins{getSortIndicator("ticker")}
-            </Text>
-          </DataTable.Title>
-          <DataTable.Title numeric onPress={() => handleSort("price")}>
-            <Text style={styles.dataTableTitle}>
-              Price (24h %){getSortIndicator("price")}
-            </Text>
-          </DataTable.Title>
-          <DataTable.Title numeric onPress={() => handleSort("total")}>
-            <Text style={styles.dataTableTitle}>
-              Total{getSortIndicator("total")}
-            </Text>
-          </DataTable.Title>
-        </DataTable.Header>
+  useEffect(() => {
+    if (selectedSection?.details?.coinId) {
+      const coinId = selectedSection.details.coinId;
+      const index = sortedData.findIndex(item => item.coinId === coinId);
+      if (index !== -1 && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: index * ROW_HEIGHT, animated: true });
+      }
+    }
+  }, [selectedSection]);
 
-        {sortedData.map((folioEntry) => {
-          const priceDifferenceDisplay =
-            getPriceDifferenceDisplay(folioEntry.priceChangePercentage24h);
-          return (
-            <DataTable.Row
-              onPress={() => { navigation.navigate("pages/coinGraph/coinGraphScreen", { folioEntry: folioEntry }) }}
-              key={folioEntry?.coinId}
-              style={[styles.row, selectedSection?.details?.coinId == folioEntry?.coinId
-                ? { backgroundColor: hexToRgba(selectedSection?.details?.color, 0.15) } // Adjust alpha value here
-                : { backgroundColor: "transparent" }]
-              }
-            >
-              <DataTable.Cell>
-                <View style={styles.column}>
-                  <View style={styles.row}>
-                    <Text style={styles.ticker}>{folioEntry.ticker.toUpperCase()}</Text>
-                    <Text style={styles.bold}> {numberFormatter.format(folioEntry.quantity)}</Text>
+  return (
+    <ScrollView
+      ref={scrollViewRef}
+      fadingEdgeLength={5}
+      removeClippedSubviews={true}
+    >
+      <PaperProvider>
+        <DataTable>
+          <DataTable.Header style={[{ borderColor: "rgba(255, 255, 255, 0.2)", borderBottomWidth: .5, borderTopWidth: .5 }]}>
+            <DataTable.Title onPress={() => handleSort("ticker")}>
+              <Text style={styles.mainDataTableTitle}>
+                Coins{getSortIndicator("ticker")}
+              </Text>
+            </DataTable.Title>
+            <DataTable.Title numeric onPress={() => handleSort("price")}>
+              <Text style={styles.dataTableTitle}>
+                Price (24h %){getSortIndicator("price")}
+              </Text>
+            </DataTable.Title>
+            <DataTable.Title numeric onPress={() => handleSort("total")}>
+              <Text style={styles.dataTableTitle}>
+                Total{getSortIndicator("total")}
+              </Text>
+            </DataTable.Title>
+          </DataTable.Header>
+
+          {sortedData.map((folioEntry) => {
+            const priceDifferenceDisplay =
+              getPriceDifferenceDisplay(folioEntry.priceChangePercentage24h);
+            return (
+              <DataTable.Row
+                onPress={() => { navigation.navigate("pages/coinGraph/coinGraphScreen", { folioEntry: folioEntry }) }}
+                key={folioEntry?.coinId}
+                style={[selectedSection?.details?.coinId == folioEntry?.coinId
+                  ? { borderLeftColor: selectedSection?.details?.color, borderLeftWidth: 5, borderTopLeftRadius: 2, borderBottomLeftRadius: 2, borderBottomColor: "rgba(255, 255, 255, 0.125)" }
+                  : { borderBottomColor: "rgba(255, 255, 255, 0.2)" }, { height: ROW_HEIGHT }]
+                }
+              >
+                <DataTable.Cell>
+                  <View style={styles.column}>
+                    <View style={styles.row}>
+                      <Text style={styles.ticker}>{folioEntry.ticker.toUpperCase()}</Text>
+                      <Text style={styles.bold}> {numberFormatter.format(folioEntry.quantity)}</Text>
+                    </View>
+                    <Text style={[styles.leftAlign, styles.normal]}>
+                      {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, true)}
+                    </Text>
                   </View>
-                  <Text style={[styles.leftAlign, styles.normal]}>
-                    {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, true)}
+                </DataTable.Cell>
+                <DataTable.Cell numeric>
+                  <Text
+                    style={[
+                      styles.rightAlign,
+                      folioEntry.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
+                    ]}
+                  >
+                    {priceDifferenceDisplay}
                   </Text>
-                </View>
-              </DataTable.Cell>
-              <DataTable.Cell numeric>
-                <Text
-                  style={[
-                    styles.rightAlign,
-                    folioEntry.priceChangePercentage24h > 0 ? styles.positive : styles.negative,
-                  ]}
-                >
-                  {priceDifferenceDisplay}
-                </Text>
-              </DataTable.Cell>
-              <DataTable.Cell numeric>
-                <Text
-                  style={
-                    styles.normal
-                  }
-                >
-                  {convertToCurrencyFormat(folioEntry.quantity * folioEntry.currentPrice, currencyType, true)}
-                </Text>
-              </DataTable.Cell>
-            </DataTable.Row>
-          );
-        })}
-      </DataTable>
-    </PaperProvider>
+                </DataTable.Cell>
+                <DataTable.Cell numeric>
+                  <Text
+                    style={
+                      styles.normal
+                    }
+                  >
+                    {convertToCurrencyFormat(folioEntry.quantity * folioEntry.currentPrice, currencyType, true)}
+                  </Text>
+                </DataTable.Cell>
+              </DataTable.Row>
+            );
+          })}
+        </DataTable>
+      </PaperProvider>
+    </ScrollView >
   );
 };
 
@@ -209,6 +229,5 @@ const getStyles = () =>
     },
     row: {
       flexDirection: "row",
-      borderColor: "rgba(255, 255, 255, 0.2)",
     },
   });

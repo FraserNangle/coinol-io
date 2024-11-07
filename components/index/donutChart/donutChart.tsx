@@ -4,11 +4,11 @@ import React, {
     useCallback,
     useRef,
 } from "react";
-import { View, StyleSheet, Image, Dimensions, Animated } from "react-native";
+import { View, StyleSheet, Image, Animated, Text } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
 import { donutChartColors } from "@/app/styling/donutChartColors";
-import Svg, { G, Text, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
+import Svg, { G, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { Section } from "./section";
 import { RootState } from "@/app/store/store";
 import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
@@ -16,6 +16,9 @@ import {
     interpolate,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import * as Haptics from 'expo-haptics';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { hexToRgba } from "@/app/utils/hexToRgba";
 
 
 interface DonutChartProps {
@@ -61,6 +64,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
     );
 
+    useEffect(() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    }, [selectedSection]);
+
     const forceRefresh = () => {
         setRefreshCount((prevCount) => prevCount + 1);
     };
@@ -70,12 +77,13 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [data]);
 
     useEffect(() => {
+        radialGradientValue.setValue(0);
         Animated.timing(radialGradientValue, {
             toValue: 100,
             duration: 3000,
             useNativeDriver: false,
         }).start();
-    }, []);
+    }, [data]);
 
     const stopOffset = radialGradientValue.interpolate({
         inputRange: [0, 100],
@@ -276,6 +284,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         return isInSection;
     }
 
+    const sliceDisplayWidth = 150;
     return (
         <GestureDetector gesture={pan}>
             <View
@@ -305,7 +314,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                             fx="50%"
                             fy="50%"
                         >
-                            <Stop offset={0.8} stopColor="black" stopOpacity="1" />
+                            <Stop offset={0.5} stopColor="black" stopOpacity="1" />
                             <Stop offset={1} stopColor="transparent" stopOpacity=".8" />
                         </RadialGradient>
                     </Defs>
@@ -343,26 +352,30 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                             onPressIn={toggleDisplayMode}
                         />
                         {selectedSection && (
-                            <View>
+                            <View style={[{ position: "absolute", top: height / 2 - 25, left: width / 2 - (sliceDisplayWidth / 2), width: sliceDisplayWidth, height: 50 }]}>
                                 <Text style={styles.selectedSliceValue}>
                                     {getDisplayValue()}
                                 </Text>
-                                {selectedSection.image ? (
-                                    <Image
-                                        source={{ uri: selectedSection.image }}
-                                        style={[
-                                            styles.selectedSliceImage,
-                                            { width: circleSize * 2, height: circleSize * 2 },
-                                        ]}
-                                    />
-                                ) : (
-                                    <G style={styles.selectedSliceCircle}>
-                                        <Circle r={circleSize} fill={selectedSection?.details?.color} />
-                                    </G>
-                                )}
-                                <Text style={styles.selectedSliceName}>
-                                    {selectedSection.details?.name}
-                                </Text>
+                                <View style={[{ flexDirection: "row", justifyContent: "center" }]}>
+                                    {selectedSection.image ? (
+                                        <Image
+                                            source={{ uri: selectedSection.image }}
+                                            style={[
+                                                styles.selectedSliceImage,
+                                                { width: circleSize * 2, height: circleSize * 2 },
+                                            ]}
+                                        />
+                                    ) : (
+                                        <MaterialIcons style={[styles.selectedSliceCircle, {
+                                            width: 20,
+                                            height: 20,
+                                            color: selectedSection?.details?.color
+                                        }]} name={"circle"} size={20} />
+                                    )}
+                                    <Text style={styles.selectedSliceName}>
+                                        {selectedSection.details?.name}
+                                    </Text>
+                                </View>
                             </View>
                         )}
                     </G>
@@ -382,23 +395,32 @@ const getStyles = () =>
             backgroundColor: "black",
         },
         selectedSliceValue: {
-            y: -10,
-            textAnchor: "middle",
-            fill: "white",
-            fontSize: 24,
+            textAlign: "center",
+            textAlignVertical: "center",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "center",
+            color: "white",
+            fontSize: 20,
         },
         selectedSliceImage: {
             width: 20,
             height: 20,
         },
         selectedSliceCircle: {
-            y: 10,
-            x: -13,
+            textAlign: "center",
+            textAlignVertical: "center",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "center",
         },
         selectedSliceName: {
-            y: 10,
-            x: 2,
-            dy: "0.35em",
-            fill: "rgba(255, 255, 255, 0.5)",
+            paddingLeft: 5,
+            color: "rgba(255, 255, 255, 0.6)",
+            textAlign: "left",
+            textAlignVertical: "center",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "center",
         },
     });
