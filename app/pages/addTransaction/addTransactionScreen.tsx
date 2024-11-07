@@ -80,6 +80,7 @@ export default function AddTransactionBuySellScreen() {
                 Toast.show(`Added ${item.name} transaction to portfolio. `, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
+                    position: Toast.positions.CENTER,
                 });
                 dispatch(setLastTransaction(transaction));
                 navigation.navigate('index');

@@ -39,7 +39,7 @@ export default function CoinGraphScreen() {
     const db = useSQLiteContext();
 
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
-    const refresh = useSelector((state: RootState) => state.coinGraphRefresh.refresh);
+    const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
 
     useEffect(() => {

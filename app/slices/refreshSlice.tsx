@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const coinGraphRefreshSlice = createSlice({
-    name: "coinGraphRefresh",
+const refreshSlice = createSlice({
+    name: "refresh",
     initialState: {
         refresh: false,
     },
@@ -12,5 +12,5 @@ const coinGraphRefreshSlice = createSlice({
     },
 });
 
-export const { triggerRefresh } = coinGraphRefreshSlice.actions;
-export default coinGraphRefreshSlice.reducer;
+export const { triggerRefresh } = refreshSlice.actions;
+export default refreshSlice.reducer;

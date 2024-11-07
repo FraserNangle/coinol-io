@@ -12,7 +12,7 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RootSiblingParent } from 'react-native-root-siblings';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { triggerRefresh } from "./slices/coinGraphRefreshSlice";
+import { triggerRefresh } from "./slices/refreshSlice";
 
 
 export {

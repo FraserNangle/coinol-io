@@ -1,13 +1,14 @@
-import React from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import React, { useRef } from "react";
+import { StyleSheet, Text, View, Pressable, TouchableOpacity, Animated } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Link, Tabs } from "expo-router";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
 import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange";
 import { RootState } from "../store/store";
+import { triggerRefresh } from "../slices/refreshSlice";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: Readonly<{
@@ -19,6 +20,8 @@ function TabBarIcon(props: Readonly<{
 }
 
 export default function TabLayout() {
+  const dispatch = useDispatch();
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   const totalPortfolioValue = useSelector(
     (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
@@ -30,6 +33,20 @@ export default function TabLayout() {
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
   const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType, true);
+
+  const startAnimation = () => {
+    rotateAnim.setValue(0);
+    Animated.timing(rotateAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   return (
     <Tabs
@@ -50,6 +67,8 @@ export default function TabLayout() {
           title: "Portfolio",
           tabBarActiveBackgroundColor: "black",
           tabBarInactiveBackgroundColor: "black",
+          headerStyle: { backgroundColor: 'black' },
+          headerTitleAlign: 'center',
           tabBarLabel: () => null,
           headerTitle: () => (
             <View style={styles.titleContainer}>
@@ -74,18 +93,18 @@ export default function TabLayout() {
             <TabBarIcon name="data-usage" color={color} />
           ),
           headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <MaterialIcons
-                    name="person"
-                    size={25}
-                    color={"white"}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+            <View style={[{ justifyContent: 'center', paddingEnd: 10 }]}>
+              <TouchableOpacity onPress={() => {
+                startAnimation();
+                dispatch(triggerRefresh());
+              }}>
+                <Animated.View style={{ transform: [{ rotate }] }}>
+                  <MaterialIcons style={[{
+                    color: 'white',
+                  }]} name={"refresh"} size={30} />
+                </Animated.View>
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />

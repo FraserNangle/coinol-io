@@ -18,14 +18,12 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from 'expo-haptics';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { hexToRgba } from "@/app/utils/hexToRgba";
 
 
 interface DonutChartProps {
     data: FolioEntry[],
     width: number,
     height: number,
-    backgroundColor: string,
     currencyTicker: string,
 }
 
@@ -35,7 +33,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     data,
     width,
     height,
-    backgroundColor = "white",
     currencyTicker = "USD",
 }: DonutChartProps) => {
 
@@ -150,19 +147,21 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [sections]);
 
     useEffect(() => {
-        if (sections.length > 0 && selectedSection === undefined) {
+        if (sections.length > 0 &&
+            selectedSection === undefined ||
+            sections.find(section => section.coinId === selectedSection?.details?.coinId) === undefined) {
             dispatch(
                 setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
             );
         }
     }, [sections]);
 
-    // If lastTransaction is set, find the section with the same id and dispatch setSelectedSection with its details
+    // If lastTransaction is set, find the section with the same id and setSelectedSection with its details
     useEffect(() => {
         if (sections.length > 0) {
             const lastTransactionSection = sections.find(section => section.coinId === lastTransaction?.coinId);
 
-            const matchingSection = lastTransactionSection || sections.find(section => section.coinId === "other") || sections[0];
+            const matchingSection = lastTransactionSection || sections[selectedSection?.index ?? 0];
 
             // If a matching section is found, dispatch setSelectedSection with its details
             if (matchingSection) {
@@ -174,7 +173,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 );
             }
         }
-    }, [sections, lastTransaction, dispatch]);
+    }, [sections, lastTransaction]);
 
     useEffect(() => {
         setThickness(outerRadius * 0.3);
