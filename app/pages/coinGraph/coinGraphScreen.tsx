@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
     Dimensions,
+    ScrollView,
     StyleSheet,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
@@ -10,14 +11,15 @@ import { FolioEntry } from "@/app/models/FolioEntry";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { RootState } from "@/app/store/store";
 import { useSelector } from "react-redux";
-import { TransactionHistoryTable } from "@/components/index/transactionHistoryTable/transactionHistoryTable";
+import { TransactionHistoryTable } from "@/components/coinGraphScreen/transactionHistoryTable";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { getTransactionListByCoinId } from "@/app/services/transactionService";
 import { useSQLiteContext } from "expo-sqlite";
-import { LineGraph } from "@/components/index/coinGraphScreen/lineGraph";
+import { LineGraph } from "@/components/coinGraphScreen/lineGraph";
 import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
 import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
+import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -92,7 +94,7 @@ export default function CoinGraphScreen() {
             textColor={"white"}
             rippleColor="white"
             labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
-            style={[styles.button, value === timeRange ? { opacity: 1 } : { opacity: .5 }]}
+            style={[styles.button, value === timeRange ? { opacity: 1, borderTopWidth: 2 } : { opacity: .5 }]}
             onPress={() => setTimeRange(value)}
             mode="contained">
             {value}
@@ -143,7 +145,10 @@ export default function CoinGraphScreen() {
                             <ActivityIndicator size="large" color="white" />
                         </View>
                     ) : (
-                        <TransactionHistoryTable data={userTransactionData} />
+                        <ScrollView fadingEdgeLength={25}>
+                            <CoinStatsPanel folioEntry={folioEntry} />
+                            <TransactionHistoryTable data={userTransactionData} />
+                        </ScrollView>
                     )}
                 </View>
             </>
@@ -162,16 +167,78 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-evenly",
     },
+    infoContainer: {
+        justifyContent: "center",
+        alignContent: "center",
+        alignSelf: "center",
+        width: "90%",
+        paddingVertical: 10
+    },
+    holdingsContainer: {
+        justifyContent: 'space-between',
+        flexDirection: 'row',
+        padding: 20,
+        borderRadius: 5,
+        borderBottomWidth: 2,
+        borderColor: "rgba(255, 255, 255, 0.3)"
+    },
+    statsContainer: {
+        justifyContent: 'space-between',
+        flexDirection: 'column',
+        padding: 20,
+        borderRadius: 5,
+        borderBottomWidth: 2,
+        borderColor: "rgba(255, 255, 255, 0.3)"
+    },
+    statsRow: {
+        justifyContent: 'space-between',
+        flexDirection: 'row',
+        flex: 1,
+        marginBottom: 10,
+    },
+    bigText: {
+        fontSize: 16,
+        fontWeight: "bold",
+        textAlign: "left",
+        color: "white",
+    },
+    statsTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        borderBottomWidth: 2,
+        borderColor: 'white',
+        marginBottom: 10,
+        width: 80,
+        textAlign: 'center',
+        borderRadius: 5
+    },
+    smallText: {
+        color: "white",
+        textAlign: "left",
+        textAlignVertical: "center",
+    },
+    dateLabelText: {
+        color: "hsl(0, 0%, 80%)",
+        textAlign: "right",
+        textAlignVertical: "center",
+        fontSize: 12,
+    },
+    infoText: {
+        flex: 1,
+        padding: 10,
+        color: 'white',
+    },
     button: {
         width: "20%",
-        borderRadius: 0,
+        borderRadius: 5,
         borderWidth: 0,
-        borderTopWidth: 2,
         borderColor: "rgba(255, 255, 255, 1)",
     },
     tableContainer: {
         flex: 1,
+        width: "100%",
         justifyContent: "center",
+        alignContent: "center",
         backgroundColor: "transparent",
     },
     graphContainer: {

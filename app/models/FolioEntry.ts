@@ -7,6 +7,20 @@ export type FolioEntry = {
     priceChangePercentage24h: number;
     ranking: number;
     quantity: number;
+    marketCap: number;
+    fullyDilutedValuation: number;
+    totalVolume: number;
+    high24h: number;
+    low24h: number;
+    circulating_supply: number;
+    total_supply: number;
+    max_supply: number;
+    ath: number;
+    ath_change_percentage: number;
+    ath_date: string;
+    atl: number;
+    atl_change_percentage: number;
+    atl_date: string;
 };
 
 export interface SectionFolioEntry extends FolioEntry {

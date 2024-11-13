@@ -43,7 +43,21 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
                     priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,
-                    ranking: coinMarket ? coinMarket.market_cap_rank : 0
+                    ranking: coinMarket ? coinMarket.market_cap_rank : 0,
+                    marketCap: coinMarket ? coinMarket.market_cap : 0,
+                    fullyDilutedValuation: coinMarket ? coinMarket.fully_diluted_valuation : 0,
+                    totalVolume: coinMarket ? coinMarket.total_volume : 0,
+                    high24h: coinMarket ? coinMarket.high_24h : 0,
+                    low24h: coinMarket ? coinMarket.low_24h : 0,
+                    circulating_supply: coinMarket ? coinMarket.circulating_supply : 0,
+                    total_supply: coinMarket ? coinMarket.total_supply : 0,
+                    max_supply: coinMarket ? coinMarket.max_supply : 0,
+                    ath: coinMarket ? coinMarket.ath : 0,
+                    ath_change_percentage: coinMarket ? coinMarket.ath_change_percentage : 0,
+                    ath_date: coinMarket ? coinMarket.ath_date : "",
+                    atl: coinMarket ? coinMarket.atl : 0,
+                    atl_change_percentage: coinMarket ? coinMarket.atl_change_percentage : 0,
+                    atl_date: coinMarket ? coinMarket.atl_date : "",
                 });
             }
         }
