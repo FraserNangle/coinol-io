@@ -225,15 +225,20 @@ export const LineGraph: React.FC<LineGraphProps> = ({
             <View style={[{ justifyContent: 'space-between', flexDirection: 'row' }]}>
                 <View style={[styles.pricingContainer]}>
                     <View style={styles.pricingTitle}>
-                        <Text style={styles.headerTitle}>
-                            {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].currentPrice, currencyType, false)}
-                        </Text>
-                        <Text style={[
-                            styles.percentageContainer,
-                            priceChangePercentage >= 0 ? styles.positive : styles.negative,
-                        ]}
-                        >
-                            {getPercentageChangeDisplay(priceChangePercentage)}%
+                        <View style={[{ flexDirection: 'row' }]}>
+                            <Text style={styles.headerTitle}>
+                                {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].currentPrice, currencyType, false)}
+                            </Text>
+                            <Text style={[
+                                styles.percentageContainer,
+                                priceChangePercentage >= 0 ? styles.positive : styles.negative,
+                            ]}
+                            >
+                                {getPercentageChangeDisplay(priceChangePercentage)}%
+                            </Text>
+                        </View>
+                        <Text style={[styles.dateLabelText, { color: 'hsl(0, 0%, 80%)' }]}>
+                            {highlightedDataPoint ? new Date(highlightedDataPoint.date).toLocaleDateString() + " at " + new Date(highlightedDataPoint.date).toLocaleTimeString() : ''}
                         </Text>
                     </View>
                     <View>
@@ -246,15 +251,10 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                             }} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
                         </Text>
                     </View>
-                    <View>
-                        <Text style={[styles.dateLabelText, { color: 'hsl(0, 0%, 80%)' }]}>
-                            {highlightedDataPoint ? new Date(highlightedDataPoint.date).toLocaleDateString() + " at " + new Date(highlightedDataPoint.date).toLocaleTimeString() : ''}
-                        </Text>
-                    </View>
                 </View>
             </View>
             <View style={styles.lineGraph}>
-                <Svg width={width} height={height} translateY={height / 6}>
+                <Svg width={width} height={height} translateY={height / 4.8}>
                     <Defs>
                         <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="35%" x2="50%" y2="0%">
                             <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
@@ -366,9 +366,10 @@ const styles = StyleSheet.create({
         paddingLeft: 20,
     },
     pricingTitle: {
-        display: "flex",
+        width: "100%",
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-between",
     },
     headerTitle: {
         fontSize: 20,
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
     },
     dateLabelText: {
         color: "hsl(0, 0%, 80%)",
-        textAlign: "left",
+        textAlign: "right",
         textAlignVertical: "center",
         fontSize: 12,
     },
