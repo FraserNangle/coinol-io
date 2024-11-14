@@ -9,7 +9,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setAllCoinData } from "@/app/slices/allCoinDataSlice";
 import { RootState } from "@/app/store/store";
 import { Coin } from "@/app/models/Coin";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function AddTransactionCurrencyListScreen() {
   const [query, setQuery] = useState("");

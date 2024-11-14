@@ -4,6 +4,7 @@ import { getTransactionList } from "./transactionService";
 import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { SQLiteDatabase } from "expo-sqlite";
+import { Image } from 'expo-image';
 
 export async function fetchUserFolio(db: SQLiteDatabase) {
     const transactionList: UserTransaction[] = await getTransactionList(db);
@@ -40,6 +41,7 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     quantity: newQuantity,
                     ticker: coinMarket ? coinMarket.symbol : "",
                     name: coinMarket ? coinMarket.name : "",
+                    image: coinMarket ? coinMarket.image : "",
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
                     priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,
@@ -58,6 +60,10 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     atl: coinMarket ? coinMarket.atl : 0,
                     atlChangePercentage: coinMarket ? coinMarket.atl_change_percentage : 0,
                     atlDate: coinMarket ? coinMarket.atl_date : "",
+                });
+                //Prefetch the images for the folio entries to improve the performance
+                folioEntries.forEach((folioEntry) => {
+                    Image.prefetch(folioEntry.image, 'memory-disk');
                 });
             }
         }

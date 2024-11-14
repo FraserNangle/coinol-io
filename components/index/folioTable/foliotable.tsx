@@ -3,7 +3,6 @@ import { DataTable, PaperProvider } from "react-native-paper";
 import {
   StyleSheet,
   Text,
-  View,
   LayoutAnimation,
   UIManager,
   Platform,
@@ -15,6 +14,8 @@ import { RootState } from "@/app/store/store";
 import { useNavigation } from "@react-navigation/native";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { useEffect, useRef } from "react";
+import { Image } from "expo-image";
+import { View } from "@/components/Themed";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -148,14 +149,27 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                 }
               >
                 <DataTable.Cell>
-                  <View style={styles.column}>
-                    <View style={styles.row}>
-                      <Text style={styles.ticker}>{folioEntry.ticker.toUpperCase()}</Text>
-                      <Text style={styles.bold}> {numberFormatter.format(folioEntry.quantity)}</Text>
+                  <View style={styles.row}>
+                    <View style={{ flexDirection: 'column', alignSelf: "center", paddingRight: 15, backgroundColor: 'transparent' }}>
+                      <Image
+                        source={folioEntry.image}
+                        style={{ width: 25, height: 25 }}
+                        transition={100}
+                        cachePolicy={'disk'}
+                        priority={'high'}
+                        contentPosition={'center'}
+                        contentFit="cover"
+                      />
                     </View>
-                    <Text style={[styles.leftAlign, styles.normal]}>
-                      {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, true)}
-                    </Text>
+                    <View style={[styles.column]}>
+                      <View style={styles.row}>
+                        <Text style={styles.ticker}>{folioEntry.ticker.toUpperCase()}</Text>
+                        <Text style={styles.bold}> {numberFormatter.format(folioEntry.quantity)}</Text>
+                      </View>
+                      <Text style={[styles.leftAlign, styles.normal]}>
+                        {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, true)}
+                      </Text>
+                    </View>
                   </View>
                 </DataTable.Cell>
                 <DataTable.Cell numeric>
@@ -190,7 +204,7 @@ const getStyles = () =>
   StyleSheet.create({
     ticker: {
       fontWeight: "200",
-      color: "#fff",
+      color: 'white',
     },
     bold: {
       fontWeight: "bold",
@@ -206,11 +220,11 @@ const getStyles = () =>
     mainDataTableTitle: {
       fontSize: 14,
       fontWeight: "bold",
-      color: "#fff",
+      color: 'white',
     },
     dataTableTitle: {
       fontWeight: "200",
-      color: "#fff",
+      color: 'white',
     },
     positive: {
       color: "#00ff00",
@@ -225,9 +239,13 @@ const getStyles = () =>
       textAlign: "left",
     },
     column: {
+      textAlignVertical: "center",
       flexDirection: "column",
+      backgroundColor: 'transparent'
     },
     row: {
       flexDirection: "row",
+      justifyContent: 'flex-start',
+      backgroundColor: 'transparent'
     },
   });

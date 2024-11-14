@@ -4,7 +4,7 @@ import React, {
     useCallback,
     useRef,
 } from "react";
-import { View, StyleSheet, Image, Animated, Text } from "react-native";
+import { View, StyleSheet, Animated, Text } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
 import { donutChartColors } from "@/app/styling/donutChartColors";
@@ -18,6 +18,7 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from 'expo-haptics';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Image } from 'expo-image';
 
 
 interface DonutChartProps {
@@ -350,13 +351,13 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                     {getDisplayValue()}
                                 </Text>
                                 <View style={[{ flexDirection: "row", justifyContent: "center" }]}>
-                                    {selectedSection.image ? (
+                                    {selectedSection.details?.image ? (
                                         <Image
-                                            source={{ uri: selectedSection.image }}
-                                            style={[
-                                                styles.selectedSliceImage,
-                                                { width: circleSize * 2, height: circleSize * 2 },
-                                            ]}
+                                            source={selectedSection.details.image}
+                                            style={{ width: circleSize * 2, height: circleSize * 2 }}
+                                            transition={100}
+                                            cachePolicy={'disk'}
+                                            priority={'high'}
                                         />
                                     ) : (
                                         <MaterialIcons style={[styles.selectedSliceCircle, {
@@ -395,10 +396,6 @@ const getStyles = () =>
             alignItems: "center",
             color: "white",
             fontSize: 20,
-        },
-        selectedSliceImage: {
-            width: 20,
-            height: 20,
         },
         selectedSliceCircle: {
             textAlign: "center",
