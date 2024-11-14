@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignContent: "center",
         backgroundColor: "transparent",
+        paddingTop: 20,
     },
     graphContainer: {
         flex: 1,

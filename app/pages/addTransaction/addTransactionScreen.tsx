@@ -12,6 +12,11 @@ import { setLastTransaction } from "@/app/slices/lastTransactionSlice";
 import { randomUUID } from "expo-crypto";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import Toast from 'react-native-root-toast';
+import { Coin } from "@/app/models/Coin";
+
+type RouteParams = {
+    item: Coin;
+};
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
@@ -25,7 +30,7 @@ export default function AddTransactionBuySellScreen() {
 
     // Retrieve the item parameter from the currency list page
     const route = useRoute();
-    const { item } = route.params;
+    const { item }: { item: Coin } = route.params as RouteParams;
 
     const navigation = useNavigation();
     const dispatch = useDispatch();

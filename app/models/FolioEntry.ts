@@ -12,15 +12,15 @@ export type FolioEntry = {
     totalVolume: number;
     high24h: number;
     low24h: number;
-    circulating_supply: number;
-    total_supply: number;
-    max_supply: number;
+    circulatingSupply: number;
+    totalSupply: number;
+    maxSupply: number;
     ath: number;
-    ath_change_percentage: number;
-    ath_date: string;
+    athChangePercentage: number;
+    athDate: string;
     atl: number;
-    atl_change_percentage: number;
-    atl_date: string;
+    atlChangePercentage: number;
+    atlDate: string;
 };
 
 export interface SectionFolioEntry extends FolioEntry {

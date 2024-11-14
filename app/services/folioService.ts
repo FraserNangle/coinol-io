@@ -49,15 +49,15 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     totalVolume: coinMarket ? coinMarket.total_volume : 0,
                     high24h: coinMarket ? coinMarket.high_24h : 0,
                     low24h: coinMarket ? coinMarket.low_24h : 0,
-                    circulating_supply: coinMarket ? coinMarket.circulating_supply : 0,
-                    total_supply: coinMarket ? coinMarket.total_supply : 0,
-                    max_supply: coinMarket ? coinMarket.max_supply : 0,
+                    circulatingSupply: coinMarket ? coinMarket.circulating_supply : 0,
+                    totalSupply: coinMarket ? coinMarket.total_supply : 0,
+                    maxSupply: coinMarket ? coinMarket.max_supply : 0,
                     ath: coinMarket ? coinMarket.ath : 0,
-                    ath_change_percentage: coinMarket ? coinMarket.ath_change_percentage : 0,
-                    ath_date: coinMarket ? coinMarket.ath_date : "",
+                    athChangePercentage: coinMarket ? coinMarket.ath_change_percentage : 0,
+                    athDate: coinMarket ? coinMarket.ath_date : "",
                     atl: coinMarket ? coinMarket.atl : 0,
-                    atl_change_percentage: coinMarket ? coinMarket.atl_change_percentage : 0,
-                    atl_date: coinMarket ? coinMarket.atl_date : "",
+                    atlChangePercentage: coinMarket ? coinMarket.atl_change_percentage : 0,
+                    atlDate: coinMarket ? coinMarket.atl_date : "",
                 });
             }
         }
