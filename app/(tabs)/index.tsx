@@ -88,28 +88,24 @@ export default function TabOneScreen() {
       {
         userFolio.length > 0 && (
           <View style={styles.screenContainer}>
-            <View style={styles.donutContainer}>
-              {isLoadingFolioData ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="white" />
+            {isLoadingFolioData ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="white" />
+              </View>
+            ) : (
+              <>
+                <View style={styles.donutContainer}>
+                  <DonutChart
+                    data={userFolio}
+                    width={screenWidth * 0.95}
+                    height={screenHeight / 2}
+                    currencyTicker={currencyType} />
                 </View>
-              ) : (
-                <DonutChart
-                  data={userFolio}
-                  width={screenWidth * 0.95}
-                  height={screenHeight / 2}
-                  currencyTicker={currencyType} />
-              )}
-            </View>
-            <View style={styles.tableContainer}>
-              {isLoadingFolioData ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="white" />
+                <View style={styles.tableContainer}>
+                  <FolioTable data={userFolio} />
                 </View>
-              ) : (
-                <FolioTable data={userFolio} />
-              )}
-            </View>
+              </>
+            )}
           </View>
         )
       }

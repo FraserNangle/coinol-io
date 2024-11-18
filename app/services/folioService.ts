@@ -5,6 +5,7 @@ import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { SQLiteDatabase } from "expo-sqlite";
 import { Image } from 'expo-image';
+import { getColors } from 'react-native-image-colors'
 
 export async function fetchUserFolio(db: SQLiteDatabase) {
     const transactionList: UserTransaction[] = await getTransactionList(db);
@@ -62,8 +63,26 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     atlDate: coinMarket ? coinMarket.atl_date : "",
                 });
                 //Prefetch the images for the folio entries to improve the performance
-                folioEntries.forEach((folioEntry) => {
+                folioEntries.forEach(async (folioEntry) => {
+                    // Prefetch the image
                     Image.prefetch(folioEntry.image, 'memory-disk');
+
+                    /* getColors(folioEntry.image, {
+                        fallback: '#228B22',
+                        cache: true,
+                        key: folioEntry.image,
+                    }).then((result) => {
+
+                        let dominantColor;
+                        if (result.platform === 'android') {
+                            dominantColor = result.dominant;
+                        } else if (result.platform === 'ios') {
+                            dominantColor = result.primary;
+                        }
+
+                        console.log(`Dominant color of ${folioEntry.image}: ${dominantColor}`);
+                    }); */
+
                 });
             }
         }
