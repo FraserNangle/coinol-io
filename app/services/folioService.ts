@@ -66,23 +66,6 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                 folioEntries.forEach(async (folioEntry) => {
                     // Prefetch the image
                     Image.prefetch(folioEntry.image, 'memory-disk');
-
-                    /* getColors(folioEntry.image, {
-                        fallback: '#228B22',
-                        cache: true,
-                        key: folioEntry.image,
-                    }).then((result) => {
-
-                        let dominantColor;
-                        if (result.platform === 'android') {
-                            dominantColor = result.dominant;
-                        } else if (result.platform === 'ios') {
-                            dominantColor = result.primary;
-                        }
-
-                        console.log(`Dominant color of ${folioEntry.image}: ${dominantColor}`);
-                    }); */
-
                 });
             }
         }
