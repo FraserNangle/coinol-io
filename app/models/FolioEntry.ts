@@ -3,6 +3,7 @@ export type FolioEntry = {
     ticker: string;
     name: string;
     image: string;
+    color: string;
     currentPrice: number;
     priceChange24h: number;
     priceChangePercentage24h: number;
@@ -28,5 +29,4 @@ export interface SectionFolioEntry extends FolioEntry {
     startAngle: number;
     endAngle: number;
     accumulatedValue: number;
-    color: string;
 }

@@ -7,7 +7,6 @@ import React, {
 import { View, StyleSheet, Animated, Text } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
-import { donutChartColors } from "@/app/styling/donutChartColors";
 import Svg, { G, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { Section } from "./section";
 import { RootState } from "@/app/store/store";
@@ -112,7 +111,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 startAngle: startAngleGap,
                 endAngle,
                 accumulatedValue,
-                color: donutChartColors[0],
+                color: folioEntry.color,
             };
             startAngle = endAngle + gapSize;
             accumulatedValue += (folioEntry.quantity * folioEntry.currentPrice);
@@ -144,13 +143,13 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         } else {
             setSections(newSections);
         }
-    }, [sortedData, outerRadius, totalPortfolioValue, minSliceAngle, donutChartColors]);
+    }, [sortedData, outerRadius, totalPortfolioValue, minSliceAngle]);
 
     useEffect(() => {
         if (sections.length > 0) {
             if (sections?.find(section => section.coinId === selectedSection?.details?.coinId) === undefined) {
                 dispatch(
-                    setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
+                    setSelectedSection({ details: sections[0], index: 0, color: sections[0].color })
                 );
                 return;
             }
@@ -297,7 +296,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                             fx="50%"
                             fy="50%"
                         >
-                            <Stop offset="0%" stopColor={selectedSection?.details?.color} stopOpacity="1" />
+                            <Stop offset="0%" stopColor={'white'} stopOpacity=".3" />
                             <AnimatedStop offset={stopOffset} stopColor={selectedSection?.details?.color} stopOpacity="0" />
                         </RadialGradient>
                         <RadialGradient
@@ -320,15 +319,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                     </G>
                     <G x={width / 2} y={height / 2}>
                         {sections.map((section, index) => {
-                            const colorIndex = interpolate(
-                                index,
-                                [0, sections.length - 1],
-                                [0, donutChartColors.length - 1]
-                            );
-                            const roundedColorIndex = Math.round(colorIndex);
-                            const color = donutChartColors[roundedColorIndex];
-                            section.color = color;
-
                             return (
                                 <Section
                                     key={`${section.coinId}-${refreshCount}`}
@@ -336,7 +326,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                     index={index}
                                     totalValue={totalPortfolioValue}
                                     outerRadius={outerRadius}
-                                    color={color}
+                                    color={section.color}
                                 />
                             );
                         })}

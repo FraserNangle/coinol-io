@@ -5,7 +5,6 @@ import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { SQLiteDatabase } from "expo-sqlite";
 import { Image } from 'expo-image';
-import { getColors } from 'react-native-image-colors'
 
 export async function fetchUserFolio(db: SQLiteDatabase) {
     const transactionList: UserTransaction[] = await getTransactionList(db);
@@ -43,6 +42,7 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     ticker: coinMarket ? coinMarket.symbol : "",
                     name: coinMarket ? coinMarket.name : "",
                     image: coinMarket ? coinMarket.image : "",
+                    color: coinMarket ? coinMarket.color : "",
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
                     priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,
