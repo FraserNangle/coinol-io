@@ -25,7 +25,7 @@ export async function fetchCoinDataByCoinsList(coinsList: string[]) {
     }
 }
 
-export async function fetchAllCoinData() {
+export async function fetchAllCoins() {
     if (process.env.NODE_ENV === 'development') {
         // Mock the data in development environment
         return new Promise<Coin[]>((resolve) => {

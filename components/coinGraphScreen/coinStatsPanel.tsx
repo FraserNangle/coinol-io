@@ -29,7 +29,7 @@ export const CoinStatsPanel: React.FC<CoinStatsPanelProps> = ({
         }]}>
             {text}
         </Text>
-        <Text style={styles.bigText}>
+        <Text style={[styles.bigText, { color: folioEntry.color }]}>
             {data}
         </Text>
     </View>;
@@ -47,12 +47,12 @@ export const CoinStatsPanel: React.FC<CoinStatsPanelProps> = ({
 
     return (
         <View style={styles.infoContainer}>
-            <Text style={styles.statsTitle}>
+            <Text style={[styles.statsTitle, { color: folioEntry.color }]}>
                 Holdings
             </Text>
             <View style={[styles.holdingsContainer]}>
                 <View>
-                    <Text style={styles.bigText}>
+                    <Text style={[styles.bigText, { color: folioEntry.color }]}>
                         {convertToCurrencyFormat(folioEntry.currentPrice * folioEntry.quantity, currencyType, false)}
                     </Text>
                     <Text style={[styles.smallText, {
@@ -74,10 +74,10 @@ export const CoinStatsPanel: React.FC<CoinStatsPanelProps> = ({
                             })
                     }
                 >
-                    <MaterialIcons name="add-card" color={"white"} size={40} />
+                    <MaterialIcons name="add-card" color={folioEntry.color} size={40} />
                 </TouchableOpacity>
             </View>
-            <Text style={[styles.statsTitle, { marginTop: 20 }]}>
+            <Text style={[styles.statsTitle, { marginTop: 20, color: folioEntry.color }]}>
                 Stats
             </Text>
             <View style={[styles.statsContainer]}>

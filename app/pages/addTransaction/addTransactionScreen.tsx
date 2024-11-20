@@ -13,6 +13,7 @@ import { randomUUID } from "expo-crypto";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import Toast from 'react-native-root-toast';
 import { Coin } from "@/app/models/Coin";
+import { Image } from "expo-image";
 
 type RouteParams = {
     item: Coin;
@@ -44,6 +45,21 @@ export default function AddTransactionBuySellScreen() {
             }
         });
     }, []);
+
+    useEffect(() => {
+        navigation.setOptions({
+            title: 'Add Transaction',
+            headerTitle: () => (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Image
+                        source={{ uri: item.image }}
+                        style={{ width: 30, height: 30, marginRight: 10 }}
+                    />
+                    <Text style={{ color: 'white', fontSize: 18 }}>{item.name}</Text>
+                </View>
+            ),
+        });
+    }, [navigation]);
 
     const changeDate = (event: DateTimePickerEvent, changedDate: Date | undefined) => {
         setShowDatePicker(false);

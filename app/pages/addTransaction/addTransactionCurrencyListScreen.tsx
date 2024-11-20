@@ -4,11 +4,12 @@ import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { DataTable, TextInput } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
-import { fetchAllCoinData } from "@/app/services/coinService";
+import { fetchAllCoins } from "@/app/services/coinService";
 import { useDispatch, useSelector } from "react-redux";
 import { setAllCoinData } from "@/app/slices/allCoinDataSlice";
 import { RootState } from "@/app/store/store";
 import { Coin } from "@/app/models/Coin";
+import { Image } from "expo-image";
 
 export default function AddTransactionCurrencyListScreen() {
   const [query, setQuery] = useState("");
@@ -18,7 +19,7 @@ export default function AddTransactionCurrencyListScreen() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    fetchAllCoinData().then(data => {
+    fetchAllCoins().then(data => {
       dispatch(setAllCoinData(data));
       setFilteredData(data);
     });
@@ -73,12 +74,25 @@ export default function AddTransactionCurrencyListScreen() {
               <DataTable.Row key={item.name} style={[{ borderColor: "rgba(255, 255, 255, 0.3)", borderBottomWidth: .5 }]}>
                 <DataTable.Cell>
                   <View style={styles.row}>
-                    <Text style={[styles.bold, { paddingRight: 5 }]}>
-                      {item.symbol.toUpperCase()}
-                    </Text>
-                    <Text style={styles.light}>
-                      {item.name}
-                    </Text>
+                    <View style={{ flexDirection: 'column', alignSelf: "center", paddingRight: 15, backgroundColor: 'transparent' }}>
+                      <Image
+                        source={item.image}
+                        style={{ width: 25, height: 25 }}
+                        transition={100}
+                        cachePolicy={'disk'}
+                        priority={'high'}
+                        contentPosition={'center'}
+                        contentFit="cover"
+                      />
+                    </View>
+                    <View style={styles.row}>
+                      <Text style={[styles.bold, { paddingRight: 5 }]}>
+                        {item.symbol.toUpperCase()}
+                      </Text>
+                      <Text style={styles.light}>
+                        {item.name}
+                      </Text>
+                    </View>
                   </View>
                 </DataTable.Cell>
               </DataTable.Row>

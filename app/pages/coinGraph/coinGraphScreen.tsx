@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
+    Animated,
     Dimensions,
     ScrollView,
     StyleSheet,
+    TouchableOpacity,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import { useNavigation } from "expo-router";
@@ -10,7 +12,7 @@ import { useRoute } from "@react-navigation/native";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { RootState } from "@/app/store/store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { TransactionHistoryTable } from "@/components/coinGraphScreen/transactionHistoryTable";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { getTransactionListByCoinId } from "@/app/services/transactionService";
@@ -20,6 +22,9 @@ import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
 import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
 import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
+import { Image } from "expo-image";
+import { triggerRefresh } from "@/app/slices/refreshSlice";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -27,6 +32,7 @@ type RouteParams = {
 
 export default function CoinGraphScreen() {
     const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+    const dispatch = useDispatch();
 
     const [timeRange, setTimeRange] = useState("24H");
     const [historicalLineGraphData, setHistoricalLineGraphData] = useState<CoinMarketHistoricalDataPoint[]>([]);
@@ -43,9 +49,49 @@ export default function CoinGraphScreen() {
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
     const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
+    const rotateAnim = useRef(new Animated.Value(0)).current;
+
+    const startAnimation = () => {
+        rotateAnim.setValue(0);
+        Animated.timing(rotateAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const rotate = rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+    });
 
     useEffect(() => {
-        navigation.setOptions({ title: folioEntry.name });
+        navigation.setOptions({
+            title: folioEntry.name,
+            headerTitle: () => (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Image
+                        source={{ uri: folioEntry.image }}
+                        style={{ width: 30, height: 30, marginRight: 10 }}
+                    />
+                    <Text style={{ color: 'white', fontSize: 18 }}>{folioEntry.name}</Text>
+                </View>
+            ),
+            headerRight: () => (
+                <View style={[{ justifyContent: 'center' }]}>
+                    <TouchableOpacity onPress={() => {
+                        startAnimation();
+                        dispatch(triggerRefresh());
+                    }}>
+                        <Animated.View style={{ transform: [{ rotate }] }}>
+                            <MaterialIcons style={[{
+                                color: 'white',
+                            }]} name={"refresh"} size={30} />
+                        </Animated.View>
+                    </TouchableOpacity>
+                </View>
+            ),
+        });
     }, [navigation]);
 
     const fetchHistoricalLineGraphData = async (folioEntry: FolioEntry) => {
@@ -90,11 +136,11 @@ export default function CoinGraphScreen() {
 
     function timeRangeControlButton(value: string) {
         return <Button
-            buttonColor="black"
-            textColor={"white"}
-            rippleColor="white"
+            buttonColor="transparent"
+            textColor={folioEntry.color}
+            rippleColor={folioEntry.color}
             labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
-            style={[styles.button, value === timeRange ? { opacity: 1, borderTopWidth: 2 } : { opacity: .5 }]}
+            style={[styles.button, value === timeRange ? { opacity: 1, borderTopWidth: 2, borderColor: folioEntry.color } : { opacity: .5 }]}
             onPress={() => setTimeRange(value)}
             mode="contained">
             {value}
@@ -109,7 +155,7 @@ export default function CoinGraphScreen() {
                         if (isLoadingHistoricalData) {
                             return (
                                 <View style={styles.loadingContainer}>
-                                    <ActivityIndicator size="large" color="white" />
+                                    <ActivityIndicator size="large" color={folioEntry.color} />
                                 </View>
                             );
                         } else if (historicalLineGraphData.length > 0) {
@@ -120,6 +166,7 @@ export default function CoinGraphScreen() {
                                     width={screenWidth}
                                     height={screenHeight}
                                     timeRange={timeRange}
+                                    color={folioEntry.color}
                                 >
                                 </LineGraph>
                             );
@@ -142,7 +189,7 @@ export default function CoinGraphScreen() {
                 <View style={styles.tableContainer}>
                     {isLoadingTransactionData ? (
                         <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color="white" />
+                            <ActivityIndicator size="large" color={folioEntry.color} />
                         </View>
                     ) : (
                         <ScrollView fadingEdgeLength={25}>
@@ -166,67 +213,6 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         flexDirection: "row",
         justifyContent: "space-evenly",
-    },
-    infoContainer: {
-        justifyContent: "center",
-        alignContent: "center",
-        alignSelf: "center",
-        width: "90%",
-        paddingVertical: 10
-    },
-    holdingsContainer: {
-        justifyContent: 'space-between',
-        flexDirection: 'row',
-        padding: 20,
-        borderRadius: 5,
-        borderBottomWidth: 2,
-        borderColor: "rgba(255, 255, 255, 0.3)"
-    },
-    statsContainer: {
-        justifyContent: 'space-between',
-        flexDirection: 'column',
-        padding: 20,
-        borderRadius: 5,
-        borderBottomWidth: 2,
-        borderColor: "rgba(255, 255, 255, 0.3)"
-    },
-    statsRow: {
-        justifyContent: 'space-between',
-        flexDirection: 'row',
-        flex: 1,
-        marginBottom: 10,
-    },
-    bigText: {
-        fontSize: 16,
-        fontWeight: "bold",
-        textAlign: "left",
-        color: "white",
-    },
-    statsTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        borderBottomWidth: 2,
-        borderColor: 'white',
-        marginBottom: 10,
-        width: 80,
-        textAlign: 'center',
-        borderRadius: 5
-    },
-    smallText: {
-        color: "white",
-        textAlign: "left",
-        textAlignVertical: "center",
-    },
-    dateLabelText: {
-        color: "hsl(0, 0%, 80%)",
-        textAlign: "right",
-        textAlignVertical: "center",
-        fontSize: 12,
-    },
-    infoText: {
-        flex: 1,
-        padding: 10,
-        color: 'white',
     },
     button: {
         width: "20%",

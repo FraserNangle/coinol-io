@@ -19,6 +19,7 @@ interface LineGraphProps {
     width: number,
     height: number,
     timeRange: string,
+    color: string
 }
 
 const textWidth = 60;
@@ -32,7 +33,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     currencyType,
     width,
     height,
-    timeRange
+    timeRange,
+    color
 }: LineGraphProps) => {
     const [viewLayout, setViewLayout] = useState({ width: 0, height: 0 });
     const [priceChangeAmount, setPriceChangeAmount] = useState(0);
@@ -226,7 +228,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                 <View style={[styles.pricingContainer]}>
                     <View style={styles.pricingTitle}>
                         <View style={[{ flexDirection: 'row' }]}>
-                            <Text style={styles.headerTitle}>
+                            <Text style={[styles.headerTitle, { color: color }]}>
                                 {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].currentPrice, currencyType, false)}
                             </Text>
                             <Text style={[
@@ -258,7 +260,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                     <Defs>
                         <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="35%" x2="50%" y2="0%">
                             <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
-                            <Stop offset={1} stopColor="white" stopOpacity="1" />
+                            <Stop offset={1} stopColor={color} stopOpacity="1" />
                         </LinearGradient>
                         <ClipPath id={`clip-${pathData}-${timeRange}`}>
                             <Path d={`M0,${height}
@@ -283,7 +285,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 y1={(index + 1) * (height / 20)}
                                 x2={width}
                                 y2={(index + 1) * (height / 20)}
-                                stroke="white"
+                                stroke={'white'}
                                 strokeOpacity={0.2}
                                 strokeWidth="0.2"
                                 strokeDasharray="4 2"
@@ -291,7 +293,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                         ))}
                         <AnimatedPath
                             d={pathData}
-                            stroke="white"
+                            stroke={color}
                             strokeWidth="1"
                             fill="none"
                             strokeLinecap={"round"}

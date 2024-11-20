@@ -11,9 +11,6 @@ import Svg, { G, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { Section } from "./section";
 import { RootState } from "@/app/store/store";
 import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
-import {
-    interpolate,
-} from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from 'expo-haptics';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
