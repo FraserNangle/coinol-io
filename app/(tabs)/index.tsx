@@ -1,8 +1,6 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ScrollView,
   StyleSheet,
-  RefreshControl,
   Dimensions,
   Pressable,
 } from "react-native";
@@ -17,11 +15,12 @@ import { RootState } from "../store/store";
 import { DonutChart } from "@/components/index/donutChart/donutChart";
 import { useSQLiteContext } from "expo-sqlite";
 import { setCurrencyType } from "../slices/currencyTypeSlice";
+import { setLastTransaction } from "../slices/lastTransactionSlice";
+import { ActivityIndicator } from "react-native-paper";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
-  const [refreshing, setRefreshing] = useState(false);
 
   const db = useSQLiteContext();
 
@@ -30,30 +29,27 @@ export default function TabOneScreen() {
   let userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
   let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
   let currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
+  const refresh = useSelector((state: RootState) => state.refresh.refresh);
+
+  const [isLoadingFolioData, setIsLoadingFolioData] = useState(true);
+
+  const fetchUserFolioData = async () => {
+    setIsLoadingFolioData(true);
+    const userFolioData = await fetchUserFolio(db);
+    dispatch(setUserFolio(userFolioData));
+    setIsLoadingFolioData(false);
+  };
 
   useEffect(() => {
     dispatch(setCurrencyType("USD"));
   }, []);
 
   useEffect(() => {
-    fetchUserFolio(db).then((data) => {
-      dispatch(setUserFolio(data));
-    });
-  }, []);
-
-  useEffect(() => {
-    fetchUserFolio(db).then((data) => {
-      dispatch(setUserFolio(data));
-    });
-  }, [lastTransaction]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchUserFolio(db).then((data) => {
-      dispatch(setUserFolio(data));
-      setRefreshing(false);
-    });
-  }, []);
+    if (refresh) {
+      dispatch(setLastTransaction(null));
+    }
+    fetchUserFolioData();
+  }, [lastTransaction, refresh]);
 
   useEffect(() => {
     const totalPortfolioValue = userFolio.reduce(
@@ -65,11 +61,11 @@ export default function TabOneScreen() {
     ) / userFolio.length;
     dispatch(setTotalPortfolioValue(totalPortfolioValue));
     dispatch(setTotalPortfolioPercentageChange24hr(totalPortfolioPercentageChange24hr));
-  }, [userFolio, dispatch]);
+  }, [userFolio]);
 
   return (
     <>
-      {
+      {!isLoadingFolioData &&
         userFolio.length === 0 && (
           <View style={styles.container}>
             <Link href="/plusMenu" asChild>
@@ -91,27 +87,26 @@ export default function TabOneScreen() {
       }
       {
         userFolio.length > 0 && (
-          <ScrollView
-            contentContainerStyle={styles.screenContainer}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            fadingEdgeLength={25}
-            removeClippedSubviews={true}
-          >
-            <View style={styles.donutContainer}>
-              <DonutChart
-                data={userFolio}
-                width={screenWidth * 0.95}
-                height={screenHeight / 2}
-                backgroundColor={"black"}
-                currencyTicker={currencyType}
-              />
-            </View>
-            <View style={styles.tableContainer}>
-              <FolioTable data={userFolio} />
-            </View>
-          </ScrollView>
+          <View style={styles.screenContainer}>
+            {isLoadingFolioData ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="white" />
+              </View>
+            ) : (
+              <>
+                <View style={styles.donutContainer}>
+                  <DonutChart
+                    data={userFolio}
+                    width={screenWidth * 0.95}
+                    height={screenHeight / 2}
+                    currencyTicker={currencyType} />
+                </View>
+                <View style={styles.tableContainer}>
+                  <FolioTable data={userFolio} />
+                </View>
+              </>
+            )}
+          </View>
         )
       }
     </>
@@ -120,22 +115,22 @@ export default function TabOneScreen() {
 
 const styles = StyleSheet.create({
   screenContainer: {
+    flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start", // Align items to the start of the screen
+    justifyContent: "flex-start",
     backgroundColor: "black",
   },
   donutContainer: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start", // Align items to the start of the container
+    justifyContent: "flex-start",
     backgroundColor: "black",
   },
   tableContainer: {
     flex: 1,
     justifyContent: "center",
     width: "100%",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 10, // Rounded corners
+    backgroundColor: "black",
   },
   tradeButtonContainer: {
     justifyContent: "center",
@@ -150,5 +145,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "black",
   },
 });

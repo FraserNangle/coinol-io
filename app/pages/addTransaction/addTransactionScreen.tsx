@@ -12,6 +12,12 @@ import { setLastTransaction } from "@/app/slices/lastTransactionSlice";
 import { randomUUID } from "expo-crypto";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import Toast from 'react-native-root-toast';
+import { Coin } from "@/app/models/Coin";
+import { Image } from "expo-image";
+
+type RouteParams = {
+    item: Coin;
+};
 
 export default function AddTransactionBuySellScreen() {
     const [transactionType, setTransactionType] = React.useState("BUY");
@@ -25,7 +31,7 @@ export default function AddTransactionBuySellScreen() {
 
     // Retrieve the item parameter from the currency list page
     const route = useRoute();
-    const { item } = route.params;
+    const { item }: { item: Coin } = route.params as RouteParams;
 
     const navigation = useNavigation();
     const dispatch = useDispatch();
@@ -39,6 +45,21 @@ export default function AddTransactionBuySellScreen() {
             }
         });
     }, []);
+
+    useEffect(() => {
+        navigation.setOptions({
+            title: 'Add Transaction',
+            headerTitle: () => (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Image
+                        source={{ uri: item.image }}
+                        style={{ width: 30, height: 30, marginRight: 10 }}
+                    />
+                    <Text style={{ color: 'white', fontSize: 18 }}>{item.name}</Text>
+                </View>
+            ),
+        });
+    }, [navigation]);
 
     const changeDate = (event: DateTimePickerEvent, changedDate: Date | undefined) => {
         setShowDatePicker(false);
@@ -80,6 +101,7 @@ export default function AddTransactionBuySellScreen() {
                 Toast.show(`Added ${item.name} transaction to portfolio. `, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
+                    position: Toast.positions.CENTER,
                 });
                 dispatch(setLastTransaction(transaction));
                 navigation.navigate('index');
@@ -117,9 +139,10 @@ export default function AddTransactionBuySellScreen() {
         <View style={styles.screenContainer}>
             <View style={styles.buttonContainer}>
                 <Button
-                    buttonColor="hsl(0, 0%, 15%)"
+                    buttonColor="black"
+                    rippleColor="green"
                     textColor={transactionType === "BUY" ? "green" : "hsl(0, 0%, 60%)"}
-                    style={[styles.button, transactionType === "BUY" ? { borderColor: 'green' } : { borderColor: 'hsl(0, 0%, 15%)' }]}
+                    style={[styles.button, transactionType === "BUY" ? { borderColor: 'green' } : { borderColor: 'hsl(0, 0%, 15%)' }, { borderBottomStartRadius: 2 }]}
                     compact
                     mode="outlined"
                     onPress={() => setTransactionType("BUY")}>
@@ -127,9 +150,10 @@ export default function AddTransactionBuySellScreen() {
                 </Button>
                 <Button
                     disabled={!canSell}
-                    buttonColor="hsl(0, 0%, 15%)"
+                    buttonColor="black"
+                    rippleColor="red"
                     textColor={transactionType === "SELL" ? "red" : "hsl(0, 0%, 60%)"}
-                    style={[styles.button, transactionType === "SELL" ? { borderColor: 'red' } : { borderColor: 'hsl(0, 0%, 15%)' }]}
+                    style={[styles.button, transactionType === "SELL" ? { borderColor: 'red' } : { borderColor: 'hsl(0, 0%, 15%)' }, { borderBottomEndRadius: 2 }]}
                     compact
                     mode="outlined"
                     onPress={() => setTransactionType("SELL")}>
@@ -149,8 +173,8 @@ export default function AddTransactionBuySellScreen() {
                             keyboardType='decimal-pad'
                             onChangeText={handleChange}
                             placeholder="0"
-                            placeholderTextColor={'hsl(0, 0%, 60%)'}
-                            selectionColor={'hsl(0, 0%, 60%)'}
+                            placeholderTextColor={"rgba(255, 255, 255, 0.5)"}
+                            selectionColor={"rgba(255, 255, 255, 0.5)"}
                             cursorColor="white"
                             maxLength={60}
                             textAlign="right"
@@ -176,14 +200,18 @@ export default function AddTransactionBuySellScreen() {
                     >
                         <Text style={styles.textInput}>
                             {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
-                            {" "}
+                            <Text style={{ color: "rgba(255, 255, 255, 0.5)" }}>
+                                {" at "}
+                            </Text>
                             {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                     </TouchableHighlight>
                 </View>
             </View>
             <Button
-                buttonColor="hsl(0, 0%, 25%)"
+                buttonColor="black"
+                textColor={"white"}
+                rippleColor="white"
                 style={styles.bigButton}
                 compact
                 mode="contained"
@@ -224,14 +252,15 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: 'hsl(0, 0%, 0%)',
+        backgroundColor: 'black',
     },
     tableContainer: {
         width: "80%",
-        backgroundColor: 'hsl(0, 0%, 15%)',
-        borderRadius: 10,
+        borderRadius: 5,
         padding: 10,
         marginBottom: 10,
+        borderWidth: 1,
+        borderColor: "rgba(255, 255, 255, 0.3)"
     },
     buttonContainer: {
         flexDirection: "row",
@@ -240,10 +269,18 @@ const styles = StyleSheet.create({
         margin: 10
     },
     button: {
-        width: "25%",
+        width: "50%",
+        borderRadius: 0,
+        borderWidth: 0,
+        borderBottomWidth: 5,
+        borderColor: "white",
     },
     bigButton: {
         width: "80%",
+        borderRadius: 2,
+        borderWidth: 1,
+        borderBottomWidth: 5,
+        borderColor: "rgba(255, 255, 255, .3)",
     },
     textInput: {
         flex: 1,
@@ -251,8 +288,6 @@ const styles = StyleSheet.create({
         color: 'white',
     },
     tag: {
-        zIndex: 1,
-        backgroundColor: "hsl(0, 0%, 15%)",
         paddingRight: 10
     },
     row: {
@@ -260,7 +295,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         height: 60,
-        backgroundColor: 'hsl(0, 0%, 15%)',
         padding: 10,
     },
     inputContainer: {
@@ -269,6 +303,5 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'hsl(0, 0%, 15%)',
     }
 });

@@ -5,7 +5,7 @@ const bitcoinEntries24h = Array.from({ length: 24 }, (_, i) => {
     date.setHours(date.getHours() - i);
     return {
         coinId: "bitcoin",
-        date,
+        date: date.toISOString(),
         currentPrice: 56001.32 + Math.random() * 2002.43,
     };
 });

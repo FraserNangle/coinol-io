@@ -2,34 +2,34 @@ import React, {
     useState,
     useEffect,
     useCallback,
+    useRef,
 } from "react";
-import { View, StyleSheet, Image, Dimensions } from "react-native";
+import { View, StyleSheet, Animated, Text } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
-import { donutChartColors } from "@/app/styling/donutChartColors";
-import Svg, { G, Text, Circle } from "react-native-svg";
+import Svg, { G, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { Section } from "./section";
 import { RootState } from "@/app/store/store";
 import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
-import {
-    interpolate,
-} from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import * as Haptics from 'expo-haptics';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Image } from 'expo-image';
 
 
 interface DonutChartProps {
     data: FolioEntry[],
     width: number,
     height: number,
-    backgroundColor: string,
     currencyTicker: string,
 }
+
+const AnimatedStop = Animated.createAnimatedComponent(Stop);
 
 export const DonutChart: React.FC<DonutChartProps> = ({
     data,
     width,
     height,
-    backgroundColor = "white",
     currencyTicker = "USD",
 }: DonutChartProps) => {
 
@@ -47,6 +47,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const [sortedData, setSortedData] = useState<FolioEntry[]>([]);
     const [sections, setSections] = useState<SectionFolioEntry[]>([]);
     const [refreshCount, setRefreshCount] = useState(0);
+    const radialGradientValue = useRef(new Animated.Value(0)).current;
 
     const centerX = width / 2;
     const centerY = height / 2;
@@ -57,6 +58,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
     );
 
+    useEffect(() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    }, [selectedSection]);
+
     const forceRefresh = () => {
         setRefreshCount((prevCount) => prevCount + 1);
     };
@@ -66,6 +71,20 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [data]);
 
     useEffect(() => {
+        radialGradientValue.setValue(0);
+        Animated.timing(radialGradientValue, {
+            toValue: 100,
+            duration: 3300,
+            useNativeDriver: false,
+        }).start();
+    }, [data]);
+
+    const stopOffset = radialGradientValue.interpolate({
+        inputRange: [0, 100],
+        outputRange: [0, .5],
+    });
+
+    useEffect(() => {
         if (totalPortfolioValue === 0) {
             return;
         }
@@ -73,14 +92,11 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     }, [data, totalPortfolioValue]);
 
     useEffect(() => {
-        setSections([]);
         let startAngle = -Math.PI / 2;
         let accumulatedValue = 0;
 
-
-        setSections(sortedData.map((folioEntry) => {
+        const newSections = sortedData.map((folioEntry) => {
             const gapSize = 2 / outerRadius;
-
             const sliceAngle = Math.max(
                 2 * Math.PI * ((folioEntry.quantity * folioEntry.currentPrice) / totalPortfolioValue),
                 minSliceAngle
@@ -92,27 +108,25 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 startAngle: startAngleGap,
                 endAngle,
                 accumulatedValue,
-                color: donutChartColors[0],
+                color: folioEntry.color,
             };
             startAngle = endAngle + gapSize;
             accumulatedValue += (folioEntry.quantity * folioEntry.currentPrice);
             return s;
-        }));
+        });
 
-    }, [sortedData]);
-
-    // prevents donut from wrapping more than 360 degrees
-    useEffect(() => {
-        const totalAngle = sections.reduce(
+        const totalAngle = newSections.reduce(
             (total, section) => total + (section.endAngle - section.startAngle),
             0
         );
 
-        if (totalAngle > 2 * Math.PI) {
-            const scale = (2 * Math.PI) / totalAngle;
-            let startAngle = -Math.PI / 2;
+        const totalGapSize = 2 * newSections.length / outerRadius;
 
-            setSections(sections.map((section) => {
+        if (totalAngle + totalGapSize > 2 * Math.PI) {
+            const scale = (2 * Math.PI) / totalAngle;
+            startAngle = -Math.PI / 2;
+
+            const scaledSections = newSections.map((section) => {
                 const gapSize = 2 / outerRadius;
                 const sliceAngle = (section.endAngle - section.startAngle) * scale;
                 const startAngleGap = startAngle + gapSize * scale;
@@ -120,24 +134,25 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 const s = { ...section, startAngle: startAngleGap, endAngle };
                 startAngle = endAngle + gapSize * scale;
                 return s;
-            }));
-        }
-    }, [sections]);
+            });
 
-    useEffect(() => {
-        if (sections.length > 0 && selectedSection === undefined) {
-            dispatch(
-                setSelectedSection({ details: sections[0], index: 0, color: donutChartColors[0] })
-            );
+            setSections(scaledSections);
+        } else {
+            setSections(newSections);
         }
-    }, [sections]);
+    }, [sortedData, outerRadius, totalPortfolioValue, minSliceAngle]);
 
-    // If lastTransaction is set, find the section with the same id and dispatch setSelectedSection with its details
     useEffect(() => {
         if (sections.length > 0) {
+            if (sections?.find(section => section.coinId === selectedSection?.details?.coinId) === undefined) {
+                dispatch(
+                    setSelectedSection({ details: sections[0], index: 0, color: sections[0].color })
+                );
+                return;
+            }
             const lastTransactionSection = sections.find(section => section.coinId === lastTransaction?.coinId);
 
-            const matchingSection = lastTransactionSection || sections.find(section => section.coinId === "other") || sections[0];
+            const matchingSection = lastTransactionSection || sections[selectedSection?.index ?? 0];
 
             // If a matching section is found, dispatch setSelectedSection with its details
             if (matchingSection) {
@@ -149,7 +164,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 );
             }
         }
-    }, [sections, lastTransaction, dispatch]);
+    }, [sections, lastTransaction]);
 
     useEffect(() => {
         setThickness(outerRadius * 0.3);
@@ -259,6 +274,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
         return isInSection;
     }
 
+    const sliceDisplayWidth = 150;
     return (
         <GestureDetector gesture={pan}>
             <View
@@ -268,17 +284,38 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 }}
             >
                 <Svg width={width} height={height}>
+                    <Defs>
+                        <RadialGradient
+                            id="grad"
+                            cx="50%"
+                            cy="50%"
+                            r="50%"
+                            fx="50%"
+                            fy="50%"
+                        >
+                            <Stop offset="0%" stopColor={'white'} stopOpacity=".3" />
+                            <AnimatedStop offset={stopOffset} stopColor={selectedSection?.details?.color} stopOpacity="0" />
+                        </RadialGradient>
+                        <RadialGradient
+                            id="innerGrad"
+                            cx="50%"
+                            cy="50%"
+                            r="50%"
+                            fx="50%"
+                            fy="50%"
+                        >
+                            <Stop offset={0.5} stopColor="black" stopOpacity="1" />
+                            <Stop offset={1} stopColor="transparent" stopOpacity=".8" />
+                        </RadialGradient>
+                    </Defs>
+                    <G x={width / 2} y={height / 2}>
+                        <Circle
+                            r={outerRadius + 200}
+                            fill="url(#grad)"
+                        />
+                    </G>
                     <G x={width / 2} y={height / 2}>
                         {sections.map((section, index) => {
-                            const colorIndex = interpolate(
-                                index,
-                                [0, sections.length - 1],
-                                [0, donutChartColors.length - 1]
-                            );
-                            const roundedColorIndex = Math.round(colorIndex);
-                            const color = donutChartColors[roundedColorIndex];
-                            section.color = color;
-
                             return (
                                 <Section
                                     key={`${section.coinId}-${refreshCount}`}
@@ -286,36 +323,40 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                     index={index}
                                     totalValue={totalPortfolioValue}
                                     outerRadius={outerRadius}
-                                    color={color}
+                                    color={section.color}
                                 />
                             );
                         })}
                         <Circle
                             r={outerRadius - thickness}
-                            fill={backgroundColor}
+                            fill="url(#innerGrad)"
                             onPressIn={toggleDisplayMode}
                         />
                         {selectedSection && (
-                            <View>
+                            <View style={[{ position: "absolute", top: height / 2 - 25, left: width / 2 - (sliceDisplayWidth / 2), width: sliceDisplayWidth, height: 50 }]}>
                                 <Text style={styles.selectedSliceValue}>
                                     {getDisplayValue()}
                                 </Text>
-                                {selectedSection.image ? (
-                                    <Image
-                                        source={{ uri: selectedSection.image }}
-                                        style={[
-                                            styles.selectedSliceImage,
-                                            { width: circleSize * 2, height: circleSize * 2 },
-                                        ]}
-                                    />
-                                ) : (
-                                    <G style={styles.selectedSliceCircle}>
-                                        <Circle r={circleSize} fill={selectedSection?.details?.color} />
-                                    </G>
-                                )}
-                                <Text style={styles.selectedSliceName}>
-                                    {selectedSection.details?.name}
-                                </Text>
+                                <View style={[{ flexDirection: "row", justifyContent: "center" }]}>
+                                    {selectedSection.details?.image ? (
+                                        <Image
+                                            source={selectedSection.details.image}
+                                            style={{ width: circleSize * 2, height: circleSize * 2 }}
+                                            transition={100}
+                                            cachePolicy={'disk'}
+                                            priority={'high'}
+                                        />
+                                    ) : (
+                                        <MaterialIcons style={[styles.selectedSliceCircle, {
+                                            width: 20,
+                                            height: 20,
+                                            color: selectedSection?.details?.color
+                                        }]} name={"circle"} size={20} />
+                                    )}
+                                    <Text style={styles.selectedSliceName}>
+                                        {selectedSection.details?.name}
+                                    </Text>
+                                </View>
                             </View>
                         )}
                     </G>
@@ -335,23 +376,28 @@ const getStyles = () =>
             backgroundColor: "black",
         },
         selectedSliceValue: {
-            y: -10,
-            textAnchor: "middle",
-            fill: "white",
-            fontSize: 24,
-        },
-        selectedSliceImage: {
-            width: 20,
-            height: 20,
+            textAlign: "center",
+            textAlignVertical: "center",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "center",
+            color: "white",
+            fontSize: 20,
         },
         selectedSliceCircle: {
-            y: 10,
-            x: -13,
+            textAlign: "center",
+            textAlignVertical: "center",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "center",
         },
         selectedSliceName: {
-            y: 10,
-            x: 2,
-            dy: "0.35em",
-            fill: "rgba(255, 255, 255, 0.5)",
+            paddingLeft: 5,
+            color: "rgba(255, 255, 255, 0.6)",
+            textAlign: "left",
+            textAlignVertical: "center",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "center",
         },
     });

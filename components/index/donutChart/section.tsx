@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useCallback } from "react";
+import React, { useLayoutEffect, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { G } from "react-native-svg";
 import {
@@ -16,6 +16,7 @@ import {
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
 import { RootState } from "@/app/store/store";
 import { SectionFolioEntry } from "@/app/models/FolioEntry";
+import { useNavigation } from "expo-router";
 
 interface SectionProps {
     section: SectionFolioEntry,
@@ -33,6 +34,7 @@ export const Section: React.FC<SectionProps> = ({
     color
 }: SectionProps) => {
     const dispatch = useDispatch();
+    const navigation = useNavigation();
     const selectedSection = useSelector(
         (state: RootState) => state.selectedSection.section
     );
@@ -93,8 +95,11 @@ export const Section: React.FC<SectionProps> = ({
     }, [selectedSection]);
 
     const handlePress = useCallback(() => {
+        if (selectedSection?.details?.coinId === section.coinId) {
+            navigation.navigate("pages/coinGraph/coinGraphScreen", { folioEntry: section });
+        }
         dispatch(setSelectedSection({ details: section, index: index }));
-    }, [dispatch, index, section]);
+    }, [dispatch, index, section, selectedSection]);
 
 
     return (

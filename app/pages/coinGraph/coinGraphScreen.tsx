@@ -1,23 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
+    Animated,
     Dimensions,
+    ScrollView,
     StyleSheet,
+    TouchableOpacity,
 } from "react-native";
-import { View } from "@/components/Themed";
+import { View, Text } from "@/components/Themed";
 import { useNavigation } from "expo-router";
 import { useRoute } from "@react-navigation/native";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { RootState } from "@/app/store/store";
-import { useSelector } from "react-redux";
-import { TransactionHistoryTable } from "@/components/index/transactionHistoryTable/transactionHistoryTable";
+import { useDispatch, useSelector } from "react-redux";
+import { TransactionHistoryTable } from "@/components/coinGraphScreen/transactionHistoryTable";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { getTransactionListByCoinId } from "@/app/services/transactionService";
 import { useSQLiteContext } from "expo-sqlite";
-import { LineGraph } from "@/components/index/coinGraphScreen/lineGraph";
+import { LineGraph } from "@/components/coinGraphScreen/lineGraph";
 import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
 import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
+import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
+import { Image } from "expo-image";
+import { triggerRefresh } from "@/app/slices/refreshSlice";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -25,6 +32,7 @@ type RouteParams = {
 
 export default function CoinGraphScreen() {
     const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+    const dispatch = useDispatch();
 
     const [timeRange, setTimeRange] = useState("24H");
     const [historicalLineGraphData, setHistoricalLineGraphData] = useState<CoinMarketHistoricalDataPoint[]>([]);
@@ -39,11 +47,51 @@ export default function CoinGraphScreen() {
     const db = useSQLiteContext();
 
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
-    const refresh = useSelector((state: RootState) => state.coinGraphRefresh.refresh);
+    const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
+    const rotateAnim = useRef(new Animated.Value(0)).current;
+
+    const startAnimation = () => {
+        rotateAnim.setValue(0);
+        Animated.timing(rotateAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const rotate = rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+    });
 
     useEffect(() => {
-        navigation.setOptions({ title: folioEntry.name });
+        navigation.setOptions({
+            title: folioEntry.name,
+            headerTitle: () => (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Image
+                        source={{ uri: folioEntry.image }}
+                        style={{ width: 30, height: 30, marginRight: 10 }}
+                    />
+                    <Text style={{ color: 'white', fontSize: 18 }}>{folioEntry.name}</Text>
+                </View>
+            ),
+            headerRight: () => (
+                <View style={[{ justifyContent: 'center' }]}>
+                    <TouchableOpacity onPress={() => {
+                        startAnimation();
+                        dispatch(triggerRefresh());
+                    }}>
+                        <Animated.View style={{ transform: [{ rotate }] }}>
+                            <MaterialIcons style={[{
+                                color: 'white',
+                            }]} name={"refresh"} size={30} />
+                        </Animated.View>
+                    </TouchableOpacity>
+                </View>
+            ),
+        });
     }, [navigation]);
 
     const fetchHistoricalLineGraphData = async (folioEntry: FolioEntry) => {
@@ -78,12 +126,6 @@ export default function CoinGraphScreen() {
         if (folioEntry) {
             fetchHistoricalLineGraphData(folioEntry);
         }
-    }, []);
-
-    useEffect(() => {
-        if (folioEntry) {
-            fetchHistoricalLineGraphData(folioEntry);
-        }
     }, [refresh]);
 
     useEffect(() => {
@@ -95,11 +137,12 @@ export default function CoinGraphScreen() {
     function timeRangeControlButton(value: string) {
         return <Button
             buttonColor="transparent"
-            textColor={"white"}
-            rippleColor="white"
-            style={[styles.button, value === timeRange ? { opacity: 1 } : { opacity: .5 }]}
+            textColor={'white'}
+            rippleColor={folioEntry.color}
+            labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
+            style={[styles.button, value === timeRange ? { opacity: 1, borderTopWidth: 2, borderColor: folioEntry.color } : { opacity: .5 }]}
             onPress={() => setTimeRange(value)}
-            mode="outlined">
+            mode="contained">
             {value}
         </Button>;
     }
@@ -108,20 +151,33 @@ export default function CoinGraphScreen() {
         <View style={styles.screenContainer}>
             <>
                 <View style={styles.graphContainer}>
-                    {isLoadingHistoricalData ? (
-                        <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color="white" />
-                        </View>
-                    ) : (
-                        <LineGraph
-                            data={filterHistoricalLineGraphDataByDate(historicalLineGraphData)}
-                            currencyType={currencyType}
-                            width={screenWidth}
-                            height={screenHeight}
-                            timeRange={timeRange}
-                        >
-                        </LineGraph>
-                    )}
+                    {(() => {
+                        if (isLoadingHistoricalData) {
+                            return (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator size="large" color={folioEntry.color} />
+                                </View>
+                            );
+                        } else if (historicalLineGraphData.length > 0) {
+                            return (
+                                <LineGraph
+                                    data={filterHistoricalLineGraphDataByDate(historicalLineGraphData)}
+                                    currencyType={currencyType}
+                                    width={screenWidth}
+                                    height={screenHeight}
+                                    timeRange={timeRange}
+                                    color={folioEntry.color}
+                                >
+                                </LineGraph>
+                            );
+                        } else {
+                            return (
+                                <View style={styles.errorText}>
+                                    <Text>Failed to load chart data</Text>
+                                </View>
+                            );
+                        }
+                    })()}
                 </View>
                 <View style={styles.buttonContainer}>
                     {timeRangeControlButton("24H")}
@@ -133,10 +189,13 @@ export default function CoinGraphScreen() {
                 <View style={styles.tableContainer}>
                     {isLoadingTransactionData ? (
                         <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color="white" />
+                            <ActivityIndicator size="large" color={folioEntry.color} />
                         </View>
                     ) : (
-                        <TransactionHistoryTable data={userTransactionData} />
+                        <ScrollView fadingEdgeLength={25}>
+                            <CoinStatsPanel folioEntry={folioEntry} />
+                            <TransactionHistoryTable data={userTransactionData} />
+                        </ScrollView>
                     )}
                 </View>
             </>
@@ -156,17 +215,21 @@ const styles = StyleSheet.create({
         justifyContent: "space-evenly",
     },
     button: {
-        borderColor: "white",
+        width: "20%",
         borderRadius: 5,
-        borderWidth: 2,
+        borderWidth: 0,
+        borderColor: "rgba(255, 255, 255, 1)",
     },
     tableContainer: {
         flex: 1,
+        width: "100%",
         justifyContent: "center",
+        alignContent: "center",
         backgroundColor: "transparent",
+        paddingTop: 20,
     },
     graphContainer: {
-        flex: 1,
+        flex: 2,
         justifyContent: "center",
     },
     errorText: {

@@ -8,7 +8,7 @@ async function fetchAllHistoricalCoinDataByCoinId(coinId: string) {
         // Mock the data in development environment
         return new Promise<CoinMarketHistoricalDataPoint[]>((resolve) => {
             setTimeout(() => {
-                resolve(coinMarketHistoricalData24hMock);
+                resolve(coinMarketHistoricalData24hMock.filter((coin) => coin.coinId === coinId));
             }, 500); // Simulate a delay of .5 second
         });
     } else {
@@ -81,14 +81,18 @@ const getCoinHistoryDataPointsById = async (db: SQLiteDatabase, coinId: string) 
 
 export const getCoinHistoryDataPoints = async (db: SQLiteDatabase, coinId: string) => {
     await createCoinHistoryTable(db);
-
     const existingDataPoints = await getCoinHistoryDataPointsById(db, coinId);
 
     if (existingDataPoints.length === 0) {
-        // No data points exist, fetch all historical data
+        // No data points exist, fetch all historical data for coin id
         const allHistoricalData = await fetchAllHistoricalCoinDataByCoinId(coinId);
-        await addCoinHistoryDataPointsToDb(db, allHistoricalData);
-        return allHistoricalData;
+
+        if (allHistoricalData.length === 0) {
+            return [];
+        } else {
+            await addCoinHistoryDataPointsToDb(db, allHistoricalData);
+            return allHistoricalData;
+        }
     } else {
         // Data points exist, fetch new data from the most recent date
         const mostRecentDate = new Date(Math.max(...existingDataPoints.map(dataPoint => new Date(dataPoint.date).getTime())));
@@ -97,4 +101,9 @@ export const getCoinHistoryDataPoints = async (db: SQLiteDatabase, coinId: strin
         await addCoinHistoryDataPointsToDb(db, newHistoricalData);
         return [...existingDataPoints, ...newHistoricalData];
     }
+};
+
+export const deleteAllCoinHistoryFromLocalStorage = async (db: SQLiteDatabase) => {
+    console.log("Deleting all coin History from local storage");
+    await db.execAsync('DELETE FROM coinHistoryDataPoints');
 };

@@ -3,16 +3,14 @@ import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useRef, useState } from "react";
-import { Provider, useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { Provider } from "react-redux";
 import store from "./store/store";
-import { ActivityIndicator, Animated, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { initiateGuestUser } from "./services/apiService";
 import { SQLiteProvider } from 'expo-sqlite';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RootSiblingParent } from 'react-native-root-siblings';
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { triggerRefresh } from "./slices/coinGraphRefreshSlice";
 
 
 export {
@@ -75,26 +73,8 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const dispatch = useDispatch();
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-
-  const startAnimation = () => {
-    rotateAnim.setValue(0);
-    Animated.timing(rotateAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const rotate = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
   return (
     <SQLiteProvider databaseName="transaction.db">
-
       <RootSiblingParent>
         <GestureHandlerRootView >
           <ThemeProvider value={DarkTheme}>
@@ -106,11 +86,21 @@ function RootLayoutNav() {
               <Stack.Screen name="modal" options={{ presentation: "modal" }} />
               <Stack.Screen
                 name="pages/addTransaction/addTransactionCurrencyListScreen"
-                options={{ presentation: "fullScreenModal", title: "Select Currency" }}
+                options={{
+                  presentation: "fullScreenModal",
+                  title: "Select Currency",
+                  headerStyle: { backgroundColor: 'black' },
+                  headerTitleAlign: 'center',
+                }}
               />
               <Stack.Screen
                 name="pages/addTransaction/addTransactionScreen"
-                options={{ presentation: "fullScreenModal", title: "Add Transaction" }}
+                options={{
+                  presentation: "fullScreenModal",
+                  title: "Add Transaction",
+                  headerStyle: { backgroundColor: 'black' },
+                  headerTitleAlign: 'center',
+                }}
               />
               <Stack.Screen
                 name="pages/coinGraph/coinGraphScreen"
@@ -119,20 +109,6 @@ function RootLayoutNav() {
                   title: "Coin Graph",
                   headerStyle: { backgroundColor: 'black' },
                   headerTitleAlign: 'center',
-                  headerRight: () => (
-                    <View style={[{ justifyContent: 'center' }]}>
-                      <TouchableOpacity onPress={() => {
-                        startAnimation();
-                        dispatch(triggerRefresh());
-                      }}>
-                        <Animated.View style={{ transform: [{ rotate }] }}>
-                          <MaterialIcons style={[{
-                            color: 'white',
-                          }]} name={"refresh"} size={30} />
-                        </Animated.View>
-                      </TouchableOpacity>
-                    </View>
-                  ),
                 }}
               />
             </Stack>

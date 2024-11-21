@@ -9,8 +9,8 @@ import {
     Platform,
 } from "react-native";
 import { UserTransaction } from "@/app/models/UserTransaction";
-import { ScrollView } from "react-native-gesture-handler";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { numberFormatter } from "@/app/utils/numberFormatter";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -22,12 +22,6 @@ if (Platform.OS === "android") {
 interface TransactionHistoryTableProps {
     data: UserTransaction[];
 }
-
-const numberFormatter = new Intl.NumberFormat("en-US", {
-    style: "decimal",
-    maximumSignificantDigits: 15,
-    useGrouping: true,
-});
 
 export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (props: TransactionHistoryTableProps) => {
     type SortField = "date" | "quantity" | "type";
@@ -81,57 +75,55 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
 
     return (
         <PaperProvider>
-            <ScrollView fadingEdgeLength={25}>
-                <DataTable>
-                    <DataTable.Header style={[{ borderColor: "rgba(255, 255, 255, 0.2)", borderBottomWidth: .5 }]}>
-                        <DataTable.Title onPress={() => handleSort("date")}>
-                            <Text style={styles.mainDataTableTitle}>
-                                History{getSortIndicator("date")}
-                            </Text>
-                        </DataTable.Title>
-                        <DataTable.Title numeric onPress={() => handleSort("quantity")}>
-                            <Text style={styles.dataTableTitle}>
-                                Quantity{getSortIndicator("quantity")}
-                            </Text>
-                        </DataTable.Title>
-                        <DataTable.Title numeric onPress={() => handleSort("type")}>
-                            <Text style={styles.dataTableTitle}>
-                                Type{getSortIndicator("type")}
-                            </Text>
-                        </DataTable.Title>
-                    </DataTable.Header>
+            <DataTable>
+                <DataTable.Header style={[{ borderColor: "rgba(255, 255, 255, 0.2)", borderBottomWidth: .5 }]}>
+                    <DataTable.Title onPress={() => handleSort("date")}>
+                        <Text style={styles.mainDataTableTitle}>
+                            History{getSortIndicator("date")}
+                        </Text>
+                    </DataTable.Title>
+                    <DataTable.Title numeric onPress={() => handleSort("quantity")}>
+                        <Text style={styles.dataTableTitle}>
+                            Quantity{getSortIndicator("quantity")}
+                        </Text>
+                    </DataTable.Title>
+                    <DataTable.Title numeric onPress={() => handleSort("type")}>
+                        <Text style={styles.dataTableTitle}>
+                            Type{getSortIndicator("type")}
+                        </Text>
+                    </DataTable.Title>
+                </DataTable.Header>
 
-                    {sortedData.map((userTransactionEntry) => {
-                        return (
-                            <DataTable.Row
-                                key={userTransactionEntry?.id}
-                                style={styles.row}
-                            >
-                                <DataTable.Cell>
-                                    <View style={styles.column}>
-                                        <Text style={[styles.leftAlign, styles.normal]}>
-                                            {new Date(userTransactionEntry.date).toLocaleDateString()}
-                                        </Text>
-                                        <Text style={[styles.leftAlign, styles.light]}>
-                                            {new Date(userTransactionEntry.date).toLocaleTimeString()}
-                                        </Text>
-                                    </View>
-                                </DataTable.Cell>
-                                <DataTable.Cell numeric>
-                                    <Text style={styles.normal}>
-                                        {numberFormatter.format(userTransactionEntry.quantity)}
+                {sortedData.map((userTransactionEntry) => {
+                    return (
+                        <DataTable.Row
+                            key={userTransactionEntry?.id}
+                            style={styles.row}
+                        >
+                            <DataTable.Cell>
+                                <View style={styles.column}>
+                                    <Text style={[styles.leftAlign, styles.normal]}>
+                                        {new Date(userTransactionEntry.date).toLocaleDateString()}
                                     </Text>
-                                </DataTable.Cell>
-                                <DataTable.Cell numeric>
-                                    <MaterialIcons style={{
-                                        color: userTransactionEntry.type === "BUY" ? "#00ff00" : "red",
-                                    }} name={userTransactionEntry.type === "BUY" ? "add-circle-outline" : "remove-circle-outline"} size={30} />
-                                </DataTable.Cell>
-                            </DataTable.Row>
-                        );
-                    })}
-                </DataTable>
-            </ScrollView>
+                                    <Text style={[styles.leftAlign, styles.light]}>
+                                        {new Date(userTransactionEntry.date).toLocaleTimeString()}
+                                    </Text>
+                                </View>
+                            </DataTable.Cell>
+                            <DataTable.Cell numeric>
+                                <Text style={styles.normal}>
+                                    {numberFormatter(userTransactionEntry.quantity)}
+                                </Text>
+                            </DataTable.Cell>
+                            <DataTable.Cell numeric>
+                                <MaterialIcons style={{
+                                    color: userTransactionEntry.type === "BUY" ? "#00ff00" : "red",
+                                }} name={userTransactionEntry.type === "BUY" ? "add-circle-outline" : "remove-circle-outline"} size={30} />
+                            </DataTable.Cell>
+                        </DataTable.Row>
+                    );
+                })}
+            </DataTable>
         </PaperProvider>
     );
 };

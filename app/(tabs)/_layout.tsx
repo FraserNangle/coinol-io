@@ -1,14 +1,14 @@
-import React from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import React, { useRef } from "react";
+import { StyleSheet, Text, View, Pressable, TouchableOpacity, Animated } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Link, Tabs } from "expo-router";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
-import { getPercentageChangeDisplay } from "../utils/getPercentageChange";
+import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange";
 import { RootState } from "../store/store";
+import { triggerRefresh } from "../slices/refreshSlice";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: Readonly<{
@@ -20,6 +20,8 @@ function TabBarIcon(props: Readonly<{
 }
 
 export default function TabLayout() {
+  const dispatch = useDispatch();
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   const totalPortfolioValue = useSelector(
     (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
@@ -30,7 +32,21 @@ export default function TabLayout() {
   );
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
-  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType, true);
+  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType, true, true);
+
+  const startAnimation = () => {
+    rotateAnim.setValue(0);
+    Animated.timing(rotateAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   return (
     <Tabs
@@ -49,6 +65,10 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Portfolio",
+          tabBarActiveBackgroundColor: "black",
+          tabBarInactiveBackgroundColor: "black",
+          headerStyle: { backgroundColor: 'black' },
+          headerTitleAlign: 'center',
           tabBarLabel: () => null,
           headerTitle: () => (
             <View style={styles.titleContainer}>
@@ -58,12 +78,12 @@ export default function TabLayout() {
                     {formattedTotalPortfolioValue}
                   </Text>
 
-                  <Text style={[
-                    styles.percentageContainer,
-                    totalPortfolioPercentageChange24hr > 0 ? styles.positive : styles.negative,
-                  ]}
+                  <Text style={[styles.percentageContainer, { color: totalPortfolioPercentageChange24hr >= 0 ? "#00ff00" : "red" }]}
                   >
-                    {getPercentageChangeDisplay(totalPortfolioPercentageChange24hr)}%
+                    {getPercentageChangeDisplayNoSymbol(totalPortfolioPercentageChange24hr)}%
+                    <MaterialIcons style={{
+                      color: totalPortfolioPercentageChange24hr >= 0 ? "#00ff00" : "red",
+                    }} name={totalPortfolioPercentageChange24hr >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
                   </Text>
                 </>
               )}
@@ -73,18 +93,18 @@ export default function TabLayout() {
             <TabBarIcon name="data-usage" color={color} />
           ),
           headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="user"
-                    size={25}
-                    color={"white"}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+            <View style={[{ justifyContent: 'center', paddingEnd: 10 }]}>
+              <TouchableOpacity onPress={() => {
+                startAnimation();
+                dispatch(triggerRefresh());
+              }}>
+                <Animated.View style={{ transform: [{ rotate }] }}>
+                  <MaterialIcons style={[{
+                    color: 'white',
+                  }]} name={"refresh"} size={30} />
+                </Animated.View>
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />
@@ -92,6 +112,8 @@ export default function TabLayout() {
         name="plusMenu"
         options={{
           headerShown: false,
+          tabBarActiveBackgroundColor: "black",
+          tabBarInactiveBackgroundColor: "black",
           headerTitle: () => null,
           tabBarLabel: () => null,
           tabBarIcon: ({ color }) => (
@@ -103,6 +125,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="two"
         options={{
+          tabBarActiveBackgroundColor: "black",
+          tabBarInactiveBackgroundColor: "black",
           tabBarLabel: () => null,
           tabBarShowLabel: true,
           headerTitle: () => (
@@ -127,22 +151,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
     color: "white",
   },
   percentageContainer: {
-    borderRadius: 10,
     marginLeft: 10,
-    padding: 5,
-  },
-  positive: {
     color: "white",
-    backgroundColor: "green",
-  },
-  negative: {
-    color: "white",
-    backgroundColor: "red",
   },
 });

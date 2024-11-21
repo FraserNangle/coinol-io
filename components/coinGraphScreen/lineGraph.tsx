@@ -5,7 +5,7 @@ import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View, Text, LayoutChangeEvent, Animated, PanResponder, PanResponderInstance, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, LayoutChangeEvent, Animated, PanResponder, PanResponderInstance } from "react-native";
 import Svg, { Circle, ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import * as Haptics from 'expo-haptics';
 import { useAnimatedProps, useSharedValue, withTiming } from "react-native-reanimated";
@@ -19,6 +19,7 @@ interface LineGraphProps {
     width: number,
     height: number,
     timeRange: string,
+    color: string
 }
 
 const textWidth = 60;
@@ -32,7 +33,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     currencyType,
     width,
     height,
-    timeRange
+    timeRange,
+    color
 }: LineGraphProps) => {
     const [viewLayout, setViewLayout] = useState({ width: 0, height: 0 });
     const [priceChangeAmount, setPriceChangeAmount] = useState(0);
@@ -40,7 +42,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     const [highlightedDataPoint, setHighlightedDataPoint] = useState<LineGraphDataItem | null>(null);
     const [panResponder, setPanResponder] = useState<PanResponderInstance>();
     const animatedValue = useRef(new Animated.Value(0)).current;
-    const strokeDashoffset = useSharedValue(2000);
+    const strokeDashoffset = useSharedValue(2200);
 
     useEffect(() => {
         strokeDashoffset.value = withTiming(0, { duration: 1000 });
@@ -79,7 +81,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     // Map the data points to x and y coordinates
     const lineGraphData: LineGraphDataItem[] = sortedHistoricalDataPointList.map(dataPoint => {
         const x = ((new Date(dataPoint.date).getTime() - minDate) / (maxDate - minDate)) * width;
-        const y = ((dataPoint.currentPrice - minPrice) / (maxPrice - minPrice)) * (viewLayout.height / 2);
+        const y = ((dataPoint.currentPrice - minPrice) / (maxPrice - minPrice)) * (viewLayout.height / 1.5);
         const value = dataPoint.currentPrice;
         const date = dataPoint.date;
         return { x, y, value, date };
@@ -225,40 +227,40 @@ export const LineGraph: React.FC<LineGraphProps> = ({
             <View style={[{ justifyContent: 'space-between', flexDirection: 'row' }]}>
                 <View style={[styles.pricingContainer]}>
                     <View style={styles.pricingTitle}>
-                        <Text style={styles.headerTitle}>
-                            {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].currentPrice, currencyType, false)}
-                        </Text>
-                        <Text style={[
-                            styles.percentageContainer,
-                            priceChangePercentage >= 0 ? styles.positive : styles.negative,
-                        ]}
-                        >
-                            {getPercentageChangeDisplay(priceChangePercentage)}%
+                        <View style={[{ flexDirection: 'row' }]}>
+                            <Text style={[styles.headerTitle]}>
+                                {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].currentPrice, currencyType, false, true)}
+                            </Text>
+                            <Text style={[
+                                styles.percentageContainer,
+                                priceChangePercentage >= 0 ? styles.positive : styles.negative,
+                            ]}
+                            >
+                                {getPercentageChangeDisplay(priceChangePercentage)}%
+                            </Text>
+                        </View>
+                        <Text style={[styles.dateLabelText, { color: 'hsl(0, 0%, 80%)' }]}>
+                            {highlightedDataPoint ? new Date(highlightedDataPoint.date).toLocaleDateString() + " at " + new Date(highlightedDataPoint.date).toLocaleTimeString() : ''}
                         </Text>
                     </View>
                     <View>
                         <Text style={[styles.priceChangeText, {
                             color: 'hsl(0, 0%, 80%)',
                         }]}>
-                            {convertToCurrencyFormat(priceChangeAmount, currencyType, true)}
+                            {convertToCurrencyFormat(priceChangeAmount, currencyType, true, true)}
                             <MaterialIcons style={{
                                 color: priceChangeAmount >= 0 ? "#00ff00" : "red",
                             }} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
                         </Text>
                     </View>
-                    <View>
-                        <Text style={[styles.dateLabelText, { color: 'hsl(0, 0%, 80%)' }]}>
-                            {highlightedDataPoint ? new Date(highlightedDataPoint.date).toLocaleDateString() + " at " + new Date(highlightedDataPoint.date).toLocaleTimeString() : ''}
-                        </Text>
-                    </View>
                 </View>
             </View>
             <View style={styles.lineGraph}>
-                <Svg width={width} height={height} translateY={height / 6}>
+                <Svg width={width} height={height} translateY={height / 10}>
                     <Defs>
                         <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="35%" x2="50%" y2="0%">
                             <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
-                            <Stop offset={1} stopColor="white" stopOpacity="1" />
+                            <Stop offset={1} stopColor={color} stopOpacity="1" />
                         </LinearGradient>
                         <ClipPath id={`clip-${pathData}-${timeRange}`}>
                             <Path d={`M0,${height}
@@ -276,25 +278,27 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                             fill={`url(#grad-${pathData}-${timeRange})`}
                             clipPath={`url(#clip-${pathData}-${timeRange})`}
                         />
-                        {Array.from({ length: 10 }).map((_, index) => (
+                        {Array.from({ length: 9 }).map((_, index) => (
                             <Line
                                 key={index}
                                 x1="0"
                                 y1={(index + 1) * (height / 20)}
                                 x2={width}
                                 y2={(index + 1) * (height / 20)}
-                                stroke="white"
+                                stroke={'white'}
                                 strokeOpacity={0.2}
-                                strokeWidth="0.5"
+                                strokeWidth="0.2"
                                 strokeDasharray="4 2"
                             />
                         ))}
                         <AnimatedPath
                             d={pathData}
-                            stroke="white"
+                            stroke={color}
                             strokeWidth="1"
                             fill="none"
-                            strokeDasharray={2000} // Adjust this value based on the length of your path
+                            strokeLinecap={"round"}
+                            strokeLinejoin={"bevel"}
+                            //strokeDasharray={2200} // TODO: Adjust this value for the animation
                             animatedProps={animatedPathProps}
                         />
                         {highlightedDataPoint && (
@@ -302,13 +306,13 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 <Circle
                                     cx={highlightedDataPoint.x}
                                     cy={viewLayout.height - highlightedDataPoint.y}
-                                    r={2}
+                                    r={5}
                                     fill="grey"
                                 />
                                 <Circle
                                     cx={highlightedDataPoint.x}
                                     cy={viewLayout.height - highlightedDataPoint.y}
-                                    r={6}
+                                    r={12}
                                     fill={highlightedDataPoint.value >= sortedHistoricalDataPointList[0].currentPrice ? "#00ff00" : "red"}
                                     opacity={0.5}
                                 />
@@ -321,7 +325,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 textAlign: maxTextAlign
                             }]}
                         >
-                            {convertToCurrencyFormat(maxPrice, currencyType, true)}
+                            {convertToCurrencyFormat(maxPrice, currencyType, true, true)}
                         </Text>
                         <MaterialIcons style={[styles.dataLabel, {
                             left: maxIconAdjustedX,
@@ -338,7 +342,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 textAlign: minTextAlign
                             }]}
                         >
-                            {convertToCurrencyFormat(minPrice, currencyType, true)}
+                            {convertToCurrencyFormat(minPrice, currencyType, true, true)}
                         </Text>
                         <MaterialIcons style={[styles.dataLabel, {
                             left: minIconAdjustedX,
@@ -361,12 +365,13 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
         alignItems: "flex-start",
         paddingTop: 20,
-        paddingLeft: 20,
+        paddingHorizontal: 20,
     },
     pricingTitle: {
-        display: "flex",
+        width: "100%",
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-between",
     },
     headerTitle: {
         fontSize: 20,
@@ -381,7 +386,7 @@ const styles = StyleSheet.create({
     },
     dateLabelText: {
         color: "hsl(0, 0%, 80%)",
-        textAlign: "left",
+        textAlign: "right",
         textAlignVertical: "center",
         fontSize: 12,
     },

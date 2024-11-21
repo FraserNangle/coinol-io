@@ -4,6 +4,7 @@ import { getTransactionList } from "./transactionService";
 import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { SQLiteDatabase } from "expo-sqlite";
+import { Image } from 'expo-image';
 
 export async function fetchUserFolio(db: SQLiteDatabase) {
     const transactionList: UserTransaction[] = await getTransactionList(db);
@@ -40,10 +41,31 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     quantity: newQuantity,
                     ticker: coinMarket ? coinMarket.symbol : "",
                     name: coinMarket ? coinMarket.name : "",
+                    image: coinMarket ? coinMarket.image : "",
+                    color: coinMarket ? coinMarket.color : "",
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
                     priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,
-                    ranking: coinMarket ? coinMarket.market_cap_rank : 0
+                    ranking: coinMarket ? coinMarket.market_cap_rank : 0,
+                    marketCap: coinMarket ? coinMarket.market_cap : 0,
+                    fullyDilutedValuation: coinMarket ? coinMarket.fully_diluted_valuation : 0,
+                    totalVolume: coinMarket ? coinMarket.total_volume : 0,
+                    high24h: coinMarket ? coinMarket.high_24h : 0,
+                    low24h: coinMarket ? coinMarket.low_24h : 0,
+                    circulatingSupply: coinMarket ? coinMarket.circulating_supply : 0,
+                    totalSupply: coinMarket ? coinMarket.total_supply : 0,
+                    maxSupply: coinMarket ? coinMarket.max_supply : 0,
+                    ath: coinMarket ? coinMarket.ath : 0,
+                    athChangePercentage: coinMarket ? coinMarket.ath_change_percentage : 0,
+                    athDate: coinMarket ? coinMarket.ath_date : "",
+                    atl: coinMarket ? coinMarket.atl : 0,
+                    atlChangePercentage: coinMarket ? coinMarket.atl_change_percentage : 0,
+                    atlDate: coinMarket ? coinMarket.atl_date : "",
+                });
+                //Prefetch the images for the folio entries to improve the performance
+                folioEntries.forEach(async (folioEntry) => {
+                    // Prefetch the image
+                    Image.prefetch(folioEntry.image, 'memory-disk');
                 });
             }
         }
