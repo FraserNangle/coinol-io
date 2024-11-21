@@ -81,7 +81,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
     // Map the data points to x and y coordinates
     const lineGraphData: LineGraphDataItem[] = sortedHistoricalDataPointList.map(dataPoint => {
         const x = ((new Date(dataPoint.date).getTime() - minDate) / (maxDate - minDate)) * width;
-        const y = ((dataPoint.currentPrice - minPrice) / (maxPrice - minPrice)) * (viewLayout.height / 2);
+        const y = ((dataPoint.currentPrice - minPrice) / (maxPrice - minPrice)) * (viewLayout.height / 1.5);
         const value = dataPoint.currentPrice;
         const date = dataPoint.date;
         return { x, y, value, date };
@@ -256,7 +256,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                 </View>
             </View>
             <View style={styles.lineGraph}>
-                <Svg width={width} height={height} translateY={height / 6}>
+                <Svg width={width} height={height} translateY={height / 10}>
                     <Defs>
                         <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="35%" x2="50%" y2="0%">
                             <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
