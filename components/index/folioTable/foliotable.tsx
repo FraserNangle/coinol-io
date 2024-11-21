@@ -16,6 +16,7 @@ import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { useEffect, useRef } from "react";
 import { Image } from "expo-image";
 import { View } from "@/components/Themed";
+import { numberFormatter } from "@/app/utils/numberFormatter";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -27,10 +28,6 @@ if (Platform.OS === "android") {
 interface FolioTableProps {
   data: FolioEntry[];
 }
-
-const numberFormatter = new Intl.NumberFormat("en-US", {
-  style: "decimal",
-});
 
 const getPriceDifferenceDisplay = (priceDifference: number) => {
   return priceDifference > 0
@@ -164,10 +161,10 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                     <View style={[styles.column]}>
                       <View style={styles.row}>
                         <Text style={styles.ticker}>{folioEntry.ticker.toUpperCase()}</Text>
-                        <Text style={styles.bold}> {numberFormatter.format(folioEntry.quantity)}</Text>
+                        <Text style={styles.bold}> {numberFormatter(folioEntry.quantity)}</Text>
                       </View>
                       <Text style={[styles.leftAlign, styles.normal]}>
-                        {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, true)}
+                        {convertToCurrencyFormat(folioEntry.currentPrice, currencyType, true, true)}
                       </Text>
                     </View>
                   </View>
@@ -188,7 +185,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                       styles.normal
                     }
                   >
-                    {convertToCurrencyFormat(folioEntry.quantity * folioEntry.currentPrice, currencyType, true)}
+                    {convertToCurrencyFormat(folioEntry.quantity * folioEntry.currentPrice, currencyType, true, true)}
                   </Text>
                 </DataTable.Cell>
               </DataTable.Row>

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { numberFormatter } from "@/app/utils/numberFormatter";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -21,12 +22,6 @@ if (Platform.OS === "android") {
 interface TransactionHistoryTableProps {
     data: UserTransaction[];
 }
-
-const numberFormatter = new Intl.NumberFormat("en-US", {
-    style: "decimal",
-    maximumSignificantDigits: 15,
-    useGrouping: true,
-});
 
 export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (props: TransactionHistoryTableProps) => {
     type SortField = "date" | "quantity" | "type";
@@ -117,7 +112,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                             </DataTable.Cell>
                             <DataTable.Cell numeric>
                                 <Text style={styles.normal}>
-                                    {numberFormatter.format(userTransactionEntry.quantity)}
+                                    {numberFormatter(userTransactionEntry.quantity)}
                                 </Text>
                             </DataTable.Cell>
                             <DataTable.Cell numeric>

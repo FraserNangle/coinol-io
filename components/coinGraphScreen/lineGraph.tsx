@@ -228,8 +228,8 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                 <View style={[styles.pricingContainer]}>
                     <View style={styles.pricingTitle}>
                         <View style={[{ flexDirection: 'row' }]}>
-                            <Text style={[styles.headerTitle, { color: color }]}>
-                                {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].currentPrice, currencyType, false)}
+                            <Text style={[styles.headerTitle]}>
+                                {convertToCurrencyFormat(highlightedDataPoint?.value ?? sortedHistoricalDataPointList[sortedHistoricalDataPointList.length - 1].currentPrice, currencyType, false, true)}
                             </Text>
                             <Text style={[
                                 styles.percentageContainer,
@@ -247,7 +247,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                         <Text style={[styles.priceChangeText, {
                             color: 'hsl(0, 0%, 80%)',
                         }]}>
-                            {convertToCurrencyFormat(priceChangeAmount, currencyType, true)}
+                            {convertToCurrencyFormat(priceChangeAmount, currencyType, true, true)}
                             <MaterialIcons style={{
                                 color: priceChangeAmount >= 0 ? "#00ff00" : "red",
                             }} name={priceChangeAmount >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
@@ -325,7 +325,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 textAlign: maxTextAlign
                             }]}
                         >
-                            {convertToCurrencyFormat(maxPrice, currencyType, true)}
+                            {convertToCurrencyFormat(maxPrice, currencyType, true, true)}
                         </Text>
                         <MaterialIcons style={[styles.dataLabel, {
                             left: maxIconAdjustedX,
@@ -342,7 +342,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                                 textAlign: minTextAlign
                             }]}
                         >
-                            {convertToCurrencyFormat(minPrice, currencyType, true)}
+                            {convertToCurrencyFormat(minPrice, currencyType, true, true)}
                         </Text>
                         <MaterialIcons style={[styles.dataLabel, {
                             left: minIconAdjustedX,

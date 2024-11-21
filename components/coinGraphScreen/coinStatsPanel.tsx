@@ -11,6 +11,7 @@ import { useNavigation } from "expo-router";
 import { RootState } from "@/app/store/store";
 import { useSelector } from "react-redux";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
+import { numberFormatter } from "@/app/utils/numberFormatter";
 
 interface CoinStatsPanelProps {
     folioEntry: FolioEntry;
@@ -29,7 +30,7 @@ export const CoinStatsPanel: React.FC<CoinStatsPanelProps> = ({
         }]}>
             {text}
         </Text>
-        <Text style={[styles.bigText, { color: folioEntry.color }]}>
+        <Text style={[styles.bigText, { color: 'white' }]}>
             {data}
         </Text>
     </View>;
@@ -47,13 +48,13 @@ export const CoinStatsPanel: React.FC<CoinStatsPanelProps> = ({
 
     return (
         <View style={styles.infoContainer}>
-            <Text style={[styles.statsTitle, { color: folioEntry.color }]}>
+            <Text style={[styles.statsTitle]}>
                 Holdings
             </Text>
             <View style={[styles.holdingsContainer]}>
                 <View>
-                    <Text style={[styles.bigText, { color: folioEntry.color }]}>
-                        {convertToCurrencyFormat(folioEntry.currentPrice * folioEntry.quantity, currencyType, false)}
+                    <Text style={[styles.bigText]}>
+                        {convertToCurrencyFormat(folioEntry.currentPrice * folioEntry.quantity, currencyType, false, true)}
                     </Text>
                     <Text style={[styles.smallText, {
                         color: 'hsl(0, 0%, 80%)',
@@ -77,23 +78,23 @@ export const CoinStatsPanel: React.FC<CoinStatsPanelProps> = ({
                     <MaterialIcons name="add-card" color={folioEntry.color} size={40} />
                 </TouchableOpacity>
             </View>
-            <Text style={[styles.statsTitle, { marginTop: 20, color: folioEntry.color }]}>
+            <Text style={[styles.statsTitle, { marginTop: 20, color: 'white' }]}>
                 Stats
             </Text>
             <View style={[styles.statsContainer]}>
                 {statsRow("Rank", "#" + folioEntry.ranking.toString())}
-                {statsRow("Market Cap", convertToCurrencyFormat(folioEntry.marketCap, currencyType, false).toString())}
-                {statsRow("Fully Diluted Valuation", convertToCurrencyFormat(folioEntry.fullyDilutedValuation, currencyType, false).toString())}
-                {statsRow("Total Volume", convertToCurrencyFormat(folioEntry.totalVolume, currencyType, false).toString())}
-                {statsRow("High (24H)", convertToCurrencyFormat(folioEntry.high24h, currencyType, false).toString())}
-                {statsRow("Low (24H)", convertToCurrencyFormat(folioEntry.low24h, currencyType, false).toString())}
-                {statsRow("Circulating Supply", folioEntry.circulatingSupply.toString())}
-                {statsRow("Total Supply", folioEntry.totalSupply.toString())}
-                {statsRow("Max Supply", folioEntry.maxSupply.toString())}
-                {statsRow("All Time High", convertToCurrencyFormat(folioEntry.ath, currencyType, false).toString())}
+                {statsRow("Market Cap", convertToCurrencyFormat(folioEntry.marketCap, currencyType, false, true).toString())}
+                {statsRow("Fully Diluted Valuation", convertToCurrencyFormat(folioEntry.fullyDilutedValuation, currencyType, false, true).toString())}
+                {statsRow("Total Volume", convertToCurrencyFormat(folioEntry.totalVolume, currencyType, false, true).toString())}
+                {statsRow("High (24H)", convertToCurrencyFormat(folioEntry.high24h, currencyType, false, true).toString())}
+                {statsRow("Low (24H)", convertToCurrencyFormat(folioEntry.low24h, currencyType, false, true).toString())}
+                {statsRow("Circulating Supply", numberFormatter(folioEntry.circulatingSupply))}
+                {statsRow("Total Supply", numberFormatter(folioEntry.totalSupply))}
+                {statsRow("Max Supply", numberFormatter(folioEntry.maxSupply))}
+                {statsRow("All Time High", convertToCurrencyFormat(folioEntry.ath, currencyType, false, true).toString())}
                 {percentageStatsRow("All Time High Change %", folioEntry.athChangePercentage)}
                 {statsRow("All Time High Date", new Date(folioEntry.athDate).toDateString())}
-                {statsRow("All Time Low", convertToCurrencyFormat(folioEntry.atl, currencyType, false).toString())}
+                {statsRow("All Time Low", convertToCurrencyFormat(folioEntry.atl, currencyType, false, true).toString())}
                 {percentageStatsRow("All Time Low Change %", folioEntry.atlChangePercentage)}
                 {statsRow("All Time Low Date", new Date(folioEntry.atlDate).toDateString())}
             </View>

@@ -137,7 +137,7 @@ export default function CoinGraphScreen() {
     function timeRangeControlButton(value: string) {
         return <Button
             buttonColor="transparent"
-            textColor={folioEntry.color}
+            textColor={'white'}
             rippleColor={folioEntry.color}
             labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
             style={[styles.button, value === timeRange ? { opacity: 1, borderTopWidth: 2, borderColor: folioEntry.color } : { opacity: .5 }]}

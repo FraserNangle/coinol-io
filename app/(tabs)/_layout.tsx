@@ -32,7 +32,7 @@ export default function TabLayout() {
   );
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
-  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType, true);
+  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType, true, true);
 
   const startAnimation = () => {
     rotateAnim.setValue(0);
