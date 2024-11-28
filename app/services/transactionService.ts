@@ -2,7 +2,7 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
 
-export const addTransactionData = async (db: SQLiteDatabase, newTransaction: UserTransaction) => {
+const createTransactionsTable = async (db: SQLiteDatabase) => {
   await db.execAsync(
     `CREATE TABLE IF NOT EXISTS transactions (
       id TEXT PRIMARY KEY NOT NULL,
@@ -12,6 +12,10 @@ export const addTransactionData = async (db: SQLiteDatabase, newTransaction: Use
       type TEXT NOT NULL
     );`
   );
+};
+
+export const addTransactionData = async (db: SQLiteDatabase, newTransaction: UserTransaction) => {
+  await createTransactionsTable(db);
 
   await db.runAsync('INSERT INTO transactions (id, coinId, quantity, date, type) VALUES (?, ?, ?, ?, ?)',
     newTransaction.id,
@@ -33,6 +37,8 @@ export const addTransactionData = async (db: SQLiteDatabase, newTransaction: Use
 };
 
 export const getTransactionList = async (db: SQLiteDatabase) => {
+  await createTransactionsTable(db);
+
   if (!isGuest()) {
     // If the user is not a guest, download the transactions from the server and save them to local storage
     await downloadTransactionsToLocalStorage();
