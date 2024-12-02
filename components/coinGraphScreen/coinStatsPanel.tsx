@@ -51,7 +51,7 @@ export const CoinStatsPanel: React.FC<CoinStatsPanelProps> = ({
             <Text style={[styles.statsTitle]}>
                 Holdings
             </Text>
-            <View style={[styles.holdingsContainer]}>
+            <View style={[styles.holdingsContainer, { borderColor: folioEntry.color }]}>
                 <View>
                     <Text style={[styles.bigText]}>
                         {convertToCurrencyFormat(folioEntry.currentPrice * folioEntry.quantity, currencyType, false, true)}
@@ -81,7 +81,7 @@ export const CoinStatsPanel: React.FC<CoinStatsPanelProps> = ({
             <Text style={[styles.statsTitle, { marginTop: 20, color: 'white' }]}>
                 Stats
             </Text>
-            <View style={[styles.statsContainer]}>
+            <View style={[styles.statsContainer, { borderColor: folioEntry.color }]}>
                 {statsRow("Rank", "#" + folioEntry.ranking.toString())}
                 {statsRow("Market Cap", convertToCurrencyFormat(folioEntry.marketCap, currencyType, false, true).toString())}
                 {statsRow("Fully Diluted Valuation", convertToCurrencyFormat(folioEntry.fullyDilutedValuation, currencyType, false, true).toString())}

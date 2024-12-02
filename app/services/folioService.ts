@@ -34,6 +34,22 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                 folioEntries.splice(folioEntries.indexOf(existingEntry), 1);
             }
         } else {
+            function adjustColor(color: string): string {
+                // Parse the HSL color
+                const hsl = RegExp(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/).exec(color);
+                if (!hsl) return color; // Return the original color if it's not in HSL format
+
+                let [hue, saturation, lightness] = hsl.slice(1).map(Number);
+
+                // Adjust the lightness and saturation if the color is dark
+                if (lightness < 30) {
+                    lightness += 25; // Increase lightness
+                    saturation += 10; // Increase saturation
+                }
+
+                return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            }
+
             const newQuantity = transaction.type === 'BUY' ? transaction.quantity : -transaction.quantity;
             if (newQuantity > 0) {
                 folioEntries.push({
@@ -42,7 +58,7 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     ticker: coinMarket ? coinMarket.symbol : "",
                     name: coinMarket ? coinMarket.name : "",
                     image: coinMarket ? coinMarket.image : "",
-                    color: coinMarket ? coinMarket.color : "",
+                    color: coinMarket ? adjustColor(coinMarket.color) : "hsl(0, 0%, 50%)",
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
                     priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,
