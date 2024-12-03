@@ -141,14 +141,14 @@ export default function AddTransactionBuySellScreen() {
     };
 
     const folioList = [
-        { label: 'Main Portfolio Bitcoin', value: '1' },
-        { label: 'Secondary Purchases', value: '2' },
-        { label: 'Kucoin Stuff', value: '3' },
-        { label: 'Metamask Wallet 1', value: '4' },
-        { label: 'Item 5', value: '5' },
-        { label: 'Item 6', value: '6' },
-        { label: 'Item 7', value: '7' },
-        { label: 'Item 8', value: '8' },
+        { name: 'Main Portfolio Bitcoin', id: '1' },
+        { name: 'Secondary Purchases', id: '2' },
+        { name: 'Kucoin Stuff', id: '3' },
+        { name: 'Metamask Wallet 1', id: '4' },
+        { name: 'Item 5', id: '5' },
+        { name: 'Item 6', id: '6' },
+        { name: 'Item 7', id: '7' },
+        { name: 'Item 8', id: '8' },
     ];
 
     return (
@@ -230,11 +230,17 @@ export default function AddTransactionBuySellScreen() {
                     <View style={styles.inputContainer}>
                         <MultiSelect
                             style={styles.dropdown}
+                            containerStyle={styles.dropdownContainer}
+                            activeColor="rgba(255, 255, 255, 0.15)"
+                            itemContainerStyle={styles.dropdownItemContainer}
                             iconStyle={styles.iconStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            itemTextStyle={{ color: 'white', fontSize: 14 }}
                             data={folioList}
-                            labelField="label"
-                            valueField="value"
+                            labelField="name"
+                            valueField="id"
                             search
+                            searchField="name"
                             value={selectedFolios}
                             searchPlaceholder="Search..."
                             onChange={(folios) => {
@@ -254,7 +260,7 @@ export default function AddTransactionBuySellScreen() {
                                 setSelectedFolios(prevSelected => prevSelected.filter(selectedItem => selectedItem !== folio));
                             }}>
                                 <View style={styles.selectedStyle}>
-                                    <Text>{folioList.find(folioItem => folioItem.value === folio)?.label ?? ''}</Text>
+                                    <Text>{folioList.find(folioItem => folioItem.id === folio)?.name ?? ''}</Text>
                                     <MaterialIcons style={styles.iconStyle} color="white" name="cancel" size={20} />
                                 </View>
                             </TouchableOpacity>
@@ -270,6 +276,14 @@ export default function AddTransactionBuySellScreen() {
                 compact
                 mode="contained"
                 onPress={() => {
+                    if (selectedFolios.length === 0) {
+                        Toast.show(`Select at least one folio to add your transaction to. `, {
+                            backgroundColor: "hsl(0, 0%, 15%)",
+                            duration: Toast.durations.LONG,
+                        });
+                        return;
+                    }
+
                     const newTransactions: UserTransaction[] = selectedFolios.map(folio => {
                         return {
                             id: randomUUID(),
@@ -278,7 +292,7 @@ export default function AddTransactionBuySellScreen() {
                             quantity: Number(total),
                             type: transactionType,
                             folioId: folio,
-                            folioName: folioList.find(folioItem => folioItem.value === folio)?.label ?? '',
+                            folioName: folioList.find(folioItem => folioItem.id === folio)?.name ?? '',
                         };
                     });
                     addTransactions(db, newTransactions)
@@ -346,7 +360,18 @@ const styles = StyleSheet.create({
         color: 'white',
     },
     dropdown: {
-        width: "95%",
+        width: 230,
+    },
+    dropdownContainer: {
+        backgroundColor: "black",
+        borderWidth: 0,
+        borderRadius: 5,
+        padding: 5,
+    },
+    dropdownItemContainer: {
+        color: 'white',
+        borderRadius: 5,
+        textAlignVertical: 'center',
     },
     tag: {
         paddingRight: 10
@@ -369,7 +394,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        borderColor: 'rgba(255, 255, 255, 0.3)',
+        borderColor: 'rgba(255, 255, 255, 0.2)',
         borderWidth: 1,
         borderRadius: 5,
         padding: 5,
@@ -379,5 +404,10 @@ const styles = StyleSheet.create({
         width: 20,
         height: 20,
         marginLeft: 5,
+    },
+    inputSearchStyle: {
+        backgroundColor: "transparent",
+        color: "white",
+        borderWidth: 0,
     },
 });
