@@ -1,10 +1,10 @@
-import { StyleSheet, TouchableHighlight, TextInput } from "react-native";
+import { StyleSheet, TouchableHighlight, TextInput, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { addTransactionData } from "@/app/services/transactionService";
+import { addBatchTransactionData } from "@/app/services/transactionService";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
@@ -14,18 +14,22 @@ import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import Toast from 'react-native-root-toast';
 import { Coin } from "@/app/models/Coin";
 import { Image } from "expo-image";
+import { MultiSelect } from 'react-native-element-dropdown';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { ScrollView } from "react-native-gesture-handler";
 
 type RouteParams = {
     item: Coin;
 };
 
 export default function AddTransactionBuySellScreen() {
-    const [transactionType, setTransactionType] = React.useState("BUY");
-    const [total, setTotal] = React.useState('');
-    const [date, setDate] = React.useState(new Date());
+    const [transactionType, setTransactionType] = useState("BUY");
+    const [total, setTotal] = useState('');
+    const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [canSell, setCanSell] = useState(false);
+    const [selectedFolios, setSelectedFolios] = useState<string[]>([]);
 
     const db = useSQLiteContext();
 
@@ -95,15 +99,16 @@ export default function AddTransactionBuySellScreen() {
         });
     };
 
-    const addTransaction = (db: SQLiteDatabase, transaction: UserTransaction) => {
-        addTransactionData(db, transaction)
+    const addTransactions = (db: SQLiteDatabase, transactions: UserTransaction[]) => {
+        addBatchTransactionData(db, transactions)
             .then(() => {
-                Toast.show(`Added ${item.name} transaction to portfolio. `, {
+                Toast.show(`Added ${item.name} transaction to portfolio(s). `, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
                     position: Toast.positions.CENTER,
                 });
-                dispatch(setLastTransaction(transaction));
+                const lastTransaction = transactions.length > 0 ? transactions[transactions.length - 1] : null;
+                dispatch(setLastTransaction(lastTransaction));
                 navigation.navigate('index');
             })
             .catch(error => {
@@ -111,9 +116,9 @@ export default function AddTransactionBuySellScreen() {
             });
     };
 
-    const handleChange = (text: string) => {
+    const handleTotalInputChange = (text: string) => {
         // Regular expression to match positive floating point numbers or a single decimal point
-        const regex = /^(?:[0-9]*\.?[0-9]*)$/;
+        const regex = /^(?:\d*\.?\d*)$/;
         if (regex.test(text)) {
             if (transactionType === "SELL") {
                 userFolio.forEach((folioEntry) => {
@@ -134,6 +139,17 @@ export default function AddTransactionBuySellScreen() {
             }
         }
     };
+
+    const folioList = [
+        { label: 'Main Portfolio Bitcoin', value: '1' },
+        { label: 'Secondary Purchases', value: '2' },
+        { label: 'Kucoin Stuff', value: '3' },
+        { label: 'Metamask Wallet 1', value: '4' },
+        { label: 'Item 5', value: '5' },
+        { label: 'Item 6', value: '6' },
+        { label: 'Item 7', value: '7' },
+        { label: 'Item 8', value: '8' },
+    ];
 
     return (
         <View style={styles.screenContainer}>
@@ -171,7 +187,7 @@ export default function AddTransactionBuySellScreen() {
                             multiline={false}
                             numberOfLines={1}
                             keyboardType='decimal-pad'
-                            onChangeText={handleChange}
+                            onChangeText={handleTotalInputChange}
                             placeholder="0"
                             placeholderTextColor={"rgba(255, 255, 255, 0.5)"}
                             selectionColor={"rgba(255, 255, 255, 0.5)"}
@@ -198,7 +214,7 @@ export default function AddTransactionBuySellScreen() {
                     <TouchableHighlight
                         onPress={() => setShowDatePicker(true)}
                     >
-                        <Text style={styles.textInput}>
+                        <Text >
                             {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
                             <Text style={{ color: "rgba(255, 255, 255, 0.5)" }}>
                                 {" at "}
@@ -208,6 +224,44 @@ export default function AddTransactionBuySellScreen() {
                     </TouchableHighlight>
                 </View>
             </View>
+            <View style={styles.tableContainer}>
+                <View style={styles.row}>
+                    <Text style={styles.tag}>Folio(s)</Text>
+                    <View style={styles.inputContainer}>
+                        <MultiSelect
+                            style={styles.dropdown}
+                            iconStyle={styles.iconStyle}
+                            data={folioList}
+                            labelField="label"
+                            valueField="value"
+                            search
+                            value={selectedFolios}
+                            searchPlaceholder="Search..."
+                            onChange={(folios) => {
+                                setSelectedFolios(folios);
+                            }}
+                            renderSelectedItem={() => (<></>)}
+                        >
+                        </MultiSelect>
+                    </View>
+                </View>
+            </View>
+            {selectedFolios.length > 0 && (
+                <View style={styles.tableContainer}>
+                    <ScrollView horizontal contentContainerStyle={styles.row}>
+                        {selectedFolios.map(folio => (
+                            <TouchableOpacity key={folio} onPress={() => {
+                                setSelectedFolios(prevSelected => prevSelected.filter(selectedItem => selectedItem !== folio));
+                            }}>
+                                <View style={styles.selectedStyle}>
+                                    <Text>{folioList.find(folioItem => folioItem.value === folio)?.label ?? ''}</Text>
+                                    <MaterialIcons style={styles.iconStyle} color="white" name="cancel" size={20} />
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                </View>
+            )}
             <Button
                 buttonColor="black"
                 textColor={"white"}
@@ -216,14 +270,18 @@ export default function AddTransactionBuySellScreen() {
                 compact
                 mode="contained"
                 onPress={() => {
-                    const newHolding: UserTransaction = {
-                        id: randomUUID(),
-                        coinId: item.id,
-                        date: date.toISOString(),
-                        quantity: Number(total),
-                        type: transactionType,
-                    };
-                    addTransaction(db, newHolding)
+                    const newTransactions: UserTransaction[] = selectedFolios.map(folio => {
+                        return {
+                            id: randomUUID(),
+                            coinId: item.id,
+                            date: date.toISOString(),
+                            quantity: Number(total),
+                            type: transactionType,
+                            folioId: folio,
+                            folioName: folioList.find(folioItem => folioItem.value === folio)?.label ?? '',
+                        };
+                    });
+                    addTransactions(db, newTransactions)
                 }}>
                 ADD TRANSACTION
             </Button>
@@ -233,6 +291,7 @@ export default function AddTransactionBuySellScreen() {
                     mode="date"
                     display="default"
                     onChange={changeDate}
+                    accentColor="FFFFFF"
                 />
             )}
             {showTimePicker && (
@@ -277,15 +336,17 @@ const styles = StyleSheet.create({
     },
     bigButton: {
         width: "80%",
-        borderRadius: 2,
+        borderRadius: 5,
         borderWidth: 1,
         borderBottomWidth: 5,
         borderColor: "rgba(255, 255, 255, .3)",
     },
     textInput: {
-        flex: 1,
-        padding: 10,
+        width: "80%",
         color: 'white',
+    },
+    dropdown: {
+        width: "95%",
     },
     tag: {
         paddingRight: 10
@@ -303,5 +364,20 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
         flexDirection: 'row',
         alignItems: 'center',
-    }
+    },
+    selectedStyle: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderColor: 'rgba(255, 255, 255, 0.3)',
+        borderWidth: 1,
+        borderRadius: 5,
+        padding: 5,
+        marginRight: 10,
+    },
+    iconStyle: {
+        width: 20,
+        height: 20,
+        marginLeft: 5,
+    },
 });

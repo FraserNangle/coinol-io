@@ -5,4 +5,6 @@ export type UserTransaction = {
     date: string;
     quantity: number;
     type: string;
+    folioId: string;
+    folioName: string;
 };

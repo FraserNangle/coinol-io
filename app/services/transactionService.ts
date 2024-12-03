@@ -9,25 +9,32 @@ const createTransactionsTable = async (db: SQLiteDatabase) => {
       coinId TEXT NOT NULL,
       quantity REAL NOT NULL,
       date TEXT NOT NULL,
-      type TEXT NOT NULL
+      type TEXT NOT NULL,
+      folioId TEXT NOT NULL,
+      folioName TEXT NOT NULL
     );`
   );
 };
 
-export const addTransactionData = async (db: SQLiteDatabase, newTransaction: UserTransaction) => {
+export const addBatchTransactionData = async (db: SQLiteDatabase, newTransactions: UserTransaction[]) => {
   await createTransactionsTable(db);
 
-  await db.runAsync('INSERT INTO transactions (id, coinId, quantity, date, type) VALUES (?, ?, ?, ?, ?)',
-    newTransaction.id,
-    newTransaction.coinId,
-    newTransaction.quantity,
-    newTransaction.date,
-    newTransaction.type);
+  for (const transaction of newTransactions) {
+    await db.runAsync('INSERT INTO transactions ( id, coinId, quantity, date, type, folioId, folioName ) VALUES ( ?, ?, ?, ?, ?, ?, ? )',
+      transaction.id,
+      transaction.coinId,
+      transaction.quantity,
+      transaction.date,
+      transaction.type,
+      transaction.folioId,
+      transaction.folioName
+    );
+  }
 
   if (!isGuest()) {
     // If the user is not a guest, update the transactions on the server
-    const response = await api.post('/holdings', {
-      newTransaction
+    const response = await api.post('/transactions/batch', {
+      newTransactions
     });
 
     if (response.status >= 200 && response.status < 300) {
@@ -53,13 +60,49 @@ export const getTransactionList = async (db: SQLiteDatabase) => {
   }
 }
 
+export const getTransactionListByFolioId = async (db: SQLiteDatabase, folioId: string) => {
+  await createTransactionsTable(db);
+
+  if (!isGuest()) {
+    // If the user is not a guest, download the transactions from the server and save them to local storage
+    await downloadTransactionsToLocalStorage();
+  }
+
+  const transactions = await db.getAllAsync<UserTransaction>('SELECT * FROM transactions WHERE folioId = ?', [folioId]);
+
+  if (transactions.length > 0) {
+    return transactions;
+  } else {
+    return [];
+  }
+}
+
 export const getTransactionListByCoinId = async (db: SQLiteDatabase, coinId: string) => {
+  await createTransactionsTable(db);
+
   if (!isGuest()) {
     // If the user is not a guest, download the transactions from the server and save them to local storage
     await downloadTransactionsToLocalStorage();
   }
 
   const transactions = await db.getAllAsync<UserTransaction>('SELECT * FROM transactions WHERE coinId = ?', [coinId]);
+
+  if (transactions.length > 0) {
+    return transactions;
+  } else {
+    return [];
+  }
+}
+
+export const getTransactionListByCoinIdAndFolioId = async (db: SQLiteDatabase, coinId: string, folioId: string) => {
+  await createTransactionsTable(db);
+
+  if (!isGuest()) {
+    // If the user is not a guest, download the transactions from the server and save them to local storage
+    await downloadTransactionsToLocalStorage();
+  }
+
+  const transactions = await db.getAllAsync<UserTransaction>('SELECT * FROM transactions WHERE coinId = ? AND folioId = ?', [coinId, folioId]);
 
   if (transactions.length > 0) {
     return transactions;
@@ -119,4 +162,5 @@ export const removeCoinData = async (coinId: string) => {
 export const deleteAllTransactionsFromLocalStorage = async (db: SQLiteDatabase) => {
   console.log("Deleting all transactions from local storage");
   await db.execAsync('DELETE FROM transactions');
+  await db.execAsync('DROP TABLE IF EXISTS transactions');
 };
