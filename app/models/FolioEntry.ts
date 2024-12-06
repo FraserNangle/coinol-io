@@ -1,4 +1,7 @@
+import { Folio } from "./Folio";
+
 export type FolioEntry = {
+    folio: Folio;
     coinId: string;
     ticker: string;
     name: string;

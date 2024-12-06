@@ -1,13 +1,19 @@
 import { FolioEntry } from "../models/FolioEntry";
 import { UserTransaction } from "../models/UserTransaction";
-import { getTransactionList } from "./transactionService";
 import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { SQLiteDatabase } from "expo-sqlite";
 import { Image } from 'expo-image';
+import { Folio } from "../models/Folio";
+import api, { isGuest } from "./apiService";
+import { getUserData } from "./userDataService";
+import { UserData } from "../models/UserData";
+import { createFoliosTable } from "./sqlService";
 
 export async function fetchUserFolio(db: SQLiteDatabase) {
-    const transactionList: UserTransaction[] = await getTransactionList(db);
+    const userData: UserData = await getUserData(db);
+    const transactionList: UserTransaction[] = userData.transactions;
+    const foliosList: Folio[] = userData.folios;
 
     // Send the unique coinIds from the transactionList to the backend to get the complex data of each coin
     const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.coinId))];
@@ -52,11 +58,20 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
 
             const newQuantity = transaction.type === 'BUY' ? transaction.quantity : -transaction.quantity;
             if (newQuantity > 0) {
+
+                const folio = foliosList.find((folio) => folio.folioId === transaction.folioId);
+
+                if (!folio) {
+                    console.error(`Folio with id ${transaction.folioId} not found`);
+                    return;
+                }
+
                 folioEntries.push({
+                    folio: folio,
                     coinId: transaction.coinId,
                     quantity: newQuantity,
-                    ticker: coinMarket ? coinMarket.symbol : "",
-                    name: coinMarket ? coinMarket.name : "",
+                    ticker: coinMarket ? coinMarket.symbol : "ERROR",
+                    name: coinMarket ? coinMarket.name : "ERROR FINDING COIN",
                     image: coinMarket ? coinMarket.image : "",
                     color: coinMarket ? adjustColor(coinMarket.color) : "hsl(0, 0%, 50%)",
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
@@ -73,10 +88,10 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     maxSupply: coinMarket ? coinMarket.max_supply : 0,
                     ath: coinMarket ? coinMarket.ath : 0,
                     athChangePercentage: coinMarket ? coinMarket.ath_change_percentage : 0,
-                    athDate: coinMarket ? coinMarket.ath_date : "",
+                    athDate: coinMarket ? coinMarket.ath_date : "NOT FOUND",
                     atl: coinMarket ? coinMarket.atl : 0,
                     atlChangePercentage: coinMarket ? coinMarket.atl_change_percentage : 0,
-                    atlDate: coinMarket ? coinMarket.atl_date : "",
+                    atlDate: coinMarket ? coinMarket.atl_date : "NOT FOUND",
                 });
                 //Prefetch the images for the folio entries to improve the performance
                 folioEntries.forEach(async (folioEntry) => {
@@ -87,5 +102,52 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
         }
     });
 
-    return folioEntries;
+    return { folioEntries, foliosList };
+}
+
+export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {
+    await createFoliosTable(db);
+
+    await db.runAsync('INSERT INTO folios ( folioId, folioName ) VALUES ( ?, ? )',
+        newFolio.folioId,
+        newFolio.folioName
+    );
+
+    if (!isGuest()) {
+        // If the user is not a guest, update the folios on the server
+        const response = await api.post('/userFolios/add', {
+            newFolio
+        });
+
+        if (response.status >= 200 && response.status < 300) {
+            return response.data;
+        }
+    }
+};
+
+export const getFoliosList = async (db: SQLiteDatabase) => {
+    await createFoliosTable(db);
+
+    if (!isGuest()) {
+        // If the user is not a guest, download the folios from the server and save them to local storage
+        await downloadFoliosToLocalStorage();
+    }
+
+    const folios = await db.getAllAsync<Folio>('SELECT * FROM folios');
+
+    if (folios.length > 0) {
+        return folios;
+    } else {
+        return [];
+    }
+}
+
+async function downloadFoliosToLocalStorage() {
+    // download the folios from the server and save them to local storage
+    const response = await api.get<Folio[]>('/userFolios');
+
+    if (response.data.length > 0) {
+        //TODO: Compare the folios with the ones in the local storage and see which is more recent then update accordingly
+        console.log("Folios downloaded from the server: ", response.data);
+    }
 }

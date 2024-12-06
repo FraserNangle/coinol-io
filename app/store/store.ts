@@ -6,6 +6,7 @@ import allCoinDataReducer from '../slices/allCoinDataSlice';
 import lastTransactionReducer from '../slices/lastTransactionSlice';
 import currencyTypeReducer from '../slices/currencyTypeSlice';
 import refreshReducer from "../slices/refreshSlice";
+import foliosReducer from "../slices/foliosSlice";
 
 const store = configureStore({
     reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
         allCoinData: allCoinDataReducer,
         currencyType: currencyTypeReducer,
         refresh: refreshReducer,
+        folios: foliosReducer,
     },
 });
 

@@ -1,39 +1,25 @@
 import { SQLiteDatabase } from "expo-sqlite";
 import { UserTransaction } from "../models/UserTransaction";
 import api, { isGuest } from './apiService';
-
-const createTransactionsTable = async (db: SQLiteDatabase) => {
-  await db.execAsync(
-    `CREATE TABLE IF NOT EXISTS transactions (
-      id TEXT PRIMARY KEY NOT NULL,
-      coinId TEXT NOT NULL,
-      quantity REAL NOT NULL,
-      date TEXT NOT NULL,
-      type TEXT NOT NULL,
-      folioId TEXT NOT NULL,
-      folioName TEXT NOT NULL
-    );`
-  );
-};
+import { createTransactionsTable } from "./sqlService";
 
 export const addBatchTransactionData = async (db: SQLiteDatabase, newTransactions: UserTransaction[]) => {
   await createTransactionsTable(db);
 
   for (const transaction of newTransactions) {
-    await db.runAsync('INSERT INTO transactions ( id, coinId, quantity, date, type, folioId, folioName ) VALUES ( ?, ?, ?, ?, ?, ?, ? )',
+    await db.runAsync('INSERT INTO transactions ( id, coinId, quantity, date, type, folioId ) VALUES ( ?, ?, ?, ?, ?, ? )',
       transaction.id,
       transaction.coinId,
       transaction.quantity,
       transaction.date,
       transaction.type,
-      transaction.folioId,
-      transaction.folioName
+      transaction.folioId
     );
   }
 
   if (!isGuest()) {
     // If the user is not a guest, update the transactions on the server
-    const response = await api.post('/transactions/batch', {
+    const response = await api.post('/transactions/add', {
       newTransactions
     });
 
@@ -113,7 +99,7 @@ export const getTransactionListByCoinIdAndFolioId = async (db: SQLiteDatabase, c
 
 async function downloadTransactionsToLocalStorage() {
   // download the transactions from the server and save them to local storage
-  const response = await api.get<UserTransaction[]>('/holdings');
+  const response = await api.get<UserTransaction[]>('/transactions');
 
   if (response.data.length > 0) {
     //TODO: Compare the transactions with the ones in the local storage and see which is more recent then update accordingly

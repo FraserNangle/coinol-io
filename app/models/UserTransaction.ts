@@ -1,4 +1,3 @@
-
 export type UserTransaction = {
     id: string;
     coinId: string;
@@ -6,5 +5,4 @@ export type UserTransaction = {
     quantity: number;
     type: string;
     folioId: string;
-    folioName: string;
 };

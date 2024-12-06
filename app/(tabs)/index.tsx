@@ -17,6 +17,8 @@ import { useSQLiteContext } from "expo-sqlite";
 import { setCurrencyType } from "../slices/currencyTypeSlice";
 import { setLastTransaction } from "../slices/lastTransactionSlice";
 import { ActivityIndicator } from "react-native-paper";
+import { Folio } from "../models/Folio";
+import { setFolios } from "../slices/foliosSlice";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
@@ -32,11 +34,17 @@ export default function TabOneScreen() {
   const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
   const [isLoadingFolioData, setIsLoadingFolioData] = useState(true);
+  const [currentFolio, setCurrentFolio] = useState<Folio>();
 
   const fetchUserFolioData = async () => {
     setIsLoadingFolioData(true);
-    const userFolioData = await fetchUserFolio(db);
-    dispatch(setUserFolio(userFolioData));
+    const userData = await fetchUserFolio(db);
+
+    //TODO: Find out why transactions wont show if the first transaction on that coin was on a different folio
+
+    setCurrentFolio(userData.foliosList[0]);
+    dispatch(setFolios(userData.foliosList));
+    dispatch(setUserFolio(userData.folioEntries.filter((userData) => userData.folio.folioId === currentFolio?.folioId)));
     setIsLoadingFolioData(false);
   };
 

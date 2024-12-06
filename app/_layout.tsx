@@ -11,6 +11,7 @@ import { initiateGuestUser } from "./services/apiService";
 import { SQLiteProvider } from 'expo-sqlite';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RootSiblingParent } from 'react-native-root-siblings';
+import { PaperProvider } from "react-native-paper";
 
 
 export {
@@ -77,42 +78,44 @@ function RootLayoutNav() {
     <SQLiteProvider databaseName="transaction.db">
       <RootSiblingParent>
         <GestureHandlerRootView >
-          <ThemeProvider value={DarkTheme}>
-            <Stack
-              screenOptions={{
-                animation: "slide_from_right",
-              }}>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-              <Stack.Screen
-                name="pages/addTransaction/addTransactionCurrencyListScreen"
-                options={{
-                  presentation: "fullScreenModal",
-                  title: "Select Currency",
-                  headerStyle: { backgroundColor: 'black' },
-                  headerTitleAlign: 'center',
-                }}
-              />
-              <Stack.Screen
-                name="pages/addTransaction/addTransactionScreen"
-                options={{
-                  presentation: "fullScreenModal",
-                  title: "Add Transaction",
-                  headerStyle: { backgroundColor: 'black' },
-                  headerTitleAlign: 'center',
-                }}
-              />
-              <Stack.Screen
-                name="pages/coinGraph/coinGraphScreen"
-                options={{
-                  presentation: "fullScreenModal",
-                  title: "Coin Graph",
-                  headerStyle: { backgroundColor: 'black' },
-                  headerTitleAlign: 'center',
-                }}
-              />
-            </Stack>
-          </ThemeProvider>
+          <PaperProvider>
+            <ThemeProvider value={DarkTheme}>
+              <Stack
+                screenOptions={{
+                  animation: "slide_from_right",
+                }}>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+                <Stack.Screen
+                  name="pages/addTransaction/addTransactionCurrencyListScreen"
+                  options={{
+                    presentation: "fullScreenModal",
+                    title: "Select Currency",
+                    headerStyle: { backgroundColor: 'black' },
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen
+                  name="pages/addTransaction/addTransactionScreen"
+                  options={{
+                    presentation: "fullScreenModal",
+                    title: "Add Transaction",
+                    headerStyle: { backgroundColor: 'black' },
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen
+                  name="pages/coinGraph/coinGraphScreen"
+                  options={{
+                    presentation: "fullScreenModal",
+                    title: "Coin Graph",
+                    headerStyle: { backgroundColor: 'black' },
+                    headerTitleAlign: 'center',
+                  }}
+                />
+              </Stack>
+            </ThemeProvider>
+          </PaperProvider>
         </GestureHandlerRootView>
       </RootSiblingParent>
     </SQLiteProvider>
