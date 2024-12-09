@@ -34,15 +34,15 @@ export default function TabOneScreen() {
   const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
   const [isLoadingFolioData, setIsLoadingFolioData] = useState(true);
-  const [currentFolio, setCurrentFolio] = useState<Folio>();
+  const [currentlySelectedFolio, setCurrentlySelectedFolio] = useState<Folio>();
 
   const fetchUserFolioData = async () => {
     //TODO: figure out why data is not being fetched on app launch but needs 1 refresh to show
     setIsLoadingFolioData(true);
     const userData = await fetchUserFolio(db);
-    setCurrentFolio(userData.foliosList.find((folio) => folio.isFavorite));
+    setCurrentlySelectedFolio(userData.foliosList.find((folio) => folio.isFavorite));
     dispatch(setFolios(userData.foliosList));
-    dispatch(setUserFolio(userData.folioEntries.filter((userData) => userData.folio.folioId === currentFolio?.folioId)));
+    dispatch(setUserFolio(userData.folioEntries.filter((userData) => userData.folio.folioId === currentlySelectedFolio?.folioId)));
     setIsLoadingFolioData(false);
   };
 

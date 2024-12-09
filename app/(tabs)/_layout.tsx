@@ -1,7 +1,7 @@
-import React, { useRef } from "react";
-import { StyleSheet, Text, View, Pressable, TouchableOpacity, Animated } from "react-native";
+import React, { useRef, useState } from "react";
+import { StyleSheet, Text, View, TouchableOpacity, Animated } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Link, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,6 +9,8 @@ import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
 import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange";
 import { RootState } from "../store/store";
 import { triggerRefresh } from "../slices/refreshSlice";
+import FolioSelectionModal from "@/components/modals/folioSelectionModal";
+import { useSQLiteContext } from "expo-sqlite";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: Readonly<{
@@ -22,6 +24,11 @@ function TabBarIcon(props: Readonly<{
 export default function TabLayout() {
   const dispatch = useDispatch();
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const showModal = () => setIsModalVisible(true);
+
+  const db = useSQLiteContext();
 
   const totalPortfolioValue = useSelector(
     (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
@@ -71,13 +78,18 @@ export default function TabLayout() {
           headerTitleAlign: 'center',
           tabBarLabel: () => null,
           headerLeft: () => (
-            <Link href="/plusMenu" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <MaterialIcons style={[{ opacity: pressed ? 0.5 : 1 }, { justifyContent: 'center', paddingStart: 10, color: "white" }]} name="menu" size={30} />
-                )}
-              </Pressable>
-            </Link>
+            <>
+              <TouchableOpacity
+                onPress={showModal}
+              >
+                <MaterialIcons style={[{ justifyContent: 'center', paddingStart: 10, color: "white" }]} name="menu" size={30} />
+              </TouchableOpacity>
+              <FolioSelectionModal
+                db={db}
+                visible={isModalVisible}
+                setVisible={setIsModalVisible}
+              />
+            </>
           ),
           headerTitle: () => (
             <View style={styles.titleContainer}>
