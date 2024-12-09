@@ -106,9 +106,15 @@ function adjustColor(color: string): string {
 export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {
     await createFoliosTable(db);
 
-    await db.runAsync('INSERT INTO folios ( folioId, folioName ) VALUES ( ?, ? )',
+    // Check if the folios table is empty
+    const result = await db.runAsync('SELECT COUNT(*) as count FROM folios');
+    const isFirstEntry = result.changes === 0;
+
+    // Insert the new folio
+    await db.runAsync('INSERT INTO folios (folioId, folioName, isFavorite) VALUES (?, ?, ?)',
         newFolio.folioId,
-        newFolio.folioName
+        newFolio.folioName,
+        isFirstEntry ? 1 : 0 // Set as favorite if it's the first entry
     );
 
     if (!isGuest()) {
@@ -121,6 +127,14 @@ export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {
             return response.data;
         }
     }
+};
+
+export const setFavoriteFolio = async (db: SQLiteDatabase, folioId: string) => {
+    // Reset isFavorite for all folios
+    await db.runAsync('UPDATE folios SET isFavorite = 0');
+
+    // Set isFavorite for the specified folio
+    await db.runAsync('UPDATE folios SET isFavorite = 1 WHERE folioId = ?', folioId);
 };
 
 export const getFoliosList = async (db: SQLiteDatabase) => {

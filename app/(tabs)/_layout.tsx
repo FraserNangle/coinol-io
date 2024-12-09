@@ -70,6 +70,15 @@ export default function TabLayout() {
           headerStyle: { backgroundColor: 'black' },
           headerTitleAlign: 'center',
           tabBarLabel: () => null,
+          headerLeft: () => (
+            <Link href="/plusMenu" asChild>
+              <Pressable>
+                {({ pressed }) => (
+                  <MaterialIcons style={[{ opacity: pressed ? 0.5 : 1 }, { justifyContent: 'center', paddingStart: 10, color: "white" }]} name="menu" size={30} />
+                )}
+              </Pressable>
+            </Link>
+          ),
           headerTitle: () => (
             <View style={styles.titleContainer}>
               {totalPortfolioValue > 0 && (

@@ -75,7 +75,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   return (
-    <SQLiteProvider databaseName="transaction.db">
+    <SQLiteProvider databaseName="coinolio.db">
       <RootSiblingParent>
         <GestureHandlerRootView >
           <PaperProvider>

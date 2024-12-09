@@ -280,7 +280,7 @@ export default function AddTransactionBuySellScreen() {
                     buttonColor="black"
                     textColor={"white"}
                     rippleColor="white"
-                    style={styles.bigButton}
+                    style={[styles.bigButton, selectedFolios.length === 0 ? { opacity: 0.5 } : { opacity: 1 }]}
                     compact
                     mode="contained"
                     onPress={() => {
@@ -327,6 +327,9 @@ export default function AddTransactionBuySellScreen() {
                     db={db}
                     visible={isModalVisible}
                     setVisible={setIsModalVisible}
+                    onNewFolio={(folio) => {
+                        setSelectedFolios([...selectedFolios, folio.folioId]);
+                    }}
                 />
             </View>
         </View>

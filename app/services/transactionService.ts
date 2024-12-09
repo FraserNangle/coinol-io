@@ -144,9 +144,3 @@ export const removeCoinData = async (coinId: string) => {
   }
   //TODO: integrate this with sqlite system if needed
 };
-
-export const deleteAllTransactionsFromLocalStorage = async (db: SQLiteDatabase) => {
-  console.log("Deleting all transactions from local storage");
-  await db.execAsync('DELETE FROM transactions');
-  await db.execAsync('DROP TABLE IF EXISTS transactions');
-};

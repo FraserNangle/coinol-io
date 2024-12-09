@@ -34,14 +34,3 @@ async function downloadUserDataToLocalStorage() {
         console.log("User data downloaded from the server: ", response.data);
     }
 }
-
-export const deleteAllUserDataFromLocalStorage = async (db: SQLiteDatabase) => {
-    console.log("Deleting all transactions from local storage");
-    await db.execAsync('DELETE FROM transactions');
-    await db.execAsync('DROP TABLE IF EXISTS transactions');
-    console.log("Deleted all transactions from local storage");
-    console.log("Deleting all folios from local storage");
-    await db.execAsync('DELETE FROM folios');
-    await db.execAsync('DROP TABLE IF EXISTS folios');
-    console.log("Deleted all folios from local storage");
-};

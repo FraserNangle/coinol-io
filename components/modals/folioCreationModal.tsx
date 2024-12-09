@@ -15,9 +15,10 @@ interface FolioCreationModalProps {
     db: SQLiteDatabase;
     visible: boolean;
     setVisible: (visible: boolean) => void;
+    onNewFolio: (folio: Folio) => void;
 }
 
-export default function FolioCreationModal({ db, visible, setVisible }: FolioCreationModalProps) {
+export default function FolioCreationModal({ db, visible, setVisible, onNewFolio }: FolioCreationModalProps) {
     const dispatch = useDispatch();
 
     const [name, setName] = useState('');
@@ -29,8 +30,6 @@ export default function FolioCreationModal({ db, visible, setVisible }: FolioCre
     };
 
     const addFolio = (db: SQLiteDatabase, folio: Folio) => {
-        //TODO: set the newly added folio as one of the selected folios on add transaction screen
-
         addNewFolio(db, folio)
             .then(() => {
                 dispatch(addFolioToSlice(folio));
@@ -39,6 +38,7 @@ export default function FolioCreationModal({ db, visible, setVisible }: FolioCre
                     duration: Toast.durations.LONG,
                     position: Toast.positions.BOTTOM,
                 });
+                onNewFolio(folio);
                 hideModal();
             })
             .catch(error => {
