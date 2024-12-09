@@ -17,9 +17,7 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
 
     // Send the unique coinIds from the transactionList to the backend to get the complex data of each coin
     const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.coinId))];
-
     let coinsMarketsList: CoinsMarkets[] = [];
-
     await fetchCoinDataByCoinsList(uniqueCoinIds).then((data) => {
         coinsMarketsList = data;
     });
@@ -27,7 +25,7 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
     // populate the folio entries based on the transactionList and the coinsMarketsList
     const folioEntries: FolioEntry[] = [];
     transactionList.forEach((transaction) => {
-        const existingEntry = folioEntries.find((entry) => entry.coinId === transaction.coinId);
+        const existingEntry = folioEntries.find((entry) => entry.coinId === transaction.coinId && entry.folio.folioId === transaction.folioId);
         const coinMarket = coinsMarketsList.find((coinMarket) => coinMarket.id === transaction.coinId);
 
         if (existingEntry) {
@@ -40,22 +38,6 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                 folioEntries.splice(folioEntries.indexOf(existingEntry), 1);
             }
         } else {
-            function adjustColor(color: string): string {
-                // Parse the HSL color
-                const hsl = RegExp(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/).exec(color);
-                if (!hsl) return color; // Return the original color if it's not in HSL format
-
-                let [hue, saturation, lightness] = hsl.slice(1).map(Number);
-
-                // Adjust the lightness and saturation if the color is dark
-                if (lightness < 30) {
-                    lightness += 25; // Increase lightness
-                    saturation += 10; // Increase saturation
-                }
-
-                return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-            }
-
             const newQuantity = transaction.type === 'BUY' ? transaction.quantity : -transaction.quantity;
             if (newQuantity > 0) {
 
@@ -103,6 +85,22 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
     });
 
     return { folioEntries, foliosList };
+}
+
+function adjustColor(color: string): string {
+    // Parse the HSL color
+    const hsl = RegExp(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/).exec(color);
+    if (!hsl) return color; // Return the original color if it's not in HSL format
+
+    let [hue, saturation, lightness] = hsl.slice(1).map(Number);
+
+    // Adjust the lightness and saturation if the color is dark
+    if (lightness < 30) {
+        lightness += 25; // Increase lightness
+        saturation += 10; // Increase saturation
+    }
+
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
 export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {

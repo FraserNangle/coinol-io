@@ -40,9 +40,7 @@ export default function TabOneScreen() {
     setIsLoadingFolioData(true);
     const userData = await fetchUserFolio(db);
 
-    //TODO: Find out why transactions wont show if the first transaction on that coin was on a different folio
-
-    setCurrentFolio(userData.foliosList[0]);
+    setCurrentFolio(userData.foliosList.find((folio) => folio.folioId === "578b3b05-25fc-41a6-8102-507d3743e6d1"));
     dispatch(setFolios(userData.foliosList));
     dispatch(setUserFolio(userData.folioEntries.filter((userData) => userData.folio.folioId === currentFolio?.folioId)));
     setIsLoadingFolioData(false);
