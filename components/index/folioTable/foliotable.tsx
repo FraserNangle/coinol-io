@@ -76,7 +76,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
     });
   }, [props.data, sortField, sortOrder]);
 
-  const handleSort = (field: "ticker" | "price" | "total") => {
+  const handleSort = (field: SortField) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     if (sortField === field) {
@@ -88,7 +88,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
   };
 
   const getSortIndicator = (
-    field: "ticker" | "price" | "total"
+    field: SortField
   ) => {
     if (sortField !== field) {
       return "";

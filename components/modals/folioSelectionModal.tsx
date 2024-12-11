@@ -1,4 +1,4 @@
-import { LayoutAnimation, Platform, ScrollView, StyleSheet, TouchableOpacity, UIManager } from "react-native";
+import { Platform, ScrollView, StyleSheet, TouchableOpacity, UIManager } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React from "react";
 import { DataTable, Modal, PaperProvider, Portal } from "react-native-paper";
@@ -6,8 +6,10 @@ import { SQLiteDatabase } from "expo-sqlite";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useDispatch, useSelector } from "react-redux";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
-import { numberFormatter } from "@/app/utils/numberFormatter";
 import { RootState } from "@/app/store/store";
+import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
+import { Folio } from "@/app/models/Folio";
+import { Image } from "expo-image";
 
 interface FolioSelectionModalProps {
     db: SQLiteDatabase;
@@ -24,36 +26,37 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
     }
     const dispatch = useDispatch();
 
+    const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
     const folios = useSelector((state: RootState) => state.folios.folios);
-    const currentFolio = useSelector((state: RootState) => state.currentFolio.currentfolio);
-    type SortField = "ticker" | "price" | "total";
-
-    const [sortField, setSortField] = React.useState<SortField>("total");
-    const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
+    const currentFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
+    const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
     const hideModal = () => setVisible(false);
 
     const ROW_HEIGHT = 50;
 
-    const handleSort = (field: "ticker" | "price" | "total") => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    const getTotalFolioValue = (folio: Folio) => {
+        let folioValue = 0;
 
-        if (sortField === field) {
-            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-        } else {
-            setSortField(field);
-            setSortOrder("asc");
-        }
+        allFolioEntries.forEach((folioEntry) => {
+            if (folioEntry.folio.folioId === folio.folioId) {
+                folioValue += folioEntry.currentPrice * folioEntry.quantity;
+            }
+        });
+
+        return folioValue;
     };
 
-    const getSortIndicator = (
-        field: "ticker" | "price" | "total"
-    ) => {
-        if (sortField !== field) {
-            return "";
-        }
+    const getFolioCoinImages = (folio: Folio) => {
+        let folioCoinImages: string[] = [];
 
-        return sortOrder === "asc" ? " ↓" : " ↑";
+        allFolioEntries.forEach((folioEntry) => {
+            if (folioEntry.folio.folioId === folio.folioId) {
+                folioCoinImages.push(folioEntry.image);
+            }
+        });
+
+        return folioCoinImages.reverse();
     };
 
     return (
@@ -62,40 +65,36 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                 visible={visible}
                 onDismiss={hideModal}
                 contentContainerStyle={styles.modalContainer}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={{ fontWeight: 'bold' }}>Your Folios</Text>
-                    <TouchableOpacity onPress={hideModal}>
-                        <MaterialIcons color="white" name="cancel" size={20} />
-                    </TouchableOpacity>
-                </View>
                 <ScrollView
                     fadingEdgeLength={5}
                     removeClippedSubviews={true}
                 >
                     <PaperProvider>
                         <DataTable>
-                            <DataTable.Header style={[{ borderColor: "rgba(255, 255, 255, 0.2)", borderBottomWidth: .5, borderTopWidth: .5 }]}>
-                                <DataTable.Title onPress={() => handleSort("ticker")}>
+                            <DataTable.Header style={[{ borderColor: "rgba(255, 255, 255, 0.2)", borderBottomWidth: .5 }]}>
+                                <DataTable.Title>
                                     <Text style={styles.mainDataTableTitle}>
-                                        Coins{getSortIndicator("ticker")}
+                                        Folio
                                     </Text>
                                 </DataTable.Title>
-                                <DataTable.Title numeric onPress={() => handleSort("price")}>
-                                    <Text style={styles.dataTableTitle}>
-                                        Price (24h %){getSortIndicator("price")}
+                                <DataTable.Title >
+                                    <Text>
                                     </Text>
                                 </DataTable.Title>
-                                <DataTable.Title numeric onPress={() => handleSort("total")}>
-                                    <Text style={styles.dataTableTitle}>
-                                        Total{getSortIndicator("total")}
-                                    </Text>
+                                <DataTable.Title numeric>
+                                    <TouchableOpacity onPress={hideModal}>
+                                        <MaterialIcons color="white" name="cancel" size={20} />
+                                    </TouchableOpacity>
                                 </DataTable.Title>
                             </DataTable.Header>
 
                             {folios?.map((folio) => {
                                 return (
                                     <DataTable.Row
-                                        onPress={() => { }}
+                                        onPress={() => {
+                                            dispatch(setCurrentlySelectedFolio(folio));
+                                            hideModal();
+                                        }}
                                         key={folio?.folioId}
                                         style={[currentFolio?.folioId == folio?.folioId
                                             ? { borderLeftColor: "white", borderLeftWidth: 5, borderTopLeftRadius: 2, borderBottomLeftRadius: 2, borderBottomColor: "rgba(255, 255, 255, 0.125)" }
@@ -103,37 +102,36 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                         }
                                     >
                                         <DataTable.Cell>
-                                            <View style={styles.row}>
-                                                <View style={{ flexDirection: 'column', alignSelf: "center", paddingRight: 15, backgroundColor: 'transparent' }}>
-                                                </View>
-                                                <View style={[styles.column]}>
-                                                    <View style={styles.row}>
-                                                        <Text style={styles.ticker}>TEST</Text>
-                                                        <Text style={styles.bold}> TEST</Text>
-                                                    </View>
-                                                    <Text style={[styles.leftAlign, styles.normal]}>
-                                                        TEST
-                                                    </Text>
-                                                </View>
+                                            <View style={styles.column}>
+                                                <Text style={[styles.leftAlign, styles.normal]}>
+                                                    {folio?.folioName}
+                                                </Text>
+                                                <Text style={[styles.leftAlign, styles.light]}>
+                                                    {convertToCurrencyFormat(getTotalFolioValue(folio), currencyType, false, true)}
+                                                </Text>
                                             </View>
                                         </DataTable.Cell>
-                                        <DataTable.Cell numeric>
-                                            <Text
-                                                style={[
-                                                    styles.rightAlign
-                                                ]}
-                                            >
-                                                {"TEST"}
-                                            </Text>
+                                        <DataTable.Cell>
+                                            {getFolioCoinImages(folio).map((image, index) => {
+                                                return (
+                                                    <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
+                                                        <Image
+                                                            source={image}
+                                                            style={{ width: 20, height: 20 }}
+                                                            transition={100}
+                                                            cachePolicy={'disk'}
+                                                            priority={'high'}
+                                                            contentPosition={'center'}
+                                                            contentFit="cover"
+                                                        />
+                                                    </View>
+                                                );
+                                            })}
                                         </DataTable.Cell>
                                         <DataTable.Cell numeric>
-                                            <Text
-                                                style={
-                                                    styles.normal
-                                                }
-                                            >
-                                                TEST
-                                            </Text>
+                                            <MaterialIcons style={{
+                                                color: "rgba(255, 255, 255, 0.8)",
+                                            }} name="settings" size={20} />
                                         </DataTable.Cell>
                                     </DataTable.Row>
                                 );
@@ -151,8 +149,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         margin: 20,
         borderRadius: 5,
-        //borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.3)"
+        //borderBottomWidth: 5,
+        //borderColor: "hsl(0, 0%, 60%)"
     },
     ticker: {
         fontWeight: "200",

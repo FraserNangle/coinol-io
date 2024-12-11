@@ -10,6 +10,7 @@ import { addNewFolio } from "@/app/services/folioService";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useDispatch } from "react-redux";
 import { addFolioToSlice } from "@/app/slices/foliosSlice";
+import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
 
 interface FolioCreationModalProps {
     db: SQLiteDatabase;
@@ -33,11 +34,12 @@ export default function FolioCreationModal({ db, visible, setVisible, onNewFolio
         addNewFolio(db, folio)
             .then(() => {
                 dispatch(addFolioToSlice(folio));
-                Toast.show(`Added new folio ${folio.folioName} to your folios.`, {
+                Toast.show(`Added new folio "${folio.folioName}" to your folios.`, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
                     position: Toast.positions.BOTTOM,
                 });
+                dispatch(setCurrentlySelectedFolio(folio));
                 onNewFolio(folio);
                 hideModal();
             })

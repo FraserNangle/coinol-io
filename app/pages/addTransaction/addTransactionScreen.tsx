@@ -44,7 +44,7 @@ export default function AddTransactionBuySellScreen() {
     const navigation = useNavigation();
     const dispatch = useDispatch();
 
-    const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
+    const userFolio = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
     const folios = useSelector((state: RootState) => state.folios.folios) || [];
 
     useEffect(() => {
@@ -107,7 +107,7 @@ export default function AddTransactionBuySellScreen() {
     const addTransactions = (db: SQLiteDatabase, transactions: UserTransaction[]) => {
         addBatchTransactionData(db, transactions)
             .then(() => {
-                Toast.show(`Added ${item.name} transaction to portfolio(s). `, {
+                Toast.show(`Added ${item.name} transaction to ${getNamesOfSelectedFolios().join(", ")}. `, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
                     position: Toast.positions.CENTER,
@@ -143,6 +143,10 @@ export default function AddTransactionBuySellScreen() {
                 setTotal(text);
             }
         }
+    };
+
+    const getNamesOfSelectedFolios = () => {
+        return selectedFolios.map(folio => folios.find(folioItem => folioItem.folioId === folio)?.folioName ?? '');
     };
 
     return (

@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import selectedSectionReducer from '../slices/selectedSectionSlice';
 import totalPortfolioValueReducer from '../slices/totalPortfolioValueSlice';
-import userFolioReducer from '../slices/userFolioSlice';
+import allFolioEntriesReducer from '../slices/folioEntriesSlice';
 import allCoinDataReducer from '../slices/allCoinDataSlice';
 import lastTransactionReducer from '../slices/lastTransactionSlice';
 import currencyTypeReducer from '../slices/currencyTypeSlice';
@@ -14,12 +14,12 @@ const store = configureStore({
         selectedSection: selectedSectionReducer,
         lastTransaction: lastTransactionReducer,
         totalPortfolioValue: totalPortfolioValueReducer,
-        userFolio: userFolioReducer,
+        folioEntries: allFolioEntriesReducer,
         allCoinData: allCoinDataReducer,
         currencyType: currencyTypeReducer,
         refresh: refreshReducer,
         folios: foliosReducer,
-        currentFolio: currentlySelectedFolioReducer,
+        currentlySelectedFolio: currentlySelectedFolioReducer,
     },
 });
 

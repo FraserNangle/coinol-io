@@ -7,18 +7,20 @@ import {
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "@/components/index/folioTable/foliotable";
 import { Link } from "expo-router";
-import { fetchUserFolio } from "../services/folioService";
+import { fetchUserData } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";
 import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
-import { setUserFolio } from "../slices/userFolioSlice";
+import { setAllFolioEntries as setAllFolioEntries, setCurrentFolioEntries } from "../slices/folioEntriesSlice";
 import { RootState } from "../store/store";
 import { DonutChart } from "@/components/index/donutChart/donutChart";
 import { useSQLiteContext } from "expo-sqlite";
 import { setCurrencyType } from "../slices/currencyTypeSlice";
 import { setLastTransaction } from "../slices/lastTransactionSlice";
 import { ActivityIndicator } from "react-native-paper";
-import { Folio } from "../models/Folio";
 import { setFolios } from "../slices/foliosSlice";
+import { deleteAllUserDataFromLocalStorage } from "../services/sqlService";
+import { setCurrentlySelectedFolio } from "../slices/currentlySelectedFolioSlice";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
@@ -28,27 +30,26 @@ export default function TabOneScreen() {
 
   const dispatch = useDispatch();
 
-  let userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
-  let lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
-  let currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
+  const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
+  const currentFolioEntries = useSelector((state: RootState) => state.folioEntries.currentFolioEntries) || [];
+  const currentlySelectedFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
+  const lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
+  const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
   const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
   const [isLoadingFolioData, setIsLoadingFolioData] = useState(true);
-  const [currentlySelectedFolio, setCurrentlySelectedFolio] = useState<Folio>();
 
   const fetchUserFolioData = async () => {
-    //TODO: figure out why data is not being fetched on app launch but needs 1 refresh to show
     setIsLoadingFolioData(true);
-    const userData = await fetchUserFolio(db);
-    setCurrentlySelectedFolio(userData.foliosList.find((folio) => folio.isFavorite));
+    const userData = await fetchUserData(db);
+    const favoriteFolio = userData.foliosList.find((folio) => folio.isFavorite);
+    if (currentlySelectedFolio === undefined) {
+      dispatch(setCurrentlySelectedFolio(favoriteFolio));
+    }
     dispatch(setFolios(userData.foliosList));
-    dispatch(setUserFolio(userData.folioEntries.filter((userData) => userData.folio.folioId === currentlySelectedFolio?.folioId)));
+    dispatch(setAllFolioEntries(userData.folioEntries));
     setIsLoadingFolioData(false);
   };
-
-  useEffect(() => {
-    dispatch(setCurrencyType("USD"));
-  }, []);
 
   useEffect(() => {
     if (refresh) {
@@ -58,31 +59,47 @@ export default function TabOneScreen() {
   }, [lastTransaction, refresh]);
 
   useEffect(() => {
-    const totalPortfolioValue = userFolio.reduce(
+    if (currentlySelectedFolio && currentFolioEntries) {
+      dispatch(setCurrentFolioEntries(allFolioEntries.filter((folioEntry) => folioEntry.folio.folioId === currentlySelectedFolio?.folioId)));
+    }
+  }, [allFolioEntries, currentlySelectedFolio]);
+
+  useEffect(() => {
+    dispatch(setCurrencyType("USD"));
+  }, []);
+
+  useEffect(() => {
+    const totalPortfolioValue = currentFolioEntries.reduce(
       (total, item) => total + item.quantity * item.currentPrice,
       0
     );
-    const totalPortfolioPercentageChange24hr = userFolio.reduce(
+    const totalPortfolioPercentageChange24hr = currentFolioEntries.reduce(
       (sum, folioEntry) => sum + folioEntry.priceChangePercentage24h, 0
-    ) / userFolio.length;
+    ) / currentFolioEntries.length;
     dispatch(setTotalPortfolioValue(totalPortfolioValue));
     dispatch(setTotalPortfolioPercentageChange24hr(totalPortfolioPercentageChange24hr));
-  }, [userFolio]);
+  }, [currentFolioEntries]);
 
   return (
     <>
       {!isLoadingFolioData &&
-        userFolio.length === 0 && (
+        currentFolioEntries.length === 0 && (
           <View style={styles.container}>
             <Link href="/plusMenu" asChild>
               <Pressable>
                 {({ pressed }) => (
                   <>
                     <Text style={[styles.title, { opacity: pressed ? 0.5 : 1 }]}>
-                      You have no holdings yet!
+                      {allFolioEntries.length === 0 ? "You have no transactions yet!" : "The selected folio is empty!"}
                     </Text>
                     <Text style={[styles.title, { opacity: pressed ? 0.5 : 1 }]}>
-                      Tap here to get started.
+                      {allFolioEntries.length === 0 ? (
+                        "Tap here to get started."
+                      ) : (
+                        <>
+                          Click the <MaterialIcons name="menu" size={20} /> icon to select a folio.
+                        </>
+                      )}
                     </Text>
                   </>
                 )}
@@ -92,7 +109,7 @@ export default function TabOneScreen() {
         )
       }
       {
-        userFolio.length > 0 && (
+        currentFolioEntries.length > 0 && (
           <View style={styles.screenContainer}>
             {isLoadingFolioData ? (
               <View style={styles.loadingContainer}>
@@ -102,13 +119,13 @@ export default function TabOneScreen() {
               <>
                 <View style={styles.donutContainer}>
                   <DonutChart
-                    data={userFolio}
+                    data={currentFolioEntries}
                     width={screenWidth * 0.95}
                     height={screenHeight / 2}
                     currencyTicker={currencyType} />
                 </View>
                 <View style={styles.tableContainer}>
-                  <FolioTable data={userFolio} />
+                  <FolioTable data={currentFolioEntries} />
                 </View>
               </>
             )}

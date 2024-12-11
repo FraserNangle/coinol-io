@@ -10,7 +10,7 @@ import { getUserData } from "./userDataService";
 import { UserData } from "../models/UserData";
 import { createFoliosTable } from "./sqlService";
 
-export async function fetchUserFolio(db: SQLiteDatabase) {
+export async function fetchUserData(db: SQLiteDatabase) {
     const userData: UserData = await getUserData(db);
     const transactionList: UserTransaction[] = userData.transactions;
     const foliosList: Folio[] = userData.folios;
@@ -113,9 +113,13 @@ export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {
     // Insert the new folio
     await db.runAsync('INSERT INTO folios (folioId, folioName, isFavorite) VALUES (?, ?, ?)',
         newFolio.folioId,
-        newFolio.folioName,
-        isFirstEntry ? 1 : 0 // Set as favorite if it's the first entry
+        newFolio.folioName
     );
+
+    if (isFirstEntry) {
+        // If first made folio, Set the new folio as the favourite folio
+        await setFavoriteFolio(db, newFolio.folioId);
+    }
 
     if (!isGuest()) {
         // If the user is not a guest, update the folios on the server
