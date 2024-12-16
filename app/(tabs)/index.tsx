@@ -90,15 +90,17 @@ export default function TabOneScreen() {
                 {({ pressed }) => (
                   <>
                     <Text style={[styles.title, { opacity: pressed ? 0.5 : 1 }]}>
-                      {allFolioEntries.length === 0 ? "You have no transactions yet!" : "The selected folio is empty!"}
+                      {allFolioEntries.length === 0 ? "You have no transactions yet!" : "The selected folio is empty."}
                     </Text>
                     <Text style={[styles.title, { opacity: pressed ? 0.5 : 1 }]}>
                       {allFolioEntries.length === 0 ? (
                         "Tap here to get started."
                       ) : (
-                        <>
-                          Click the <MaterialIcons name="menu" size={20} /> icon to select a folio.
-                        </>
+                        <View style={[{ flexDirection: 'row', alignItems: 'center' }, { opacity: pressed ? 0.5 : 1 }]}>
+                          <Text>Click here or the </Text>
+                          <MaterialIcons name="add-circle" size={20} style={{ color: 'white' }} />
+                          <Text> icon to add a transaction.</Text>
+                        </View>
                       )}
                     </Text>
                   </>

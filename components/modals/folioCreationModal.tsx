@@ -68,6 +68,8 @@ export default function FolioCreationModal({ db, visible, setVisible, onNewFolio
                                 style={styles.textInput}
                                 multiline={false}
                                 numberOfLines={1}
+                                placeholder="Enter a name for your new folio"
+                                placeholderTextColor="rgba(255, 255, 255, 0.5)"
                                 keyboardType='default'
                                 onChangeText={handleNameInputChange}
                                 selectionColor={"rgba(255, 255, 255, 0.5)"}

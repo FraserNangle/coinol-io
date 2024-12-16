@@ -1,7 +1,7 @@
 import { Platform, ScrollView, StyleSheet, TouchableOpacity, UIManager } from "react-native";
 import { Text, View } from "@/components/Themed";
-import React from "react";
-import { DataTable, Modal, PaperProvider, Portal } from "react-native-paper";
+import React, { useState } from "react";
+import { Button, DataTable, Modal, PaperProvider, Portal } from "react-native-paper";
 import { SQLiteDatabase } from "expo-sqlite";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +10,8 @@ import { RootState } from "@/app/store/store";
 import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
 import { Folio } from "@/app/models/Folio";
 import { Image } from "expo-image";
+import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
+import FolioCreationModal from "./folioCreationModal";
 
 interface FolioSelectionModalProps {
     db: SQLiteDatabase;
@@ -30,8 +32,11 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
     const folios = useSelector((state: RootState) => state.folios.folios);
     const currentFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
+    const [isCreationModalVisible, setIsCreationModalVisible] = useState(false);
 
     const hideModal = () => setVisible(false);
+
+    const showCreationModal = () => setIsCreationModalVisible(true);
 
     const ROW_HEIGHT = 50;
 
@@ -45,18 +50,6 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
         });
 
         return folioValue;
-    };
-
-    const getFolioCoinImages = (folio: Folio) => {
-        let folioCoinImages: string[] = [];
-
-        allFolioEntries.forEach((folioEntry) => {
-            if (folioEntry.folio.folioId === folio.folioId) {
-                folioCoinImages.push(folioEntry.image);
-            }
-        });
-
-        return folioCoinImages.reverse();
     };
 
     return (
@@ -101,7 +94,7 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                             : { borderBottomColor: "rgba(255, 255, 255, 0.2)" }, { height: ROW_HEIGHT }]
                                         }
                                     >
-                                        <DataTable.Cell>
+                                        <DataTable.Cell style={{ flex: 1 }}>
                                             <View style={styles.column}>
                                                 <Text style={[styles.leftAlign, styles.normal]}>
                                                     {folio?.folioName}
@@ -111,22 +104,29 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                                 </Text>
                                             </View>
                                         </DataTable.Cell>
-                                        <DataTable.Cell>
-                                            {getFolioCoinImages(folio).map((image, index) => {
-                                                return (
-                                                    <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
-                                                        <Image
-                                                            source={image}
-                                                            style={{ width: 20, height: 20 }}
-                                                            transition={100}
-                                                            cachePolicy={'disk'}
-                                                            priority={'high'}
-                                                            contentPosition={'center'}
-                                                            contentFit="cover"
-                                                        />
-                                                    </View>
-                                                );
-                                            })}
+                                        <DataTable.Cell style={{ flex: 2 }}>
+                                            <ScrollView
+                                                horizontal
+                                                fadingEdgeLength={25}
+                                                contentContainerStyle={styles.row}
+                                                showsHorizontalScrollIndicator={false}
+                                            >
+                                                {getFolioCoinImages(folio.folioId, allFolioEntries).map((image, index) => {
+                                                    return (
+                                                        <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
+                                                            <Image
+                                                                source={image}
+                                                                style={{ width: 20, height: 20 }}
+                                                                transition={100}
+                                                                cachePolicy={'disk'}
+                                                                priority={'high'}
+                                                                contentPosition={'center'}
+                                                                contentFit="cover"
+                                                            />
+                                                        </View>
+                                                    );
+                                                })}
+                                            </ScrollView>
                                         </DataTable.Cell>
                                         <DataTable.Cell numeric>
                                             <MaterialIcons style={{
@@ -137,9 +137,29 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                 );
                             })}
                         </DataTable>
+                        <Button
+                            buttonColor="black"
+                            textColor={"white"}
+                            rippleColor="white"
+                            style={styles.bigButton}
+                            compact
+                            mode="contained"
+                            onPress={showCreationModal}>
+                            <MaterialIcons style={{
+                                color: "white",
+                            }} name="add-circle" size={20} />
+                        </Button>
                     </PaperProvider>
                 </ScrollView >
             </Modal>
+            <FolioCreationModal
+                db={db}
+                visible={isCreationModalVisible}
+                setVisible={setIsCreationModalVisible}
+                onNewFolio={(folio) => {
+                    dispatch(setCurrentlySelectedFolio(folio));
+                }}
+            />
         </Portal>
     );
 }
@@ -149,8 +169,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         margin: 20,
         borderRadius: 5,
-        //borderBottomWidth: 5,
-        //borderColor: "hsl(0, 0%, 60%)"
     },
     ticker: {
         fontWeight: "200",
@@ -201,9 +219,7 @@ const styles = StyleSheet.create({
     bigButton: {
         width: "100%",
         borderRadius: 5,
-        borderWidth: 1,
         borderBottomWidth: 5,
         borderColor: "rgba(255, 255, 255, .3)",
-        marginTop: 10,
     },
 });

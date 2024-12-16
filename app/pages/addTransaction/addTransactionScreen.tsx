@@ -18,21 +18,15 @@ import { MultiSelect } from 'react-native-element-dropdown';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ScrollView } from "react-native-gesture-handler";
 import FolioCreationModal from "@/components/modals/folioCreationModal";
+import { Folio } from "@/app/models/Folio";
+import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
+import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
 
 type RouteParams = {
     item: Coin;
 };
 
 export default function AddTransactionBuySellScreen() {
-    const [transactionType, setTransactionType] = useState("BUY");
-    const [total, setTotal] = useState('');
-    const [date, setDate] = useState(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
-    const [canSell, setCanSell] = useState(false);
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [selectedFolios, setSelectedFolios] = useState<string[]>([]);
-
     const showModal = () => setIsModalVisible(true);
 
     const db = useSQLiteContext();
@@ -46,6 +40,17 @@ export default function AddTransactionBuySellScreen() {
 
     const userFolio = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
     const folios = useSelector((state: RootState) => state.folios.folios) || [];
+    const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
+    const currentFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
+
+    const [transactionType, setTransactionType] = useState("BUY");
+    const [total, setTotal] = useState('');
+    const [date, setDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
+    const [canSell, setCanSell] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedFolios, setSelectedFolios] = useState<string[]>([currentFolio?.folioId ?? '']);
 
     useEffect(() => {
         userFolio.forEach((folioEntry) => {
@@ -114,6 +119,7 @@ export default function AddTransactionBuySellScreen() {
                 });
                 const lastTransaction = transactions.length > 0 ? transactions[transactions.length - 1] : null;
                 dispatch(setLastTransaction(lastTransaction));
+                dispatch(setCurrentlySelectedFolio(folios.find(folio => folio.folioId === selectedFolios[0]) ?? null));
                 navigation.navigate('index');
             })
             .catch(error => {
@@ -233,7 +239,6 @@ export default function AddTransactionBuySellScreen() {
                                 itemContainerStyle={styles.dropdownItemContainer}
                                 iconStyle={styles.iconStyle}
                                 inputSearchStyle={styles.inputSearchStyle}
-                                itemTextStyle={{ color: 'white', fontSize: 14 }}
                                 data={folios}
                                 labelField="folioName"
                                 valueField="folioId"
@@ -252,7 +257,38 @@ export default function AddTransactionBuySellScreen() {
                                 onChange={(folios) => {
                                     setSelectedFolios(folios);
                                 }}
-                                renderSelectedItem={() => (<></>)}
+                                visibleSelectedItem={false}
+                                renderItem={(item) => {
+                                    return (
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent' }}>
+                                            <Text style={[{ height: 60, paddingLeft: 15, textAlignVertical: 'center' }]}>
+                                                {item.folioName}
+                                            </Text>
+                                            <ScrollView
+                                                horizontal
+                                                fadingEdgeLength={25}
+                                                contentContainerStyle={styles.row}
+                                                showsHorizontalScrollIndicator={false}
+                                            >
+                                                {getFolioCoinImages(item.folioId, allFolioEntries).map((image, index) => {
+                                                    return (
+                                                        <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
+                                                            <Image
+                                                                source={image}
+                                                                style={{ width: 20, height: 20 }}
+                                                                transition={100}
+                                                                cachePolicy={'disk'}
+                                                                priority={'high'}
+                                                                contentPosition={'center'}
+                                                                contentFit="cover"
+                                                            />
+                                                        </View>
+                                                    );
+                                                })}
+                                            </ScrollView>
+                                        </View>
+                                    );
+                                }}
                             >
                             </MultiSelect>
                             <TouchableHighlight
@@ -283,12 +319,20 @@ export default function AddTransactionBuySellScreen() {
                     buttonColor="black"
                     textColor={"white"}
                     rippleColor="white"
-                    style={[styles.bigButton, selectedFolios.length === 0 ? { opacity: 0.5 } : { opacity: 1 }]}
+                    style={[styles.bigButton, selectedFolios.length === 0 || Number(total) === 0 ? { opacity: 0.5 } : { opacity: 1 }]}
                     compact
                     mode="contained"
                     onPress={() => {
                         if (selectedFolios.length === 0) {
                             Toast.show(`Select at least one folio to add your transaction to. `, {
+                                backgroundColor: "hsl(0, 0%, 15%)",
+                                duration: Toast.durations.LONG,
+                            });
+                            return;
+                        }
+
+                        if (Number(total) === 0) {
+                            Toast.show(`Total must be greater than 0. `, {
                                 backgroundColor: "hsl(0, 0%, 15%)",
                                 duration: Toast.durations.LONG,
                             });
@@ -390,7 +434,6 @@ const styles = StyleSheet.create({
         padding: 5,
     },
     dropdownItemContainer: {
-        color: 'white',
         borderRadius: 5,
         textAlignVertical: 'center',
     },
