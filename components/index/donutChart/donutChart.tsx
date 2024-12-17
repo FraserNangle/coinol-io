@@ -318,7 +318,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                         {sections.map((section, index) => {
                             return (
                                 <Section
-                                    key={`${section.coinId}-${refreshCount}`}
+                                    key={`${section.coinId}-${refreshCount}-${section.accumulatedValue}`}
                                     section={section}
                                     index={index}
                                     totalValue={totalPortfolioValue}
