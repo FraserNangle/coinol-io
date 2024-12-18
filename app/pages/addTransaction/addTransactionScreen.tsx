@@ -21,6 +21,8 @@ import FolioCreationModal from "@/components/modals/folioCreationModal";
 import { Folio } from "@/app/models/Folio";
 import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
 import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
+import { all } from "axios";
+import { FolioEntry } from "@/app/models/FolioEntry";
 
 type RouteParams = {
     item: Coin;
@@ -38,9 +40,8 @@ export default function AddTransactionBuySellScreen() {
     const navigation = useNavigation();
     const dispatch = useDispatch();
 
-    const userFolio = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
-    const folios = useSelector((state: RootState) => state.folios.folios) || [];
     const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
+    const folios = useSelector((state: RootState) => state.folios.folios) || [];
     const currentFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
 
     const [transactionType, setTransactionType] = useState("BUY");
@@ -52,13 +53,34 @@ export default function AddTransactionBuySellScreen() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedFolios, setSelectedFolios] = useState<string[]>([currentFolio?.folioId ?? '']);
 
+    // if allFolioEntries doesnt have an entry where the folio.folioId matches selectedFolios (which is an id), then set canSell to false
+    // if allFolioEntries does have a matching entry, then check if the coinId matches the item.id, if not set canSell to false
+    // if allFolioEntries does have a matching entry, the coinId matches the item.id, then check if the quantity is greater than 0, if not set canSell to false
+
     useEffect(() => {
-        userFolio.forEach((folioEntry) => {
-            if (folioEntry.coinId === item.id && folioEntry.quantity > 0) {
-                setCanSell(true);
-            }
-        });
-    }, []);
+        if (selectedFolios.length !== 1) {
+            setCanSell(false);
+            setTransactionType("BUY");
+            return;
+        }
+
+        const entriesMatchingSelectedFolios = allFolioEntries.filter(folioEntry => folioEntry.folio.folioId === selectedFolios[0]);
+        if (entriesMatchingSelectedFolios.length === 0) {
+            setCanSell(false);
+            setTransactionType("BUY");
+            return;
+        }
+
+        const matchingEntry = entriesMatchingSelectedFolios.find(folioEntry => folioEntry.coinId === item.id);
+        if (!matchingEntry || matchingEntry.quantity === 0) {
+            setCanSell(false);
+            setTransactionType("BUY");
+            return;
+        }
+
+        setCanSell(true);
+    }, [allFolioEntries, selectedFolios, item.id]);
+
 
     useEffect(() => {
         navigation.setOptions({
@@ -102,11 +124,18 @@ export default function AddTransactionBuySellScreen() {
     };
 
     const sellAll = () => {
-        userFolio.forEach((folioEntry) => {
-            if (folioEntry.coinId === item.id) {
-                setTotal(folioEntry.quantity.toString());
-            }
-        });
+        if (selectedFolios.length === 1) {
+            allFolioEntries.forEach((folioEntry) => {
+                if (folioEntry.coinId === item.id && folioEntry.folio.folioId === selectedFolios[0]) {
+                    setTotal(folioEntry.quantity.toString());
+                }
+            });
+        } else {
+            Toast.show(`Sell All is only available for one folio at a time. `, {
+                backgroundColor: "hsl(0, 0%, 15%)",
+                duration: Toast.durations.LONG,
+            });
+        }
     };
 
     const addTransactions = (db: SQLiteDatabase, transactions: UserTransaction[]) => {
@@ -132,19 +161,23 @@ export default function AddTransactionBuySellScreen() {
         const regex = /^(?:\d*\.?\d*)$/;
         if (regex.test(text)) {
             if (transactionType === "SELL") {
-                userFolio.forEach((folioEntry) => {
-                    if (folioEntry.coinId === item.id) {
-                        if (Number(text) > folioEntry.quantity) {
-                            setTotal(folioEntry.quantity.toString());
-                            Toast.show(`Sell is limited to your ${item.name} quantity. `, {
-                                backgroundColor: "hsl(0, 0%, 15%)",
-                                duration: Toast.durations.LONG,
-                            });
-                        } else {
-                            setTotal(text);
+                let minQuantity = Infinity;
+                allFolioEntries.forEach((folioEntry) => {
+                    if (folioEntry.coinId === item.id && selectedFolios.includes(folioEntry.folio.folioId)) {
+                        if (folioEntry.quantity < minQuantity) {
+                            minQuantity = folioEntry.quantity;
                         }
                     }
                 });
+                if (Number(text) > minQuantity) {
+                    setTotal(minQuantity.toString());
+                    Toast.show(`Sell is limited to your ${item.name} quantity. `, {
+                        backgroundColor: "hsl(0, 0%, 15%)",
+                        duration: Toast.durations.LONG,
+                    });
+                } else {
+                    setTotal(text);
+                }
             } else {
                 setTotal(text);
             }
@@ -205,7 +238,7 @@ export default function AddTransactionBuySellScreen() {
                                     onPress={() => sellAll()}
                                 >
                                     <Text style={{ color: 'red', paddingLeft: 10 }}>
-                                        SELL ALL
+                                        ALL
                                     </Text>
                                 </TouchableHighlight>
                             }
