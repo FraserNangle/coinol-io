@@ -1,7 +1,7 @@
-import { Platform, ScrollView, StyleSheet, TouchableOpacity, UIManager } from "react-native";
+import { GestureResponderEvent, Platform, ScrollView, StyleSheet, TouchableOpacity, UIManager } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useState } from "react";
-import { Button, DataTable, Modal, PaperProvider, Portal } from "react-native-paper";
+import { Button, DataTable, Divider, Menu, Modal, PaperProvider, Portal } from "react-native-paper";
 import { SQLiteDatabase } from "expo-sqlite";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,6 +12,8 @@ import { Folio } from "@/app/models/Folio";
 import { Image } from "expo-image";
 import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
 import FolioCreationModal from "./folioCreationModal";
+import { setFavoriteFolio } from "@/app/services/folioService";
+import { setFavoriteFolioReducer } from "@/app/slices/foliosSlice";
 
 interface FolioSelectionModalProps {
     db: SQLiteDatabase;
@@ -33,10 +35,25 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
     const currentFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
     const [isCreationModalVisible, setIsCreationModalVisible] = useState(false);
+    const [isFolioSettingsMenuVisible, setIsFolioSettingsMenuVisible] = useState(false);
+    const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
 
     const hideModal = () => setVisible(false);
 
     const showCreationModal = () => setIsCreationModalVisible(true);
+
+    const openFolioSettingsMenu = (event: GestureResponderEvent) => {
+        const { nativeEvent } = event;
+        const anchor = {
+            x: nativeEvent.pageX,
+            y: nativeEvent.pageY,
+        };
+
+        setMenuAnchor(anchor);
+        setIsFolioSettingsMenuVisible(true)
+    };
+
+    const closeFolioSettingsMenu = () => setIsFolioSettingsMenuVisible(false);
 
     const ROW_HEIGHT = 50;
 
@@ -50,6 +67,11 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
         });
 
         return folioValue;
+    };
+
+    const handleSetFavoriteFolio = async (folioId: string) => {
+        await setFavoriteFolio(db, folioId);
+        dispatch(setFavoriteFolioReducer(folioId));
     };
 
     return (
@@ -91,15 +113,17 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                         key={folio?.folioId}
                                         style={[currentFolio?.folioId == folio?.folioId
                                             ? { borderLeftColor: "white", borderLeftWidth: 5, borderTopLeftRadius: 2, borderBottomLeftRadius: 2, borderBottomColor: "rgba(255, 255, 255, 0.125)" }
-                                            : { borderBottomColor: "rgba(255, 255, 255, 0.2)" }, { height: ROW_HEIGHT }]
+                                            : { borderBottomColor: "rgba(255, 255, 255, 0.2)" }, { height: ROW_HEIGHT }, { paddingRight: 0 }]
                                         }
                                     >
-                                        <DataTable.Cell style={{ flex: 1 }}>
+                                        <DataTable.Cell style={{ flex: 1.25 }}>
                                             <View style={styles.column}>
-                                                <Text style={[styles.leftAlign, styles.normal]}>
+                                                <Text style={[styles.leftAlign, styles.normal]}
+                                                    numberOfLines={1} ellipsizeMode="middle">
                                                     {folio?.folioName}
                                                 </Text>
-                                                <Text style={[styles.leftAlign, styles.light]}>
+                                                <Text style={[styles.leftAlign, styles.light]}
+                                                    numberOfLines={1} ellipsizeMode="middle">
                                                     {convertToCurrencyFormat(getTotalFolioValue(folio), currencyType, false, true)}
                                                 </Text>
                                             </View>
@@ -128,11 +152,26 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                                 })}
                                             </ScrollView>
                                         </DataTable.Cell>
-                                        <DataTable.Cell numeric>
-                                            <MaterialIcons style={{
-                                                color: "rgba(255, 255, 255, 0.8)",
-                                            }} name="settings" size={20} />
-                                        </DataTable.Cell>
+                                        <TouchableOpacity
+                                            style={{ flex: 1 }}
+                                            onPress={openFolioSettingsMenu}>
+                                            <DataTable.Cell numeric>
+                                                <MaterialIcons style={{
+                                                    color: "rgba(255, 255, 255, 0.8)",
+                                                }} name="more-horiz" size={20} />
+                                            </DataTable.Cell>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={{ flex: .35, paddingRight: 15 }}
+                                            onPress={() => {
+                                                handleSetFavoriteFolio(folio.folioId)
+                                            }}
+                                        >
+                                            <DataTable.Cell numeric>
+                                                <MaterialIcons style={folio.isFavorite ? { color: "gold" } : { color: "rgba(255, 255, 255, 0.8)" }}
+                                                    name={folio.isFavorite ? "star" : "star-border"} size={20} />
+                                            </DataTable.Cell>
+                                        </TouchableOpacity>
                                     </DataTable.Row>
                                 );
                             })}
@@ -149,6 +188,7 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                 color: "white",
                             }} name="add-circle" size={20} />
                         </Button>
+
                     </PaperProvider>
                 </ScrollView >
             </Modal>
@@ -160,7 +200,18 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                     dispatch(setCurrentlySelectedFolio(folio));
                 }}
             />
-        </Portal>
+            <Menu
+                style={{ backgroundColor: 'transparent', width: 120, borderRadius: 5, borderColor: "rgba(255, 255, 255, .3)", paddingTop: 0, marginTop: 0 }}
+                contentStyle={{ backgroundColor: 'black', borderWidth: 1, borderColor: "rgba(255, 255, 255, .2)" }}
+                visible={isFolioSettingsMenuVisible}
+                onDismiss={closeFolioSettingsMenu}
+                anchor={menuAnchor}>
+                <Menu.Item onPress={() => { }} title="Rename" />
+                <Menu.Item onPress={() => { }} title="Duplicate" />
+                <Divider />
+                <Menu.Item titleStyle={{ color: 'red' }} onPress={() => { }} title="Delete" />
+            </Menu>
+        </Portal >
     );
 }
 
@@ -214,7 +265,7 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: "row",
         justifyContent: 'flex-start',
-        backgroundColor: 'transparent'
+        backgroundColor: 'transparent',
     },
     bigButton: {
         width: "100%",

@@ -1,5 +1,5 @@
 export type Folio = {
     folioId: string;
     folioName: string;
-    isFavorite?: boolean;
+    isFavorite?: number;
 };
