@@ -25,9 +25,17 @@ const foliosSlice = createSlice({
                 folio.isFavorite = folio.folioId === folioId ? 1 : 0;
             });
         },
+        updateFolioNameReducer: (state, action: PayloadAction<{ folioId: string, newFolioName: string }>) => {
+            const { folioId, newFolioName } = action.payload;
+            state.folios?.forEach(folio => {
+                if (folio.folioId === folioId) {
+                    folio.folioName = newFolioName;
+                }
+            });
+        }
     },
 });
 
-export const { setFolios, addFolioToSlice, setFavoriteFolioReducer } = foliosSlice.actions;
+export const { setFolios, addFolioToSlice, setFavoriteFolioReducer, updateFolioNameReducer } = foliosSlice.actions;
 
 export default foliosSlice.reducer;

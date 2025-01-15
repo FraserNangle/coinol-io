@@ -133,6 +133,25 @@ export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {
     }
 };
 
+export const updateFolioName = async (db: SQLiteDatabase, folioId: string, newFolioName: string) => {
+    await createFoliosTable(db);
+
+    // Update the folio name
+    await db.runAsync('UPDATE folios SET folioName = ? WHERE folioId = ?', newFolioName, folioId);
+
+    if (!isGuest()) {
+        // If the user is not a guest, update the folios on the server
+        const response = await api.post('/userFolios/update/folioName', {
+            folioId,
+            newFolioName
+        });
+
+        if (response.status >= 200 && response.status < 300) {
+            return response.data;
+        }
+    }
+}
+
 export const setFavoriteFolio = async (db: SQLiteDatabase, folioId: string) => {
     // Reset isFavorite for all folios
     await db.runAsync('UPDATE folios SET isFavorite = 0');
