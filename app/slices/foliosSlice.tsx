@@ -19,6 +19,10 @@ const foliosSlice = createSlice({
         addFolioToSlice(state, action: PayloadAction<Folio>) {
             state?.folios?.push(action.payload);
         },
+        deleteFolioFromSliceById: (state, action: PayloadAction<string>) => {
+            const folioId = action.payload;
+            state.folios = state.folios?.filter(folio => folio.folioId !== folioId) || null;
+        },
         setFavoriteFolioReducer: (state, action: PayloadAction<string>) => {
             const folioId = action.payload;
             state.folios?.forEach(folio => {
@@ -36,6 +40,6 @@ const foliosSlice = createSlice({
     },
 });
 
-export const { setFolios, addFolioToSlice, setFavoriteFolioReducer, updateFolioNameReducer } = foliosSlice.actions;
+export const { setFolios, addFolioToSlice, deleteFolioFromSliceById, setFavoriteFolioReducer, updateFolioNameReducer } = foliosSlice.actions;
 
 export default foliosSlice.reducer;

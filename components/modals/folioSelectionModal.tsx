@@ -1,6 +1,6 @@
 import { GestureResponderEvent, Platform, ScrollView, StyleSheet, TouchableOpacity, UIManager } from "react-native";
 import { Text, View } from "@/components/Themed";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, DataTable, Divider, Menu, Modal, PaperProvider, Portal } from "react-native-paper";
 import { SQLiteDatabase } from "expo-sqlite";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -15,6 +15,7 @@ import FolioCreationModal from "./folioCreationModal";
 import { setFavoriteFolio } from "@/app/services/folioService";
 import { setFavoriteFolioReducer } from "@/app/slices/foliosSlice";
 import FolioRenamingModal from "./folioRenamingModal";
+import FolioDeletionModal from "./folioDeletionModal";
 
 interface FolioSelectionModalProps {
     db: SQLiteDatabase;
@@ -37,6 +38,7 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
     const [isCreationModalVisible, setIsCreationModalVisible] = useState(false);
     const [isRenamingModalVisible, setIsRenamingModalVisible] = useState(false);
+    const [isDeletionModalVisible, setIsDeletionModalVisible] = useState(false);
     const [isFolioSettingsMenuVisible, setIsFolioSettingsMenuVisible] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
     const [menuFolio, setMenuFolio] = useState<Folio>()
@@ -47,6 +49,10 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
     const showRenamingModal = () => {
         closeFolioSettingsMenu();
         setIsRenamingModalVisible(true)
+    };
+    const showDeletionModal = () => {
+        closeFolioSettingsMenu();
+        setIsDeletionModalVisible(true)
     };
 
     const openFolioSettingsMenu = (event: GestureResponderEvent) => {
@@ -80,6 +86,13 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
         await setFavoriteFolio(db, folioId);
         dispatch(setFavoriteFolioReducer(folioId));
     };
+
+    useEffect(() => {
+        // if no folios are set as favorite, set the first folio as favorite
+        if (folios && folios.length > 0 && !folios.some(folio => folio.isFavorite)) {
+            handleSetFavoriteFolio(folios[0].folioId);
+        }
+    }, [folios]);
 
     return (
         <Portal>
@@ -215,8 +228,13 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                 visible={isRenamingModalVisible}
                 setVisible={setIsRenamingModalVisible}
                 folioToRename={menuFolio}
-            >
-            </FolioRenamingModal>
+            />
+            <FolioDeletionModal
+                db={db}
+                visible={isDeletionModalVisible}
+                setVisible={setIsDeletionModalVisible}
+                folioToDelete={menuFolio}
+            />
             <Menu
                 style={{ backgroundColor: 'transparent', width: 120, borderRadius: 5, borderColor: "rgba(255, 255, 255, .3)", paddingTop: 0, marginTop: 0 }}
                 contentStyle={{ backgroundColor: 'black', borderWidth: 1, borderColor: "rgba(255, 255, 255, .2)" }}
@@ -224,9 +242,8 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                 onDismiss={closeFolioSettingsMenu}
                 anchor={menuAnchor}>
                 <Menu.Item onPress={showRenamingModal} title="Rename" />
-                <Menu.Item onPress={() => { }} title="Duplicate" />
                 <Divider />
-                <Menu.Item titleStyle={{ color: 'red' }} onPress={() => { }} title="Delete" />
+                <Menu.Item titleStyle={{ color: 'red' }} onPress={showDeletionModal} title="Delete" />
             </Menu>
         </Portal >
     );

@@ -97,6 +97,23 @@ export const getTransactionListByCoinIdAndFolioId = async (db: SQLiteDatabase, c
   }
 }
 
+export const deleteTransactionsByFolioId = async (db: SQLiteDatabase, folioId: string) => {
+  await createTransactionsTable(db);
+
+  await db.runAsync('DELETE FROM transactions WHERE folioId = ?', folioId);
+
+  if (!isGuest()) {
+    // If the user is not a guest, delete the transactions on the server
+    const response = await api.post('/transactions/delete', {
+      folioId
+    });
+
+    if (response.status >= 200 && response.status < 300) {
+      return response.data;
+    }
+  }
+}
+
 async function downloadTransactionsToLocalStorage() {
   // download the transactions from the server and save them to local storage
   const response = await api.get<UserTransaction[]>('/transactions');
@@ -106,41 +123,3 @@ async function downloadTransactionsToLocalStorage() {
     console.log("Transactions downloaded from the server: ", response.data);
   }
 }
-
-// Function to get the quantity of a specific coin in the local store (Read)
-export const getCoinQuantity = async (coinId: string) => {
-  if (!isGuest()) {
-    // If the user is not a guest, retrieve the coin quantity from the server
-    const response = await api.get(`/holdings/${coinId}`);
-    return response.data.quantity;
-  }
-  //TODO: integrate this with sqlite system if needed
-};
-
-// Function to update coin data in the local store (Update)
-export const updateCoinData = async (coinId: string, newQuantity: number) => {
-  if (!isGuest()) {
-    // If the user is not a guest, update the coin data on the server
-    const response = await api.put(`/holdings/${coinId}`, {
-      quantity: newQuantity,
-    });
-
-    if (response.status >= 200 && response.status < 300) {
-      return response.data;
-    }
-    //TODO: integrate this with sqlite system if needed
-  }
-};
-
-// Function to remove coin data from the local store (Delete)
-export const removeCoinData = async (coinId: string) => {
-  if (!isGuest()) {
-    // If the user is not a guest, remove the coin data from the server
-    const response = await api.delete(`/holdings/${coinId}`);
-
-    if (response.status >= 200 && response.status < 300) {
-      return response.data;
-    }
-  }
-  //TODO: integrate this with sqlite system if needed
-};

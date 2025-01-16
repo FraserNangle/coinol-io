@@ -9,6 +9,7 @@ import api, { isGuest } from "./apiService";
 import { getUserData } from "./userDataService";
 import { UserData } from "../models/UserData";
 import { createFoliosTable } from "./sqlService";
+import { deleteTransactionsByFolioId } from "./transactionService";
 
 export async function fetchUserData(db: SQLiteDatabase) {
     const userData: UserData = await getUserData(db);
@@ -133,6 +134,27 @@ export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {
     }
 };
 
+export const deleteFolioById = async (db: SQLiteDatabase, folioId: string) => {
+    await createFoliosTable(db);
+
+    // Delete the folio
+    await db.runAsync('DELETE FROM folios WHERE folioId = ?', folioId);
+
+    // Delete the transactions associated with the folio
+    await deleteTransactionsByFolioId(db, folioId);
+
+    if (!isGuest()) {
+        // If the user is not a guest, update the folios on the server
+        const response = await api.post('/userFolios/delete', {
+            folioId
+        });
+
+        if (response.status >= 200 && response.status < 300) {
+            return response.data;
+        }
+    }
+};
+
 export const updateFolioName = async (db: SQLiteDatabase, folioId: string, newFolioName: string) => {
     await createFoliosTable(db);
 
@@ -151,6 +173,11 @@ export const updateFolioName = async (db: SQLiteDatabase, folioId: string, newFo
         }
     }
 }
+
+export const getFavoriteFolio = async (db: SQLiteDatabase): Promise<Folio | null> => {
+    const favoriteFolio = await db.getAllAsync<Folio>('SELECT * FROM folios WHERE isFavorite = 1 LIMIT 1');
+    return favoriteFolio[0] || null;
+};
 
 export const setFavoriteFolio = async (db: SQLiteDatabase, folioId: string) => {
     // Reset isFavorite for all folios
