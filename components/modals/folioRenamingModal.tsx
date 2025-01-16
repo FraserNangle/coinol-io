@@ -1,6 +1,6 @@
 import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Modal, Portal } from "react-native-paper";
 import Toast from 'react-native-root-toast';
 import { Folio } from "@/app/models/Folio";
@@ -44,6 +44,12 @@ export default function FolioRenamingModal({ db, visible, setVisible, folioToRen
             });
     };
 
+    useEffect(() => {
+        if (folioToRename) {
+            setName(folioToRename.folioName);
+        }
+    }, [folioToRename]);
+
     return (
         <Portal>
             <Modal
@@ -62,6 +68,7 @@ export default function FolioRenamingModal({ db, visible, setVisible, folioToRen
                         <View style={styles.modalInputContainer}>
                             <TextInput
                                 style={styles.textInput}
+                                value={name}
                                 multiline={false}
                                 numberOfLines={1}
                                 placeholder="Enter a new name for your folio"
