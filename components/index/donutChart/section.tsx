@@ -39,6 +39,8 @@ export const Section: React.FC<SectionProps> = ({
         (state: RootState) => state.selectedSection.section
     );
 
+    const totalAnimationTime = 2000;
+
     const animation = useSharedValue(0);
     const scale = useSharedValue(1);
 

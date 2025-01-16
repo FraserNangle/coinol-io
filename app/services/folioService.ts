@@ -1,19 +1,24 @@
 import { FolioEntry } from "../models/FolioEntry";
 import { UserTransaction } from "../models/UserTransaction";
-import { getTransactionList } from "./transactionService";
 import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { SQLiteDatabase } from "expo-sqlite";
 import { Image } from 'expo-image';
+import { Folio } from "../models/Folio";
+import api, { isGuest } from "./apiService";
+import { getUserData } from "./userDataService";
+import { UserData } from "../models/UserData";
+import { createFoliosTable } from "./sqlService";
+import { deleteTransactionsByFolioId } from "./transactionService";
 
-export async function fetchUserFolio(db: SQLiteDatabase) {
-    const transactionList: UserTransaction[] = await getTransactionList(db);
+export async function fetchUserData(db: SQLiteDatabase) {
+    const userData: UserData = await getUserData(db);
+    const transactionList: UserTransaction[] = userData.transactions;
+    const foliosList: Folio[] = userData.folios;
 
     // Send the unique coinIds from the transactionList to the backend to get the complex data of each coin
     const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.coinId))];
-
     let coinsMarketsList: CoinsMarkets[] = [];
-
     await fetchCoinDataByCoinsList(uniqueCoinIds).then((data) => {
         coinsMarketsList = data;
     });
@@ -21,7 +26,7 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
     // populate the folio entries based on the transactionList and the coinsMarketsList
     const folioEntries: FolioEntry[] = [];
     transactionList.forEach((transaction) => {
-        const existingEntry = folioEntries.find((entry) => entry.coinId === transaction.coinId);
+        const existingEntry = folioEntries.find((entry) => entry.coinId === transaction.coinId && entry.folio.folioId === transaction.folioId);
         const coinMarket = coinsMarketsList.find((coinMarket) => coinMarket.id === transaction.coinId);
 
         if (existingEntry) {
@@ -34,29 +39,22 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                 folioEntries.splice(folioEntries.indexOf(existingEntry), 1);
             }
         } else {
-            function adjustColor(color: string): string {
-                // Parse the HSL color
-                const hsl = RegExp(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/).exec(color);
-                if (!hsl) return color; // Return the original color if it's not in HSL format
-
-                let [hue, saturation, lightness] = hsl.slice(1).map(Number);
-
-                // Adjust the lightness and saturation if the color is dark
-                if (lightness < 30) {
-                    lightness += 25; // Increase lightness
-                    saturation += 10; // Increase saturation
-                }
-
-                return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-            }
-
             const newQuantity = transaction.type === 'BUY' ? transaction.quantity : -transaction.quantity;
             if (newQuantity > 0) {
+
+                const folio = foliosList.find((folio) => folio.folioId === transaction.folioId);
+
+                if (!folio) {
+                    console.error(`Folio with id ${transaction.folioId} not found`);
+                    return;
+                }
+
                 folioEntries.push({
+                    folio: folio,
                     coinId: transaction.coinId,
                     quantity: newQuantity,
-                    ticker: coinMarket ? coinMarket.symbol : "",
-                    name: coinMarket ? coinMarket.name : "",
+                    ticker: coinMarket ? coinMarket.symbol : "ERROR",
+                    name: coinMarket ? coinMarket.name : "ERROR FINDING COIN",
                     image: coinMarket ? coinMarket.image : "",
                     color: coinMarket ? adjustColor(coinMarket.color) : "hsl(0, 0%, 50%)",
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
@@ -73,10 +71,10 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
                     maxSupply: coinMarket ? coinMarket.max_supply : 0,
                     ath: coinMarket ? coinMarket.ath : 0,
                     athChangePercentage: coinMarket ? coinMarket.ath_change_percentage : 0,
-                    athDate: coinMarket ? coinMarket.ath_date : "",
+                    athDate: coinMarket ? coinMarket.ath_date : "NOT FOUND",
                     atl: coinMarket ? coinMarket.atl : 0,
                     atlChangePercentage: coinMarket ? coinMarket.atl_change_percentage : 0,
-                    atlDate: coinMarket ? coinMarket.atl_date : "",
+                    atlDate: coinMarket ? coinMarket.atl_date : "NOT FOUND",
                 });
                 //Prefetch the images for the folio entries to improve the performance
                 folioEntries.forEach(async (folioEntry) => {
@@ -87,5 +85,131 @@ export async function fetchUserFolio(db: SQLiteDatabase) {
         }
     });
 
-    return folioEntries;
+    return { folioEntries, foliosList };
+}
+
+function adjustColor(color: string): string {
+    // Parse the HSL color
+    const hsl = RegExp(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/).exec(color);
+    if (!hsl) return color; // Return the original color if it's not in HSL format
+
+    let [hue, saturation, lightness] = hsl.slice(1).map(Number);
+
+    // Adjust the lightness and saturation if the color is dark
+    if (lightness < 30) {
+        lightness += 25; // Increase lightness
+        saturation += 10; // Increase saturation
+    }
+
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {
+    await createFoliosTable(db);
+
+    // Check if the folios table is empty
+    const result = await db.runAsync('SELECT COUNT(*) as count FROM folios');
+    const isFirstEntry = result.changes === 0;
+
+    // Insert the new folio
+    await db.runAsync('INSERT INTO folios (folioId, folioName, isFavorite) VALUES (?, ?, ?)',
+        newFolio.folioId,
+        newFolio.folioName
+    );
+
+    if (isFirstEntry) {
+        // If first made folio, Set the new folio as the favourite folio
+        await setFavoriteFolio(db, newFolio.folioId);
+    }
+
+    if (!isGuest()) {
+        // If the user is not a guest, update the folios on the server
+        const response = await api.post('/userFolios/add', {
+            newFolio
+        });
+
+        if (response.status >= 200 && response.status < 300) {
+            return response.data;
+        }
+    }
+};
+
+export const deleteFolioById = async (db: SQLiteDatabase, folioId: string) => {
+    await createFoliosTable(db);
+
+    // Delete the folio
+    await db.runAsync('DELETE FROM folios WHERE folioId = ?', folioId);
+
+    // Delete the transactions associated with the folio
+    await deleteTransactionsByFolioId(db, folioId);
+
+    if (!isGuest()) {
+        // If the user is not a guest, update the folios on the server
+        const response = await api.post('/userFolios/delete', {
+            folioId
+        });
+
+        if (response.status >= 200 && response.status < 300) {
+            return response.data;
+        }
+    }
+};
+
+export const updateFolioName = async (db: SQLiteDatabase, folioId: string, newFolioName: string) => {
+    await createFoliosTable(db);
+
+    // Update the folio name
+    await db.runAsync('UPDATE folios SET folioName = ? WHERE folioId = ?', newFolioName, folioId);
+
+    if (!isGuest()) {
+        // If the user is not a guest, update the folios on the server
+        const response = await api.post('/userFolios/update/folioName', {
+            folioId,
+            newFolioName
+        });
+
+        if (response.status >= 200 && response.status < 300) {
+            return response.data;
+        }
+    }
+}
+
+export const getFavoriteFolio = async (db: SQLiteDatabase): Promise<Folio | null> => {
+    const favoriteFolio = await db.getAllAsync<Folio>('SELECT * FROM folios WHERE isFavorite = 1 LIMIT 1');
+    return favoriteFolio[0] || null;
+};
+
+export const setFavoriteFolio = async (db: SQLiteDatabase, folioId: string) => {
+    // Reset isFavorite for all folios
+    await db.runAsync('UPDATE folios SET isFavorite = 0');
+
+    // Set isFavorite for the specified folio
+    await db.runAsync('UPDATE folios SET isFavorite = 1 WHERE folioId = ?', folioId);
+};
+
+export const getFoliosList = async (db: SQLiteDatabase) => {
+    await createFoliosTable(db);
+
+    if (!isGuest()) {
+        // If the user is not a guest, download the folios from the server and save them to local storage
+        await downloadFoliosToLocalStorage();
+    }
+
+    const folios = await db.getAllAsync<Folio>('SELECT * FROM folios');
+
+    if (folios.length > 0) {
+        return folios;
+    } else {
+        return [];
+    }
+}
+
+async function downloadFoliosToLocalStorage() {
+    // download the folios from the server and save them to local storage
+    const response = await api.get<Folio[]>('/userFolios');
+
+    if (response.data.length > 0) {
+        //TODO: Compare the folios with the ones in the local storage and see which is more recent then update accordingly
+        console.log("Folios downloaded from the server: ", response.data);
+    }
 }

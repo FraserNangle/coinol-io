@@ -70,7 +70,8 @@ export const CoinStatsPanel: React.FC<CoinStatsPanelProps> = ({
                                 item: {
                                     id: folioEntry.coinId,
                                     symbol: folioEntry.ticker,
-                                    name: folioEntry.name
+                                    name: folioEntry.name,
+                                    image: folioEntry.image,
                                 }
                             })
                     }

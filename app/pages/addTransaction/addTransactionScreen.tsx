@@ -1,10 +1,10 @@
-import { StyleSheet, TouchableHighlight, TextInput } from "react-native";
+import { StyleSheet, TouchableHighlight, TextInput, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { addTransactionData } from "@/app/services/transactionService";
+import { addBatchTransactionData } from "@/app/services/transactionService";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
@@ -14,18 +14,19 @@ import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import Toast from 'react-native-root-toast';
 import { Coin } from "@/app/models/Coin";
 import { Image } from "expo-image";
+import { MultiSelect } from 'react-native-element-dropdown';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { ScrollView } from "react-native-gesture-handler";
+import FolioCreationModal from "@/components/modals/folioCreationModal";
+import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
+import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
 
 type RouteParams = {
     item: Coin;
 };
 
 export default function AddTransactionBuySellScreen() {
-    const [transactionType, setTransactionType] = React.useState("BUY");
-    const [total, setTotal] = React.useState('');
-    const [date, setDate] = React.useState(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
-    const [canSell, setCanSell] = useState(false);
+    const showModal = () => setIsModalVisible(true);
 
     const db = useSQLiteContext();
 
@@ -36,15 +37,70 @@ export default function AddTransactionBuySellScreen() {
     const navigation = useNavigation();
     const dispatch = useDispatch();
 
-    const userFolio = useSelector((state: RootState) => state.userFolio.userFolio) || [];
+    const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
+    const folios = useSelector((state: RootState) => state.folios.folios) || [];
+    const currentFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
+
+    const [transactionType, setTransactionType] = useState("BUY");
+    const [total, setTotal] = useState('');
+    const [date, setDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
+    const [canSell, setCanSell] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedFolios, setSelectedFolios] = useState<string[]>([currentFolio?.folioId ?? '']);
 
     useEffect(() => {
-        userFolio.forEach((folioEntry) => {
-            if (folioEntry.coinId === item.id && folioEntry.quantity > 0) {
-                setCanSell(true);
-            }
+        if (selectedFolios.length === 0) {
+            setCanSell(false);
+            setTransactionType("BUY");
+            return;
+        }
+
+        const allEntriesValid = selectedFolios.every(folioId => {
+            const entriesMatchingFolio = allFolioEntries.filter(folioEntry => folioEntry.folio.folioId === folioId);
+            if (entriesMatchingFolio.length === 0) return false;
+
+            const matchingEntry = entriesMatchingFolio.find(folioEntry => folioEntry.coinId === item.id);
+            return matchingEntry && matchingEntry.quantity > 0;
         });
-    }, []);
+
+        if (!allEntriesValid) {
+            setCanSell(false);
+            if (transactionType === "SELL") {
+                setTransactionType("BUY");
+                Toast.show(`Selected folio has no ${item.name} to sell.`, {
+                    backgroundColor: "hsl(0, 0%, 15%)",
+                    duration: Toast.durations.LONG,
+                });
+            }
+            return;
+        }
+
+        setCanSell(true);
+    }, [allFolioEntries, selectedFolios, item.id]);
+
+    useEffect(() => {
+        if (transactionType === "SELL") {
+            let minQuantity = Infinity;
+            allFolioEntries.forEach((folioEntry) => {
+                if (folioEntry.coinId === item.id && selectedFolios.includes(folioEntry.folio.folioId)) {
+                    if (folioEntry.quantity < minQuantity) {
+                        minQuantity = folioEntry.quantity;
+                    }
+                }
+            });
+            if (Number(total) > minQuantity) {
+                setTotal(minQuantity.toString());
+                Toast.show(`Sell Total is limited to your ${item.name} quantity. `, {
+                    backgroundColor: "hsl(0, 0%, 15%)",
+                    duration: Toast.durations.LONG,
+                });
+            }
+        }
+
+    }, [allFolioEntries, selectedFolios, transactionType, total, item]);
+
 
     useEffect(() => {
         navigation.setOptions({
@@ -88,22 +144,20 @@ export default function AddTransactionBuySellScreen() {
     };
 
     const sellAll = () => {
-        userFolio.forEach((folioEntry) => {
-            if (folioEntry.coinId === item.id) {
-                setTotal(folioEntry.quantity.toString());
-            }
-        });
+        setTotal(Infinity.toString());
     };
 
-    const addTransaction = (db: SQLiteDatabase, transaction: UserTransaction) => {
-        addTransactionData(db, transaction)
+    const addTransactions = (db: SQLiteDatabase, transactions: UserTransaction[]) => {
+        addBatchTransactionData(db, transactions)
             .then(() => {
-                Toast.show(`Added ${item.name} transaction to portfolio. `, {
+                Toast.show(`Added ${item.name} transaction to ${getNamesOfSelectedFolios().join(", ")}. `, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
                     position: Toast.positions.CENTER,
                 });
-                dispatch(setLastTransaction(transaction));
+                const lastTransaction = transactions.length > 0 ? transactions[transactions.length - 1] : null;
+                dispatch(setLastTransaction(lastTransaction));
+                dispatch(setCurrentlySelectedFolio(folios.find(folio => folio.folioId === selectedFolios[0]) ?? null));
                 navigation.navigate('index');
             })
             .catch(error => {
@@ -111,147 +165,253 @@ export default function AddTransactionBuySellScreen() {
             });
     };
 
-    const handleChange = (text: string) => {
+    const handleTotalInputChange = (text: string) => {
         // Regular expression to match positive floating point numbers or a single decimal point
-        const regex = /^(?:[0-9]*\.?[0-9]*)$/;
+        const regex = /^(?:\d*\.?\d*)$/;
         if (regex.test(text)) {
-            if (transactionType === "SELL") {
-                userFolio.forEach((folioEntry) => {
-                    if (folioEntry.coinId === item.id) {
-                        if (Number(text) > folioEntry.quantity) {
-                            setTotal(folioEntry.quantity.toString());
-                            Toast.show(`Sell is limited to your ${item.name} quantity. `, {
-                                backgroundColor: "hsl(0, 0%, 15%)",
-                                duration: Toast.durations.LONG,
-                            });
-                        } else {
-                            setTotal(text);
-                        }
-                    }
-                });
-            } else {
-                setTotal(text);
-            }
+            setTotal(text);
         }
     };
 
-    return (
-        <View style={styles.screenContainer}>
-            <View style={styles.buttonContainer}>
-                <Button
-                    buttonColor="black"
-                    rippleColor="green"
-                    textColor={transactionType === "BUY" ? "green" : "hsl(0, 0%, 60%)"}
-                    style={[styles.button, transactionType === "BUY" ? { borderColor: 'green' } : { borderColor: 'hsl(0, 0%, 15%)' }, { borderBottomStartRadius: 2 }]}
-                    compact
-                    mode="outlined"
-                    onPress={() => setTransactionType("BUY")}>
-                    BUY
-                </Button>
-                <Button
-                    disabled={!canSell}
-                    buttonColor="black"
-                    rippleColor="red"
-                    textColor={transactionType === "SELL" ? "red" : "hsl(0, 0%, 60%)"}
-                    style={[styles.button, transactionType === "SELL" ? { borderColor: 'red' } : { borderColor: 'hsl(0, 0%, 15%)' }, { borderBottomEndRadius: 2 }]}
-                    compact
-                    mode="outlined"
-                    onPress={() => setTransactionType("SELL")}>
-                    SELL
-                </Button>
+    const getNamesOfSelectedFolios = () => {
+        return selectedFolios.map(folio => folios.find(folioItem => folioItem.folioId === folio)?.folioName ?? '');
+    };
 
-            </View>
-            <View style={styles.tableContainer}>
-                <View style={styles.row}>
-                    <Text style={styles.tag}>Total</Text>
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.textInput}
-                            value={total.toString()}
-                            multiline={false}
-                            numberOfLines={1}
-                            keyboardType='decimal-pad'
-                            onChangeText={handleChange}
-                            placeholder="0"
-                            placeholderTextColor={"rgba(255, 255, 255, 0.5)"}
-                            selectionColor={"rgba(255, 255, 255, 0.5)"}
-                            cursorColor="white"
-                            maxLength={60}
-                            textAlign="right"
-                        />
-                        <Text>{' '}{item.symbol.toUpperCase()}</Text>
-                        {transactionType === "SELL" &&
-                            <TouchableHighlight
-                                onPress={() => sellAll()}
-                            >
-                                <Text style={{ color: 'red', paddingLeft: 10 }}>
-                                    SELL ALL
-                                </Text>
-                            </TouchableHighlight>
-                        }
+    return (
+        <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
+            <View style={styles.screenContainer}>
+                <View style={styles.buttonContainer}>
+                    <Button
+                        buttonColor="black"
+                        rippleColor="green"
+                        textColor={transactionType === "BUY" ? "green" : "hsl(0, 0%, 60%)"}
+                        style={[styles.button, transactionType === "BUY" ? { borderColor: 'green' } : { borderColor: 'hsl(0, 0%, 15%)' }, { borderBottomStartRadius: 2 }]}
+                        compact
+                        mode="outlined"
+                        onPress={() => setTransactionType("BUY")}>
+                        BUY
+                    </Button>
+                    <Button
+                        disabled={!canSell}
+                        buttonColor="black"
+                        rippleColor="red"
+                        textColor={transactionType === "SELL" ? "red" : "hsl(0, 0%, 60%)"}
+                        style={[styles.button, transactionType === "SELL" ? { borderColor: 'red' } : { borderColor: 'hsl(0, 0%, 15%)' }, { borderBottomEndRadius: 2 }]}
+                        compact
+                        mode="outlined"
+                        onPress={() => setTransactionType("SELL")}>
+                        SELL
+                    </Button>
+                </View>
+                <View style={styles.tableContainer}>
+                    <View style={styles.row}>
+                        <Text style={styles.tag}>Total</Text>
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                style={styles.textInput}
+                                value={total.toString()}
+                                multiline={false}
+                                numberOfLines={1}
+                                keyboardType='decimal-pad'
+                                onChangeText={handleTotalInputChange}
+                                placeholder="0"
+                                placeholderTextColor={"rgba(255, 255, 255, 0.5)"}
+                                selectionColor={"rgba(255, 255, 255, 0.5)"}
+                                cursorColor="white"
+                                maxLength={60}
+                                textAlign="right"
+                            />
+                            <Text>{' '}{item.symbol.toUpperCase()}</Text>
+                            {transactionType === "SELL" &&
+                                <TouchableHighlight
+                                    onPress={() => sellAll()}
+                                >
+                                    <Text style={{ color: 'red', paddingLeft: 10 }}>
+                                        ALL
+                                    </Text>
+                                </TouchableHighlight>
+                            }
+                        </View>
                     </View>
                 </View>
-            </View>
-            <View style={styles.tableContainer}>
-                <View style={styles.row}>
-                    <Text>Date & Time</Text>
-                    <TouchableHighlight
-                        onPress={() => setShowDatePicker(true)}
-                    >
-                        <Text style={styles.textInput}>
-                            {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
-                            <Text style={{ color: "rgba(255, 255, 255, 0.5)" }}>
-                                {" at "}
+                <View style={styles.tableContainer}>
+                    <View style={styles.row}>
+                        <Text>Date & Time</Text>
+                        <TouchableHighlight
+                            onPress={() => setShowDatePicker(true)}
+                        >
+                            <Text >
+                                {date.toLocaleDateString('en-US', { month: '2-digit', day: 'numeric', year: '2-digit' })}
+                                <Text style={{ color: "rgba(255, 255, 255, 0.5)" }}>
+                                    {" at "}
+                                </Text>
+                                {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                             </Text>
-                            {date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                    </TouchableHighlight>
+                        </TouchableHighlight>
+                    </View>
                 </View>
+                <View style={styles.tableContainer}>
+                    <View style={styles.row}>
+                        <Text style={styles.tag}>Folio(s)</Text>
+                        <View style={styles.inputContainer}>
+                            <MultiSelect
+                                style={styles.dropdown}
+                                containerStyle={styles.dropdownContainer}
+                                activeColor="rgba(255, 255, 255, 0.15)"
+                                itemContainerStyle={styles.dropdownItemContainer}
+                                iconStyle={styles.iconStyle}
+                                inputSearchStyle={styles.inputSearchStyle}
+                                data={folios}
+                                labelField="folioName"
+                                valueField="folioId"
+                                search
+                                searchField="folioName"
+                                value={selectedFolios}
+                                searchPlaceholder="Search..."
+                                onFocus={() => {
+                                    if (folios.length === 0) {
+                                        Toast.show(`Use the + button to add a new empty folio. `, {
+                                            backgroundColor: "hsl(0, 0%, 15%)",
+                                            duration: Toast.durations.LONG,
+                                        });
+                                    }
+                                }}
+                                onChange={(folios) => {
+                                    setSelectedFolios(folios);
+                                }}
+                                visibleSelectedItem={false}
+                                renderItem={(item) => {
+                                    return (
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent' }}>
+                                            <Text style={[{ height: 60, paddingLeft: 15, textAlignVertical: 'center' }]}>
+                                                {item.folioName}
+                                            </Text>
+                                            <ScrollView
+                                                horizontal
+                                                fadingEdgeLength={25}
+                                                contentContainerStyle={styles.row}
+                                                showsHorizontalScrollIndicator={false}
+                                            >
+                                                {getFolioCoinImages(item.folioId, allFolioEntries).map((image, index) => {
+                                                    return (
+                                                        <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
+                                                            <Image
+                                                                source={image}
+                                                                style={{ width: 20, height: 20 }}
+                                                                transition={100}
+                                                                cachePolicy={'disk'}
+                                                                priority={'high'}
+                                                                contentPosition={'center'}
+                                                                contentFit="cover"
+                                                            />
+                                                        </View>
+                                                    );
+                                                })}
+                                            </ScrollView>
+                                        </View>
+                                    );
+                                }}
+                            >
+                            </MultiSelect>
+                            <TouchableHighlight
+                                onPress={showModal}
+                            >
+                                <MaterialIcons style={styles.iconStyle} color="white" name="add-circle" size={20} />
+                            </TouchableHighlight>
+                        </View>
+                    </View>
+                </View>
+                {selectedFolios.length > 0 && (
+                    <View style={styles.tableContainer}>
+                        <ScrollView horizontal contentContainerStyle={styles.row}>
+                            {selectedFolios.map(folio => (
+                                <TouchableOpacity key={folio} onPress={() => {
+                                    setSelectedFolios(prevSelected => prevSelected.filter(selectedItem => selectedItem !== folio));
+                                }}>
+                                    <View style={styles.selectedStyle}>
+                                        <Text>{folios.find(folioItem => folioItem.folioId === folio)?.folioName ?? ''}</Text>
+                                        <MaterialIcons style={styles.iconStyle} color="white" name="cancel" size={20} />
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+                <Button
+                    buttonColor="black"
+                    textColor={"white"}
+                    rippleColor="white"
+                    style={[styles.bigButton, selectedFolios.length === 0 || Number(total) === 0 ? { opacity: 0.5 } : { opacity: 1 }]}
+                    compact
+                    mode="contained"
+                    onPress={() => {
+                        if (selectedFolios.length === 0) {
+                            Toast.show(`Select at least one folio to add your transaction to. `, {
+                                backgroundColor: "hsl(0, 0%, 15%)",
+                                duration: Toast.durations.LONG,
+                            });
+                            return;
+                        }
+
+                        if (Number(total) === 0) {
+                            Toast.show(`Total must be greater than 0. `, {
+                                backgroundColor: "hsl(0, 0%, 15%)",
+                                duration: Toast.durations.LONG,
+                            });
+                            return;
+                        }
+
+                        const newTransactions: UserTransaction[] = selectedFolios.map(folio => {
+                            return {
+                                id: randomUUID(),
+                                coinId: item.id,
+                                date: date.toISOString(),
+                                quantity: Number(total),
+                                type: transactionType,
+                                folioId: folio,
+                            };
+                        });
+                        addTransactions(db, newTransactions)
+                    }}>
+                    ADD TRANSACTION
+                </Button>
+                {showDatePicker && (
+                    <RNDateTimePicker
+                        value={date}
+                        mode="date"
+                        display="default"
+                        onChange={changeDate}
+                        accentColor="FFFFFF"
+                    />
+                )}
+                {showTimePicker && (
+                    <RNDateTimePicker
+                        value={date}
+                        mode="time"
+                        display="clock"
+                        onChange={changeTime}
+                    />
+                )}
+                <FolioCreationModal
+                    db={db}
+                    visible={isModalVisible}
+                    setVisible={setIsModalVisible}
+                    onNewFolio={(folio) => {
+                        setSelectedFolios([...selectedFolios, folio.folioId]);
+                    }}
+                />
             </View>
-            <Button
-                buttonColor="black"
-                textColor={"white"}
-                rippleColor="white"
-                style={styles.bigButton}
-                compact
-                mode="contained"
-                onPress={() => {
-                    const newHolding: UserTransaction = {
-                        id: randomUUID(),
-                        coinId: item.id,
-                        date: date.toISOString(),
-                        quantity: Number(total),
-                        type: transactionType,
-                    };
-                    addTransaction(db, newHolding)
-                }}>
-                ADD TRANSACTION
-            </Button>
-            {showDatePicker && (
-                <RNDateTimePicker
-                    value={date}
-                    mode="date"
-                    display="default"
-                    onChange={changeDate}
-                />
-            )}
-            {showTimePicker && (
-                <RNDateTimePicker
-                    value={date}
-                    mode="time"
-                    display="clock"
-                    onChange={changeTime}
-                />
-            )}
-        </View >
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     screenContainer: {
-        flex: 1,
+        width: "100%",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        alignContent: "center",
         backgroundColor: 'black',
     },
     tableContainer: {
@@ -277,15 +437,27 @@ const styles = StyleSheet.create({
     },
     bigButton: {
         width: "80%",
-        borderRadius: 2,
+        borderRadius: 5,
         borderWidth: 1,
         borderBottomWidth: 5,
         borderColor: "rgba(255, 255, 255, .3)",
     },
     textInput: {
-        flex: 1,
-        padding: 10,
+        width: "80%",
         color: 'white',
+    },
+    dropdown: {
+        width: 210,
+    },
+    dropdownContainer: {
+        backgroundColor: "black",
+        borderWidth: 0,
+        borderRadius: 5,
+        padding: 5,
+    },
+    dropdownItemContainer: {
+        borderRadius: 5,
+        textAlignVertical: 'center',
     },
     tag: {
         paddingRight: 10
@@ -303,5 +475,25 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
         flexDirection: 'row',
         alignItems: 'center',
-    }
+    },
+    selectedStyle: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderWidth: 1,
+        borderRadius: 5,
+        padding: 5,
+        marginRight: 10,
+    },
+    iconStyle: {
+        width: 20,
+        height: 20,
+        marginLeft: 5,
+    },
+    inputSearchStyle: {
+        backgroundColor: "transparent",
+        color: "white",
+        borderWidth: 0,
+    },
 });
