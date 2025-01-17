@@ -25,6 +25,7 @@ import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
 import { Image } from "expo-image";
 import { triggerRefresh } from "@/app/slices/refreshSlice";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { CoinHoldingsPanel } from "@/components/coinGraphScreen/coinHoldingsPanel";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -35,6 +36,7 @@ export default function CoinGraphScreen() {
     const dispatch = useDispatch();
 
     const [timeRange, setTimeRange] = useState("24H");
+    const [infoView, setInfoView] = useState("STATS");
     const [historicalLineGraphData, setHistoricalLineGraphData] = useState<CoinMarketHistoricalDataPoint[]>([]);
     const [userTransactionData, setUserTransactionData] = useState<UserTransaction[]>([]);
     const [isLoadingHistoricalData, setIsLoadingHistoricalData] = useState(true);
@@ -147,6 +149,19 @@ export default function CoinGraphScreen() {
         </Button>;
     }
 
+    function infoViewControlButton(value: string) {
+        return <Button
+            buttonColor="transparent"
+            textColor={'white'}
+            rippleColor={folioEntry.color}
+            labelStyle={{ marginHorizontal: 0, marginVertical: 5, fontSize: 15 }}
+            style={[styles.modeButton, value === infoView ? { opacity: 1, borderBottomWidth: 2, borderColor: folioEntry.color } : { opacity: .5 }]}
+            onPress={() => setInfoView(value)}
+            mode="contained">
+            {value}
+        </Button>;
+    }
+
     return (
         <View style={styles.screenContainer}>
             <>
@@ -192,10 +207,17 @@ export default function CoinGraphScreen() {
                             <ActivityIndicator size="large" color={folioEntry.color} />
                         </View>
                     ) : (
-                        <ScrollView fadingEdgeLength={25}>
-                            <CoinStatsPanel folioEntry={folioEntry} />
-                            <TransactionHistoryTable data={userTransactionData} />
-                        </ScrollView>
+                        <>
+                            <View style={styles.modeButtonContainer}>
+                                {infoViewControlButton("HOLDINGS")}
+                                {infoViewControlButton("STATS")}
+                                {infoViewControlButton("HISTORY")}
+                            </View>
+                            <ScrollView fadingEdgeLength={25}>
+                                {infoView === "HOLDINGS" && <CoinHoldingsPanel folioEntry={folioEntry} />}
+                                {infoView === "STATS" && <CoinStatsPanel folioEntry={folioEntry} />}
+                                {infoView === "HISTORY" && <TransactionHistoryTable data={userTransactionData} />}
+                            </ScrollView></>
                     )}
                 </View>
             </>
@@ -220,16 +242,28 @@ const styles = StyleSheet.create({
         borderWidth: 0,
         borderColor: "rgba(255, 255, 255, 1)",
     },
+    modeButtonContainer: {
+        flexDirection: "row",
+        justifyContent: "space-evenly",
+        alignContent: "center",
+    },
+    modeButton: {
+        width: "30%",
+        justifyContent: "center",
+        alignContent: "center",
+        borderRadius: 5,
+        borderWidth: 0,
+        borderColor: "white",
+    },
     tableContainer: {
         flex: 1,
         width: "100%",
         justifyContent: "center",
         alignContent: "center",
         backgroundColor: "transparent",
-        paddingTop: 20,
     },
     graphContainer: {
-        flex: 2,
+        flex: 1.5,
         justifyContent: "center",
     },
     errorText: {
