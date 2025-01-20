@@ -17,7 +17,7 @@ import { Image } from "expo-image";
 import { MultiSelect } from 'react-native-element-dropdown';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ScrollView } from "react-native-gesture-handler";
-import FolioCreationModal from "@/components/modals/folioCreationModal";
+import FolioCreationModal from "@/components/modals/folio/folioCreationModal";
 import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
 import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
 

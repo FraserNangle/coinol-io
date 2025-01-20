@@ -155,7 +155,7 @@ export default function CoinGraphScreen() {
             textColor={'white'}
             rippleColor={folioEntry.color}
             labelStyle={{ marginHorizontal: 0, marginVertical: 5, fontSize: 15 }}
-            style={[styles.modeButton, value === infoView ? { opacity: 1, borderBottomWidth: 2, borderColor: folioEntry.color } : { opacity: .5 }]}
+            style={[styles.modeButton, value === infoView ? { opacity: 1, borderBottomWidth: 1, borderColor: folioEntry.color } : { opacity: .5 }]}
             onPress={() => setInfoView(value)}
             mode="contained">
             {value}
@@ -215,7 +215,7 @@ export default function CoinGraphScreen() {
                             <ScrollView fadingEdgeLength={25}>
                                 {infoView === "HOLDINGS" && <>
                                     <CoinHoldingsPanel folioEntry={folioEntry} />
-                                    <TransactionHistoryTable data={userTransactionData} />
+                                    <TransactionHistoryTable data={userTransactionData} db={db} />
                                 </>}
                                 {infoView === "STATS" && <CoinStatsPanel folioEntry={folioEntry} />}
                             </ScrollView>

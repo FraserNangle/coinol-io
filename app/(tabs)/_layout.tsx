@@ -9,7 +9,7 @@ import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
 import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange";
 import { RootState } from "../store/store";
 import { triggerRefresh } from "../slices/refreshSlice";
-import FolioSelectionModal from "@/components/modals/folioSelectionModal";
+import FolioSelectionModal from "@/components/modals/folio/folioSelectionModal";
 import { useSQLiteContext } from "expo-sqlite";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/

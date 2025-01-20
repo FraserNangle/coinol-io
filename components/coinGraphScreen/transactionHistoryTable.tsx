@@ -14,6 +14,8 @@ import { UserTransaction } from "@/app/models/UserTransaction";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { numberFormatter } from "@/app/utils/numberFormatter";
 import { useMemo, useState } from "react";
+import { SQLiteDatabase } from "expo-sqlite";
+import TransactionDeletionModal from "../modals/transaction/transactionDeletionModal";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -24,6 +26,7 @@ if (Platform.OS === "android") {
 
 interface TransactionHistoryTableProps {
     data: UserTransaction[];
+    db: SQLiteDatabase;
 }
 
 export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (props: TransactionHistoryTableProps) => {
@@ -32,6 +35,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
     const [sortField, setSortField] = useState<SortField>("date");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
     const [isTransactionSettingsMenuVisible, setIsTransactionSettingsMenuVisible] = useState(false);
+    const [isDeletionModalVisible, setIsDeletionModalVisible] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
     const [menuTransaction, setMenuTransaction] = useState<UserTransaction>()
 
@@ -47,6 +51,11 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
     };
 
     const closeTransactionSettingsMenu = () => setIsTransactionSettingsMenuVisible(false);
+
+    const showDeletionModal = () => {
+        closeTransactionSettingsMenu();
+        setIsDeletionModalVisible(true)
+    };
 
     const sortedData = useMemo(() => {
         return [...props.data].sort((a, b) => {
@@ -158,16 +167,23 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                     })}
                 </DataTable>
             </PaperProvider>
+            <TransactionDeletionModal
+                db={props.db}
+                visible={isDeletionModalVisible}
+                setVisible={setIsDeletionModalVisible}
+                transactionToDelete={menuTransaction}
+            />
             <Menu
-                style={{ backgroundColor: 'transparent', width: 120, borderRadius: 5, borderColor: "rgba(255, 255, 255, .3)", paddingTop: 0, marginTop: 0 }}
-                contentStyle={{ backgroundColor: 'black', borderWidth: 1, borderColor: "rgba(255, 255, 255, .2)" }}
+                style={{ backgroundColor: 'transparent', width: 120, borderRadius: 5, borderColor: "rgba(255, 255, 255, .3)" }}
+                contentStyle={{ backgroundColor: 'black', borderWidth: 1, borderColor: "rgba(255, 255, 255, .2)", paddingVertical: 0 }}
                 visible={isTransactionSettingsMenuVisible}
                 onDismiss={closeTransactionSettingsMenu}
                 anchor={menuAnchor}>
                 <Menu.Item onPress={() => { }} title="Edit" />
                 <Divider />
-                <Menu.Item titleStyle={{ color: 'red' }} onPress={() => { }} title="Delete" />
-            </Menu></>
+                <Menu.Item titleStyle={{ color: 'red' }} onPress={showDeletionModal} title="Delete" />
+            </Menu>
+        </>
     );
 };
 
