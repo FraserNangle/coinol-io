@@ -85,7 +85,7 @@ export async function fetchUserData(db: SQLiteDatabase) {
         }
     });
 
-    return { folioEntries, foliosList };
+    return { folioEntries, foliosList, transactionList };
 }
 
 function adjustColor(color: string): string {

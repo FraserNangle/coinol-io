@@ -38,9 +38,7 @@ export default function CoinGraphScreen() {
     const [timeRange, setTimeRange] = useState("24H");
     const [infoView, setInfoView] = useState("HOLDINGS");
     const [historicalLineGraphData, setHistoricalLineGraphData] = useState<CoinMarketHistoricalDataPoint[]>([]);
-    const [userTransactionData, setUserTransactionData] = useState<UserTransaction[]>([]);
     const [isLoadingHistoricalData, setIsLoadingHistoricalData] = useState(true);
-    const [isLoadingTransactionData, setIsLoadingTransactionData] = useState(true);
 
     const route = useRoute();
     const { folioEntry }: { folioEntry: FolioEntry } = route.params as RouteParams;
@@ -48,6 +46,7 @@ export default function CoinGraphScreen() {
     const navigation = useNavigation();
     const db = useSQLiteContext();
 
+    const allTransactions = useSelector((state: RootState) => state.allTransactions.transactions) || [];
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
     const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
@@ -117,24 +116,11 @@ export default function CoinGraphScreen() {
 
     };
 
-    const fetchUserTransactionData = async (folioEntry: FolioEntry) => {
-        setIsLoadingTransactionData(true);
-        const transactionData = await getTransactionListByCoinId(db, folioEntry.coinId);
-        setUserTransactionData(transactionData || []);
-        setIsLoadingTransactionData(false);
-    };
-
     useEffect(() => {
         if (folioEntry) {
             fetchHistoricalLineGraphData(folioEntry);
         }
     }, [refresh]);
-
-    useEffect(() => {
-        if (folioEntry) {
-            fetchUserTransactionData(folioEntry);
-        }
-    }, [folioEntry, refresh]);
 
     function timeRangeControlButton(value: string) {
         return <Button
@@ -202,25 +188,19 @@ export default function CoinGraphScreen() {
                     {timeRangeControlButton("ALL")}
                 </View>
                 <View style={styles.tableContainer}>
-                    {isLoadingTransactionData ? (
-                        <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color={folioEntry.color} />
-                        </View>
-                    ) : (
-                        <>
-                            <View style={styles.modeButtonContainer}>
-                                {infoViewControlButton("HOLDINGS")}
-                                {infoViewControlButton("STATS")}
-                            </View>
-                            <ScrollView fadingEdgeLength={25}>
-                                {infoView === "HOLDINGS" && <>
-                                    <CoinHoldingsPanel folioEntry={folioEntry} />
-                                    <TransactionHistoryTable data={userTransactionData} db={db} />
-                                </>}
-                                {infoView === "STATS" && <CoinStatsPanel folioEntry={folioEntry} />}
-                            </ScrollView>
-                        </>
-                    )}
+                    <View style={styles.modeButtonContainer}>
+                        {infoViewControlButton("HOLDINGS")}
+                        {infoViewControlButton("STATS")}
+                    </View>
+                    <ScrollView fadingEdgeLength={25}>
+                        {infoView === "HOLDINGS" && <>
+                            <CoinHoldingsPanel folioEntry={folioEntry} />
+                            <TransactionHistoryTable data={allTransactions.filter(transaction => {
+                                return transaction.coinId === folioEntry.coinId;
+                            })} db={db} />
+                        </>}
+                        {infoView === "STATS" && <CoinStatsPanel folioEntry={folioEntry} />}
+                    </ScrollView>
                 </View>
             </>
         </View>

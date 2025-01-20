@@ -10,7 +10,7 @@ import { Link } from "expo-router";
 import { fetchUserData } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";
 import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
-import { setAllFolioEntries as setAllFolioEntries, setCurrentFolioEntries } from "../slices/folioEntriesSlice";
+import { setAllFolioEntries, setCurrentFolioEntries } from "../slices/folioEntriesSlice";
 import { RootState } from "../store/store";
 import { DonutChart } from "@/components/index/donutChart/donutChart";
 import { useSQLiteContext } from "expo-sqlite";
@@ -21,6 +21,7 @@ import { setFolios } from "../slices/foliosSlice";
 import { deleteAllUserDataFromLocalStorage } from "../services/sqlService";
 import { setCurrentlySelectedFolio } from "../slices/currentlySelectedFolioSlice";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { setAllTransactions } from "../slices/allTransactionsSlice";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
@@ -48,6 +49,7 @@ export default function TabOneScreen() {
     }
     dispatch(setFolios(userData.foliosList));
     dispatch(setAllFolioEntries(userData.folioEntries));
+    dispatch(setAllTransactions(userData.transactionList));
     setIsLoadingFolioData(false);
   };
 

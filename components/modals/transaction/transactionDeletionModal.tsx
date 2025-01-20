@@ -9,6 +9,7 @@ import { useDispatch } from "react-redux";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { deleteTransactionById } from "@/app/services/transactionService";
 import { triggerRefresh } from "@/app/slices/refreshSlice";
+import { deleteTransactionByIdSlice } from "@/app/slices/allTransactionsSlice";
 
 interface TransactionDeletionModalProps {
     db: SQLiteDatabase;
@@ -25,7 +26,7 @@ export default function TransactionDeletionModal({ db, visible, setVisible, tran
     const deleteTransaction = (db: SQLiteDatabase, transaction: UserTransaction) => {
         deleteTransactionById(db, transaction.id)
             .then(() => {
-                dispatch(triggerRefresh());
+                dispatch(deleteTransactionByIdSlice(transaction.id));
                 Toast.show(`Transaction Deleted.`, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
