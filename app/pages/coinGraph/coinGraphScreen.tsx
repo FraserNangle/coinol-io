@@ -213,9 +213,13 @@ export default function CoinGraphScreen() {
                                 {infoViewControlButton("STATS")}
                             </View>
                             <ScrollView fadingEdgeLength={25}>
-                                {infoView === "HOLDINGS" && <><CoinHoldingsPanel folioEntry={folioEntry} /><TransactionHistoryTable data={userTransactionData} /></>}
+                                {infoView === "HOLDINGS" && <>
+                                    <CoinHoldingsPanel folioEntry={folioEntry} />
+                                    <TransactionHistoryTable data={userTransactionData} />
+                                </>}
                                 {infoView === "STATS" && <CoinStatsPanel folioEntry={folioEntry} />}
-                            </ScrollView></>
+                            </ScrollView>
+                        </>
                     )}
                 </View>
             </>

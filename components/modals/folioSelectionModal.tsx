@@ -173,7 +173,7 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                             </ScrollView>
                                         </DataTable.Cell>
                                         <TouchableOpacity
-                                            style={{ flex: 1 }}
+                                            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
                                             onPress={(event) => {
                                                 setMenuFolio(folio);
                                                 openFolioSettingsMenu(event);
@@ -185,7 +185,7 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                             </DataTable.Cell>
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            style={{ flex: .35, paddingRight: 15 }}
+                                            style={{ flex: .35, paddingRight: 12.5, justifyContent: 'center', alignItems: 'center' }}
                                             onPress={() => {
                                                 handleSetFavoriteFolio(folio.folioId)
                                             }}
