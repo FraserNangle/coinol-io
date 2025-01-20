@@ -36,7 +36,7 @@ export default function CoinGraphScreen() {
     const dispatch = useDispatch();
 
     const [timeRange, setTimeRange] = useState("24H");
-    const [infoView, setInfoView] = useState("STATS");
+    const [infoView, setInfoView] = useState("HOLDINGS");
     const [historicalLineGraphData, setHistoricalLineGraphData] = useState<CoinMarketHistoricalDataPoint[]>([]);
     const [userTransactionData, setUserTransactionData] = useState<UserTransaction[]>([]);
     const [isLoadingHistoricalData, setIsLoadingHistoricalData] = useState(true);
@@ -211,12 +211,10 @@ export default function CoinGraphScreen() {
                             <View style={styles.modeButtonContainer}>
                                 {infoViewControlButton("HOLDINGS")}
                                 {infoViewControlButton("STATS")}
-                                {infoViewControlButton("HISTORY")}
                             </View>
                             <ScrollView fadingEdgeLength={25}>
-                                {infoView === "HOLDINGS" && <CoinHoldingsPanel folioEntry={folioEntry} />}
+                                {infoView === "HOLDINGS" && <><CoinHoldingsPanel folioEntry={folioEntry} /><TransactionHistoryTable data={userTransactionData} /></>}
                                 {infoView === "STATS" && <CoinStatsPanel folioEntry={folioEntry} />}
-                                {infoView === "HISTORY" && <TransactionHistoryTable data={userTransactionData} />}
                             </ScrollView></>
                     )}
                 </View>
