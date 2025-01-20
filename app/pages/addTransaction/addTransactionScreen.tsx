@@ -158,7 +158,7 @@ export default function AddTransactionBuySellScreen() {
                 const lastTransaction = transactions.length > 0 ? transactions[transactions.length - 1] : null;
                 dispatch(setLastTransaction(lastTransaction));
                 dispatch(setCurrentlySelectedFolio(folios.find(folio => folio.folioId === selectedFolios[0]) ?? null));
-                navigation.navigate('index');
+                navigation.navigate("pages/coinGraph/coinGraphScreen", { folioEntry: allFolioEntries.find(folioEntry => folioEntry.coinId === item.id && folioEntry.folio.folioId === selectedFolios[0]) ?? null });
             })
             .catch(error => {
                 console.error('Error:', error);
