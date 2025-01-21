@@ -11,11 +11,11 @@ import { useRoute } from "@react-navigation/native";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { RootState } from "@/app/store/store";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { TransactionHistoryTable } from "@/components/coinGraphScreen/transactionHistoryTable";
 import { useSQLiteContext } from "expo-sqlite";
 import { LineGraph } from "@/components/coinGraphScreen/lineGraph";
-import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
+import { CoinMarketHistoricalDataPoint, CoinsMarkets } from "@/app/models/CoinsMarkets";
 import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
 import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
@@ -36,6 +36,7 @@ export default function CoinGraphScreen() {
     const [isLoadingHistoricalData, setIsLoadingHistoricalData] = useState(true);
     const [refresh, setRefresh] = useState(false);
     const [folioEntry, setFolioEntry] = useState<FolioEntry>();
+    const [coinsMarket, setCoinsMarket] = useState<CoinsMarkets>();
 
     const route = useRoute();
     const { coinId }: { coinId: string } = route.params as RouteParams;
@@ -46,34 +47,36 @@ export default function CoinGraphScreen() {
     const allTransactions = useSelector((state: RootState) => state.allTransactions.transactions) || [];
     const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
+    const coinsMarketsList = useSelector((state: RootState) => state.allCoinData.coinsMarketsList) || [];
 
     const rotateAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
+        setCoinsMarket(coinsMarketsList.find((coin) => coin.id === coinId));
         setFolioEntry(allFolioEntries.find((folio) => folio.coinId === coinId));
     }, [coinId, allTransactions, allFolioEntries]);
 
     useEffect(() => {
         navigation.setOptions({
-            title: folioEntry?.name,
+            title: coinsMarket?.name,
             headerTitle: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Image
-                        source={{ uri: folioEntry?.image }}
+                        source={{ uri: coinsMarket?.image }}
                         style={{ width: 30, height: 30, marginRight: 10 }}
                     />
-                    <Text style={{ color: 'white', fontSize: 18 }}>{folioEntry?.name}</Text>
+                    <Text style={{ color: 'white', fontSize: 18 }}>{coinsMarket?.name}</Text>
                 </View>
             ),
             headerRight: () => (
                 refreshButton(setRefresh, rotateAnim)
             ),
         });
-    }, [navigation, folioEntry]);
+    }, [navigation, coinsMarket]);
 
-    const fetchHistoricalLineGraphData = async (folioEntry: FolioEntry) => {
+    const fetchHistoricalLineGraphData = async (coinsMarketId: string) => {
         setIsLoadingHistoricalData(true);
-        const historicalData = await getCoinHistoryDataPoints(db, folioEntry.coinId);
+        const historicalData = await getCoinHistoryDataPoints(db, coinsMarketId);
         setHistoricalLineGraphData(historicalData || []);
         setIsLoadingHistoricalData(false);
     };
@@ -93,18 +96,20 @@ export default function CoinGraphScreen() {
     };
 
     useEffect(() => {
-        if (folioEntry) {
-            fetchHistoricalLineGraphData(folioEntry);
+        if (coinsMarket) {
+            fetchHistoricalLineGraphData(coinsMarket.id);
         }
-    }, [refresh, folioEntry]);
+    }, [refresh, coinsMarket]);
 
     function timeRangeControlButton(value: string) {
         return <Button
             buttonColor="transparent"
             textColor={'white'}
-            rippleColor={folioEntry?.color}
+            rippleColor={coinsMarket?.color}
             labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
-            style={[styles.button, value === timeRange ? { opacity: 1, borderTopWidth: 2, borderColor: folioEntry?.color } : { opacity: .5 }]}
+            style={[styles.button, value === timeRange ?
+                { opacity: 1, borderTopWidth: 2, borderColor: folioEntry?.color ?? coinsMarket?.color }
+                : { opacity: .5 }]}
             onPress={() => setTimeRange(value)}
             mode="contained">
             {value}
@@ -115,9 +120,11 @@ export default function CoinGraphScreen() {
         return <Button
             buttonColor="transparent"
             textColor={'white'}
-            rippleColor={folioEntry?.color}
+            rippleColor={coinsMarket?.color}
             labelStyle={{ marginHorizontal: 0, marginVertical: 5, fontSize: 15 }}
-            style={[styles.modeButton, value === infoView ? { opacity: 1, borderBottomWidth: 1, borderColor: folioEntry?.color } : { opacity: .5 }]}
+            style={[styles.modeButton, value === infoView ?
+                { opacity: 1, borderBottomWidth: 1, borderColor: folioEntry?.color ?? coinsMarket?.color }
+                : { opacity: .5 }]}
             onPress={() => setInfoView(value)}
             mode="contained">
             {value}
@@ -132,7 +139,7 @@ export default function CoinGraphScreen() {
                         if (isLoadingHistoricalData) {
                             return (
                                 <View style={styles.loadingContainer}>
-                                    <ActivityIndicator size="large" color={folioEntry?.color} />
+                                    <ActivityIndicator size="large" color={coinsMarket?.color} />
                                 </View>
                             );
                         } else if (historicalLineGraphData.length > 0) {
@@ -143,7 +150,7 @@ export default function CoinGraphScreen() {
                                     width={screenWidth}
                                     height={screenHeight}
                                     timeRange={timeRange}
-                                    color={folioEntry?.color ?? 'white'}
+                                    color={folioEntry?.color ?? coinsMarket?.color ?? "white"}
                                 >
                                 </LineGraph>
                             );
@@ -169,15 +176,15 @@ export default function CoinGraphScreen() {
                         {infoViewControlButton("STATS")}
                     </View>
                     <ScrollView fadingEdgeLength={25}>
-                        {infoView === "HOLDINGS" && folioEntry &&
+                        {infoView === "HOLDINGS" &&
                             <>
-                                <CoinHoldingsPanel folioEntry={folioEntry} />
+                                {coinsMarket && <CoinHoldingsPanel folioEntry={folioEntry} coinMarket={coinsMarket} />}
                                 <TransactionHistoryTable data={allTransactions.filter(transaction => {
                                     return transaction.coinId === folioEntry?.coinId;
                                 })} db={db} />
                             </>
                         }
-                        {infoView === "STATS" && folioEntry && <CoinStatsPanel folioEntry={folioEntry} />}
+                        {infoView === "STATS" && coinsMarket && <CoinStatsPanel coinsMarkets={coinsMarket} />}
                     </ScrollView>
                 </View>
             </>

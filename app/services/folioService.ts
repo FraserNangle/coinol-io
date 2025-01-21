@@ -3,7 +3,6 @@ import { UserTransaction } from "../models/UserTransaction";
 import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { SQLiteDatabase } from "expo-sqlite";
-import { Image } from 'expo-image';
 import { Folio } from "../models/Folio";
 import api, { isGuest } from "./apiService";
 import { getUserData } from "./userDataService";
@@ -59,21 +58,6 @@ export function generateFolioEntries(transactionList: UserTransaction[], coinsMa
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
                     priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,
-                    ranking: coinMarket ? coinMarket.market_cap_rank : 0,
-                    marketCap: coinMarket ? coinMarket.market_cap : 0,
-                    fullyDilutedValuation: coinMarket ? coinMarket.fully_diluted_valuation : 0,
-                    totalVolume: coinMarket ? coinMarket.total_volume : 0,
-                    high24h: coinMarket ? coinMarket.high_24h : 0,
-                    low24h: coinMarket ? coinMarket.low_24h : 0,
-                    circulatingSupply: coinMarket ? coinMarket.circulating_supply : 0,
-                    totalSupply: coinMarket ? coinMarket.total_supply : 0,
-                    maxSupply: coinMarket ? coinMarket.max_supply : 0,
-                    ath: coinMarket ? coinMarket.ath : 0,
-                    athChangePercentage: coinMarket ? coinMarket.ath_change_percentage : 0,
-                    athDate: coinMarket ? coinMarket.ath_date : "NOT FOUND",
-                    atl: coinMarket ? coinMarket.atl : 0,
-                    atlChangePercentage: coinMarket ? coinMarket.atl_change_percentage : 0,
-                    atlDate: coinMarket ? coinMarket.atl_date : "NOT FOUND",
                 });
             }
         }

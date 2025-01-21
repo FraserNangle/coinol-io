@@ -27,6 +27,7 @@ import { setAllTransactions } from "../slices/allTransactionsSlice";
 import { UserData } from "../models/UserData";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { refreshButton } from "@/components/refreshButton";
+import { setCoinsMarketsList } from "../slices/allCoinDataSlice";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
@@ -41,13 +42,13 @@ export default function TabOneScreen() {
   const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
   const currentFolioEntries = useSelector((state: RootState) => state.folioEntries.currentFolioEntries) || [];
   const allTransactions = useSelector((state: RootState) => state.allTransactions.transactions) || [];
+  const coinsMarketsList = useSelector((state: RootState) => state.allCoinData.coinsMarketsList) || [];
   const foliosList = useSelector((state: RootState) => state.folios.folios) || [];
   const currentlySelectedFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
   const lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
   const [isLoadingFolioData, setIsLoadingFolioData] = useState(true);
-  const [coinsMarketsList, setCoinMarketsList] = useState<CoinsMarkets[]>([]);
   const [refresh, setRefresh] = useState(false);
 
   const fetchData = async () => {
@@ -58,7 +59,7 @@ export default function TabOneScreen() {
       dispatch(setCurrentlySelectedFolio(favoriteFolio));
     }
     dispatch(setFolios(data.userData.folios));
-    setCoinMarketsList(data.coinsMarketsList);
+    dispatch(setCoinsMarketsList(data.coinsMarketsList));
     dispatch(setAllTransactions(data.userData.transactions));
     setIsLoadingFolioData(false);
   };

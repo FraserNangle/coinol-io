@@ -10,13 +10,16 @@ import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { useNavigation } from "expo-router";
 import { RootState } from "@/app/store/store";
 import { useSelector } from "react-redux";
+import { CoinsMarkets } from "@/app/models/CoinsMarkets";
 
 interface CoinHoldingsPanelProps {
-    folioEntry: FolioEntry;
+    folioEntry?: FolioEntry;
+    coinMarket: CoinsMarkets;
 }
 
 export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
-    folioEntry
+    folioEntry,
+    coinMarket
 }: CoinHoldingsPanelProps) => {
 
     const navigation = useNavigation();
@@ -24,15 +27,15 @@ export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
 
     return (
         <View style={styles.infoContainer}>
-            <View style={[styles.holdingsContainer, { borderColor: folioEntry.color }]}>
+            <View style={[styles.holdingsContainer, { borderColor: coinMarket?.color }]}>
                 <View>
                     <Text style={[styles.bigText]}>
-                        {convertToCurrencyFormat(folioEntry.currentPrice * folioEntry.quantity, currencyType, false, true)}
+                        {folioEntry ? convertToCurrencyFormat(coinMarket.current_price * folioEntry.quantity, currencyType, false, true) : convertToCurrencyFormat(0, currencyType, false, true)}
                     </Text>
                     <Text style={[styles.smallText, {
                         color: 'hsl(0, 0%, 80%)',
                     }]}>
-                        {folioEntry.quantity} {folioEntry.ticker.toUpperCase()}
+                        {folioEntry ? folioEntry.quantity : 0} {coinMarket.symbol.toUpperCase()}
                     </Text>
                 </View>
                 <TouchableOpacity
@@ -41,15 +44,15 @@ export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
                         navigation.navigate("pages/addTransaction/addTransactionScreen",
                             {
                                 item: {
-                                    id: folioEntry.coinId,
-                                    symbol: folioEntry.ticker,
-                                    name: folioEntry.name,
-                                    image: folioEntry.image,
+                                    id: coinMarket.id,
+                                    symbol: coinMarket.symbol,
+                                    name: coinMarket.name,
+                                    image: coinMarket.image,
                                 }
                             })
                     }
                 >
-                    <MaterialIcons name="add-card" color={folioEntry.color} size={40} />
+                    <MaterialIcons name="add-card" color={coinMarket.color} size={40} />
                 </TouchableOpacity>
             </View>
         </View>
