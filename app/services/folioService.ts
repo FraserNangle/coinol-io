@@ -10,6 +10,7 @@ import { getUserData } from "./userDataService";
 import { UserData } from "../models/UserData";
 import { createFoliosTable } from "./sqlService";
 import { deleteTransactionsByFolioId } from "./transactionService";
+import Decimal from "decimal.js";
 
 export async function fetchUserData(db: SQLiteDatabase) {
     const userData: UserData = await getUserData(db);
@@ -29,9 +30,9 @@ export function generateFolioEntries(transactionList: UserTransaction[], coinsMa
 
         if (existingEntry) {
             if (transaction.type === 'BUY') {
-                existingEntry.quantity += transaction.quantity;
+                existingEntry.quantity = new Decimal(existingEntry.quantity).plus(transaction.quantity).toNumber();
             } else if (transaction.type === 'SELL') {
-                existingEntry.quantity -= transaction.quantity;
+                existingEntry.quantity = new Decimal(existingEntry.quantity).minus(transaction.quantity).toNumber();
             }
             if (existingEntry.quantity <= 0) {
                 folioEntries.splice(folioEntries.indexOf(existingEntry), 1);
@@ -50,7 +51,7 @@ export function generateFolioEntries(transactionList: UserTransaction[], coinsMa
                 folioEntries.push({
                     folio: folio,
                     coinId: transaction.coinId,
-                    quantity: newQuantity,
+                    quantity: new Decimal(newQuantity).toNumber(),
                     ticker: coinMarket ? coinMarket.symbol : "ERROR",
                     name: coinMarket ? coinMarket.name : "ERROR FINDING COIN",
                     image: coinMarket ? coinMarket.image : "",
@@ -73,11 +74,6 @@ export function generateFolioEntries(transactionList: UserTransaction[], coinsMa
                     atl: coinMarket ? coinMarket.atl : 0,
                     atlChangePercentage: coinMarket ? coinMarket.atl_change_percentage : 0,
                     atlDate: coinMarket ? coinMarket.atl_date : "NOT FOUND",
-                });
-                //Prefetch the images for the folio entries to improve the performance
-                folioEntries.forEach(async (folioEntry) => {
-                    // Prefetch the image
-                    Image.prefetch(folioEntry.image, 'memory-disk');
                 });
             }
         }

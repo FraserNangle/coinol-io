@@ -20,6 +20,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import FolioCreationModal from "@/components/modals/folio/folioCreationModal";
 import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
 import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
+import Decimal from 'decimal.js';
 
 type RouteParams = {
     item: Coin;
@@ -209,7 +210,7 @@ export default function AddTransactionBuySellScreen() {
                         <View style={styles.inputContainer}>
                             <TextInput
                                 style={styles.textInput}
-                                value={total.toString()}
+                                value={total}
                                 multiline={false}
                                 numberOfLines={1}
                                 keyboardType='decimal-pad'
@@ -362,11 +363,12 @@ export default function AddTransactionBuySellScreen() {
                         }
 
                         const newTransactions: UserTransaction[] = selectedFolios.map(folio => {
+                            const decimalTotal = new Decimal(total).toNumber();
                             return {
                                 id: randomUUID(),
                                 coinId: item.id,
                                 date: date.toISOString(),
-                                quantity: Number(total),
+                                quantity: decimalTotal,
                                 type: transactionType,
                                 folioId: folio,
                             };
