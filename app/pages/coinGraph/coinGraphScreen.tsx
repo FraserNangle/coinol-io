@@ -14,8 +14,6 @@ import { ActivityIndicator, Button } from "react-native-paper";
 import { RootState } from "@/app/store/store";
 import { useDispatch, useSelector } from "react-redux";
 import { TransactionHistoryTable } from "@/components/coinGraphScreen/transactionHistoryTable";
-import { UserTransaction } from "@/app/models/UserTransaction";
-import { getTransactionListByCoinId } from "@/app/services/transactionService";
 import { useSQLiteContext } from "expo-sqlite";
 import { LineGraph } from "@/components/coinGraphScreen/lineGraph";
 import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
@@ -193,12 +191,14 @@ export default function CoinGraphScreen() {
                         {infoViewControlButton("STATS")}
                     </View>
                     <ScrollView fadingEdgeLength={25}>
-                        {infoView === "HOLDINGS" && <>
-                            <CoinHoldingsPanel folioEntry={folioEntry} />
-                            <TransactionHistoryTable data={allTransactions.filter(transaction => {
-                                return transaction.coinId === folioEntry.coinId;
-                            })} db={db} />
-                        </>}
+                        {infoView === "HOLDINGS" &&
+                            <>
+                                <CoinHoldingsPanel folioEntry={folioEntry} />
+                                <TransactionHistoryTable data={allTransactions.filter(transaction => {
+                                    return transaction.coinId === folioEntry.coinId;
+                                })} db={db} />
+                            </>
+                        }
                         {infoView === "STATS" && <CoinStatsPanel folioEntry={folioEntry} />}
                     </ScrollView>
                 </View>

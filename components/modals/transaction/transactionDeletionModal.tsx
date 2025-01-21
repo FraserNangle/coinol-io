@@ -8,7 +8,6 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useDispatch } from "react-redux";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { deleteTransactionById } from "@/app/services/transactionService";
-import { triggerRefresh } from "@/app/slices/refreshSlice";
 import { deleteTransactionByIdSlice } from "@/app/slices/allTransactionsSlice";
 
 interface TransactionDeletionModalProps {

@@ -7,7 +7,7 @@ import {
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "@/components/index/folioTable/foliotable";
 import { Link } from "expo-router";
-import { fetchUserData } from "../services/folioService";
+import { fetchUserData, generateFolioEntries } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";
 import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
 import { setAllFolioEntries, setCurrentFolioEntries } from "../slices/folioEntriesSlice";
@@ -22,6 +22,8 @@ import { deleteAllUserDataFromLocalStorage } from "../services/sqlService";
 import { setCurrentlySelectedFolio } from "../slices/currentlySelectedFolioSlice";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { setAllTransactions } from "../slices/allTransactionsSlice";
+import { UserData } from "../models/UserData";
+import { CoinsMarkets } from "../models/CoinsMarkets";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
@@ -33,23 +35,26 @@ export default function TabOneScreen() {
 
   const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
   const currentFolioEntries = useSelector((state: RootState) => state.folioEntries.currentFolioEntries) || [];
+  const allTransactions = useSelector((state: RootState) => state.allTransactions.transactions) || [];
+  const foliosList = useSelector((state: RootState) => state.folios.folios) || [];
   const currentlySelectedFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
   const lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
   const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
   const [isLoadingFolioData, setIsLoadingFolioData] = useState(true);
+  const [coinsMarketsList, setCoinMarketsList] = useState<CoinsMarkets[]>([]);
 
-  const fetchUserFolioData = async () => {
+  const fetchData = async () => {
     setIsLoadingFolioData(true);
-    const userData = await fetchUserData(db);
-    const favoriteFolio = userData.foliosList.find((folio) => folio.isFavorite);
+    const data: { userData: UserData, coinsMarketsList: CoinsMarkets[] } = await fetchUserData(db);
+    const favoriteFolio = data.userData.folios.find((folio) => folio.isFavorite);
     if (currentlySelectedFolio === undefined) {
       dispatch(setCurrentlySelectedFolio(favoriteFolio));
     }
-    dispatch(setFolios(userData.foliosList));
-    dispatch(setAllFolioEntries(userData.folioEntries));
-    dispatch(setAllTransactions(userData.transactionList));
+    dispatch(setFolios(data.userData.folios));
+    setCoinMarketsList(data.coinsMarketsList);
+    dispatch(setAllTransactions(data.userData.transactions));
     setIsLoadingFolioData(false);
   };
 
@@ -57,8 +62,13 @@ export default function TabOneScreen() {
     if (refresh) {
       dispatch(setLastTransaction(null));
     }
-    fetchUserFolioData();
+    fetchData();
   }, [lastTransaction, refresh]);
+
+  useEffect(() => {
+    const folioEntries = generateFolioEntries(allTransactions, coinsMarketsList, foliosList);
+    dispatch(setAllFolioEntries(folioEntries));
+  }, [allTransactions]);
 
   useEffect(() => {
     if (currentlySelectedFolio && currentFolioEntries) {

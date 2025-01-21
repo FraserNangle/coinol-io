@@ -13,17 +13,15 @@ import { deleteTransactionsByFolioId } from "./transactionService";
 
 export async function fetchUserData(db: SQLiteDatabase) {
     const userData: UserData = await getUserData(db);
-    const transactionList: UserTransaction[] = userData.transactions;
-    const foliosList: Folio[] = userData.folios;
 
     // Send the unique coinIds from the transactionList to the backend to get the complex data of each coin
-    const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.coinId))];
-    let coinsMarketsList: CoinsMarkets[] = [];
-    await fetchCoinDataByCoinsList(uniqueCoinIds).then((data) => {
-        coinsMarketsList = data;
-    });
+    const uniqueCoinIds = [...new Set(userData.transactions.map((transaction) => transaction.coinId))];
+    const coinsMarketsList: CoinsMarkets[] = await fetchCoinDataByCoinsList(uniqueCoinIds);
 
-    // populate the folio entries based on the transactionList and the coinsMarketsList
+    return { userData, coinsMarketsList };
+}
+
+export function generateFolioEntries(transactionList: UserTransaction[], coinsMarketsList: CoinsMarkets[], foliosList: Folio[]) {
     const folioEntries: FolioEntry[] = [];
     transactionList.forEach((transaction) => {
         const existingEntry = folioEntries.find((entry) => entry.coinId === transaction.coinId && entry.folio.folioId === transaction.folioId);
@@ -84,8 +82,7 @@ export async function fetchUserData(db: SQLiteDatabase) {
             }
         }
     });
-
-    return { folioEntries, foliosList, transactionList };
+    return folioEntries;
 }
 
 function adjustColor(color: string): string {
