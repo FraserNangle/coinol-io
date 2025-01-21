@@ -24,6 +24,7 @@ import { Image } from "expo-image";
 import { triggerRefresh } from "@/app/slices/refreshSlice";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { CoinHoldingsPanel } from "@/components/coinGraphScreen/coinHoldingsPanel";
+import { refreshButton } from "@/components/refreshButton";
 
 type RouteParams = {
     folioEntry: FolioEntry;
@@ -46,23 +47,9 @@ export default function CoinGraphScreen() {
 
     const allTransactions = useSelector((state: RootState) => state.allTransactions.transactions) || [];
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
-    const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
     const rotateAnim = useRef(new Animated.Value(0)).current;
-
-    const startAnimation = () => {
-        rotateAnim.setValue(0);
-        Animated.timing(rotateAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const rotate = rotateAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg'],
-    });
+    const [refresh, setRefresh] = useState(false);
 
     useEffect(() => {
         navigation.setOptions({
@@ -77,18 +64,7 @@ export default function CoinGraphScreen() {
                 </View>
             ),
             headerRight: () => (
-                <View style={[{ justifyContent: 'center' }]}>
-                    <TouchableOpacity onPress={() => {
-                        startAnimation();
-                        dispatch(triggerRefresh());
-                    }}>
-                        <Animated.View style={{ transform: [{ rotate }] }}>
-                            <MaterialIcons style={[{
-                                color: 'white',
-                            }]} name={"refresh"} size={30} />
-                        </Animated.View>
-                    </TouchableOpacity>
-                </View>
+                refreshButton(setRefresh, rotateAnim)
             ),
         });
     }, [navigation]);

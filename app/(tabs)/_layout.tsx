@@ -1,14 +1,13 @@
-import React, { useRef, useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Animated } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
 import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange";
 import { RootState } from "../store/store";
-import { triggerRefresh } from "../slices/refreshSlice";
 import FolioSelectionModal from "@/components/modals/folio/folioSelectionModal";
 import { useSQLiteContext } from "expo-sqlite";
 
@@ -22,8 +21,6 @@ function TabBarIcon(props: Readonly<{
 }
 
 export default function TabLayout() {
-  const dispatch = useDispatch();
-  const rotateAnim = useRef(new Animated.Value(0)).current;
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const showModal = () => setIsModalVisible(true);
@@ -40,20 +37,6 @@ export default function TabLayout() {
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
 
   const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType, true, true);
-
-  const startAnimation = () => {
-    rotateAnim.setValue(0);
-    Animated.timing(rotateAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const rotate = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
 
   return (
     <Tabs
@@ -112,20 +95,6 @@ export default function TabLayout() {
           ),
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="data-usage" color={color} />
-          ),
-          headerRight: () => (
-            <View style={[{ justifyContent: 'center', paddingEnd: 10 }]}>
-              <TouchableOpacity onPress={() => {
-                startAnimation();
-                dispatch(triggerRefresh());
-              }}>
-                <Animated.View style={{ transform: [{ rotate }] }}>
-                  <MaterialIcons style={[{
-                    color: 'white',
-                  }]} name={"refresh"} size={30} />
-                </Animated.View>
-              </TouchableOpacity>
-            </View>
           ),
         }}
       />
