@@ -66,9 +66,10 @@ const styles = StyleSheet.create({
     holdingsContainer: {
         justifyContent: 'space-between',
         flexDirection: 'row',
-        padding: 20,
+        paddingVertical: 10,
+        paddingHorizontal: 10,
         borderRadius: 5,
-        borderBottomWidth: 2,
+        borderBottomWidth: 1,
         borderColor: "rgba(255, 255, 255, 0.3)"
     },
     bigText: {

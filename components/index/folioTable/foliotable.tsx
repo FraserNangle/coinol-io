@@ -138,7 +138,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
               getPriceDifferenceDisplay(folioEntry.priceChangePercentage24h);
             return (
               <DataTable.Row
-                onPress={() => { navigation.navigate("pages/coinGraph/coinGraphScreen", { folioEntry: folioEntry }) }}
+                onPress={() => { navigation.navigate("pages/coinGraph/coinGraphScreen", { coinId: folioEntry?.coinId }) }}
                 key={folioEntry?.coinId}
                 style={[selectedSection?.details?.coinId == folioEntry?.coinId
                   ? { borderLeftColor: selectedSection?.details?.color, borderLeftWidth: 5, borderTopLeftRadius: 2, borderBottomLeftRadius: 2, borderBottomColor: "rgba(255, 255, 255, 0.125)" }
