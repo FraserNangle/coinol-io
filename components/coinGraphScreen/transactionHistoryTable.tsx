@@ -16,6 +16,9 @@ import { numberFormatter } from "@/app/utils/numberFormatter";
 import { useMemo, useState } from "react";
 import { SQLiteDatabase } from "expo-sqlite";
 import TransactionDeletionModal from "../modals/transaction/transactionDeletionModal";
+import { useNavigation } from "expo-router";
+import { RootState } from "@/app/store/store";
+import { useSelector } from "react-redux";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -30,7 +33,11 @@ interface TransactionHistoryTableProps {
 }
 
 export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (props: TransactionHistoryTableProps) => {
-    type SortField = "date" | "quantity" | "type";
+    const navigation = useNavigation();
+
+    const folios = useSelector((state: RootState) => state.folios.folios) || [];
+
+    type SortField = "date" | "quantity" | "folio" | "type";
 
     const [sortField, setSortField] = useState<SortField>("date");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -57,6 +64,11 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
         setIsDeletionModalVisible(true)
     };
 
+    const handleOpenTransactionEditScreen = () => {
+        closeTransactionSettingsMenu();
+        navigation.navigate("pages/editTransaction/editTransactionScreen", { transaction: menuTransaction });
+    };
+
     const sortedData = useMemo(() => {
         return [...props.data].sort((a, b) => {
             let comparison = 0;
@@ -69,6 +81,9 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                 }
                 case "quantity":
                     comparison = a.quantity - b.quantity;
+                    break;
+                case "folio":
+                    comparison = a.folioId.localeCompare(b.folioId);
                     break;
                 case "type":
                     comparison = a.type.localeCompare(b.type);
@@ -99,6 +114,10 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
         return sortOrder === "asc" ? " ↓" : " ↑";
     };
 
+    const getNameOfFolio = (folioId: string) => {
+        return folios.find(folioItem => folioItem.folioId === folioId)?.folioName ?? '';
+    };
+
     return (
         <>
             <PaperProvider>
@@ -112,6 +131,11 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                         <DataTable.Title numeric onPress={() => handleSort("quantity")}>
                             <Text style={styles.dataTableTitle}>
                                 Quantity{getSortIndicator("quantity")}
+                            </Text>
+                        </DataTable.Title>
+                        <DataTable.Title numeric onPress={() => handleSort("folio")}>
+                            <Text style={styles.dataTableTitle}>
+                                Folio{getSortIndicator("folio")}
                             </Text>
                         </DataTable.Title>
                         <DataTable.Title numeric onPress={() => handleSort("type")}>
@@ -143,6 +167,11 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                                 <DataTable.Cell numeric>
                                     <Text style={styles.normal}>
                                         {numberFormatter(userTransactionEntry.quantity)}
+                                    </Text>
+                                </DataTable.Cell>
+                                <DataTable.Cell numeric>
+                                    <Text style={styles.normal} numberOfLines={1} ellipsizeMode="middle">
+                                        {getNameOfFolio(userTransactionEntry.folioId)}
                                     </Text>
                                 </DataTable.Cell>
                                 <DataTable.Cell numeric>
@@ -179,7 +208,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                 visible={isTransactionSettingsMenuVisible}
                 onDismiss={closeTransactionSettingsMenu}
                 anchor={menuAnchor}>
-                <Menu.Item onPress={() => { }} title="Edit" />
+                <Menu.Item onPress={handleOpenTransactionEditScreen} title="Edit" />
                 <Divider />
                 <Menu.Item titleStyle={{ color: 'red' }} onPress={showDeletionModal} title="Delete" />
             </Menu>
