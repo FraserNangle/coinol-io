@@ -66,7 +66,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
 
     const handleOpenTransactionEditScreen = () => {
         closeTransactionSettingsMenu();
-        navigation.navigate("pages/editTransaction/editTransactionScreen", { transaction: menuTransaction });
+        navigation.navigate("pages/addTransaction/transactionScreen", { transactionToEdit: menuTransaction });
     };
 
     const sortedData = useMemo(() => {

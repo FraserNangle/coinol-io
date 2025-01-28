@@ -68,7 +68,7 @@ export default function AddTransactionCurrencyListScreen() {
           renderItem={({ item }) => (
             <TouchableHighlight
               onPress={() =>
-                navigation.navigate("pages/addTransaction/addTransactionScreen", { item: item })
+                navigation.navigate("pages/addTransaction/transactionScreen", { item: item })
               }
             >
               <DataTable.Row key={item.name} style={[{ borderColor: "rgba(255, 255, 255, 0.3)", borderBottomWidth: .5 }]}>
