@@ -2,7 +2,7 @@ import { StyleSheet, TouchableHighlight, TextInput, TouchableOpacity } from "rea
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { Button } from "react-native-paper";
+import { ActivityIndicator, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { addBatchTransactionData, deleteTransactionById } from "@/app/services/transactionService";
 import { UserTransaction } from "@/app/models/UserTransaction";
@@ -54,6 +54,7 @@ export default function TransactionScreen() {
     const [canSell, setCanSell] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedFolios, setSelectedFolios] = useState<string[]>([transactionToEdit?.folioId ?? currentFolio?.folioId ?? '']);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (transactionToEdit) {
@@ -163,25 +164,29 @@ export default function TransactionScreen() {
     };
 
     const addTransactions = (db: SQLiteDatabase, transactions: UserTransaction[]) => {
+        setIsLoading(true);
         addBatchTransactionData(db, transactions)
             .then(() => {
                 Toast.show(`Added ${persistedItem?.name} transaction to ${getNamesOfSelectedFolios().join(", ")}. `, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
-                    position: Toast.positions.CENTER,
+                    position: Toast.positions.BOTTOM,
                 });
                 const lastTransaction = transactions.length > 0 ? transactions[transactions.length - 1] : null;
                 dispatch(setLastTransaction(lastTransaction));
                 dispatch(setCurrentlySelectedFolio(folios.find(folio => folio.folioId === selectedFolios[0]) ?? null));
                 navigation.navigate("pages/coinGraph/coinGraphScreen", { coinId: persistedItem?.id });
+                setIsLoading(false);
             })
             .catch(error => {
                 console.error('Error:', error);
+                setIsLoading(false);
             });
     };
 
     const editTransactions = (db: SQLiteDatabase, newTransactions: UserTransaction[]) => {
         if (transactionToEdit) {
+            setIsLoading(true);
             deleteTransactionById(db, transactionToEdit?.id)
                 .then(() => addBatchTransactionData(db, newTransactions))
                 .then(() => {
@@ -194,14 +199,16 @@ export default function TransactionScreen() {
                     Toast.show(`Saved edits to ${persistedItem?.name} transaction.`, {
                         backgroundColor: "hsl(0, 0%, 15%)",
                         duration: Toast.durations.LONG,
-                        position: Toast.positions.CENTER,
+                        position: Toast.positions.BOTTOM,
                     });
                     const lastTransaction = newTransactions.length > 0 ? newTransactions[newTransactions.length - 1] : null;
                     dispatch(setLastTransaction(lastTransaction));
+                    setIsLoading(false);
                     navigation.navigate("pages/coinGraph/coinGraphScreen", { coinId: persistedItem?.id });
                 })
                 .catch(error => {
                     console.error('Error:', error);
+                    setIsLoading(false);
                 });
         }
     };
@@ -415,7 +422,11 @@ export default function TransactionScreen() {
                         });
                         transactionToEdit ? editTransactions(db, newTransactions) : addTransactions(db, newTransactions)
                     }}>
-                    {transactionToEdit ? 'EDIT TRANSACTION' : 'ADD TRANSACTION'}
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color={"white"} />
+                    ) : (
+                        transactionToEdit ? 'EDIT TRANSACTION' : 'ADD TRANSACTION'
+                    )}
                 </Button>
                 {showDatePicker && (
                     <RNDateTimePicker

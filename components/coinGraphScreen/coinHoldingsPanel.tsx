@@ -41,7 +41,7 @@ export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
                 <TouchableOpacity
                     style={{ justifyContent: "center", alignContent: "center" }}
                     onPress={() =>
-                        navigation.navigate("pages/addTransaction/addTransactionScreen",
+                        navigation.navigate("pages/addTransaction/transactionScreen",
                             {
                                 item: {
                                     id: coinMarket.id,

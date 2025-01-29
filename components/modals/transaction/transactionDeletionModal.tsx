@@ -1,7 +1,7 @@
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
-import React from "react";
-import { Button, Modal, Portal } from "react-native-paper";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Button, Modal, Portal } from "react-native-paper";
 import Toast from 'react-native-root-toast';
 import { SQLiteDatabase } from "expo-sqlite";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -18,11 +18,13 @@ interface TransactionDeletionModalProps {
 }
 
 export default function TransactionDeletionModal({ db, visible, setVisible, transactionToDelete }: TransactionDeletionModalProps) {
+    const [isDeletionLoading, setIsDeletionLoading] = useState(false);
     const dispatch = useDispatch();
 
     const hideModal = () => setVisible(false);
 
     const deleteTransaction = (db: SQLiteDatabase, transaction: UserTransaction) => {
+        setIsDeletionLoading(true);
         deleteTransactionById(db, transaction.id)
             .then(() => {
                 dispatch(deleteTransactionByIdSlice(transaction.id));
@@ -32,9 +34,11 @@ export default function TransactionDeletionModal({ db, visible, setVisible, tran
                     position: Toast.positions.BOTTOM,
                 });
                 hideModal();
+                setIsDeletionLoading(false);
             })
             .catch(error => {
                 console.error('Error:', error);
+                setIsDeletionLoading(false);
             });
     };
 
@@ -68,7 +72,11 @@ export default function TransactionDeletionModal({ db, visible, setVisible, tran
                                 });
                             }
                         }}>
-                        DELETE
+                        {isDeletionLoading ? (
+                            <ActivityIndicator size="small" color={"red"} />
+                        ) : (
+                            'DELETE'
+                        )}
                     </Button>
                     <Button
                         buttonColor="black"
