@@ -24,10 +24,18 @@ export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
 
     const navigation = useNavigation();
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
+    const currentFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
 
     return (
         <View style={styles.infoContainer}>
             <View style={[styles.holdingsContainer, { borderColor: coinMarket?.color }]}>
+                <View style={{ justifyContent: "center", alignContent: "center" }}>
+                    <Text style={[styles.bigText, {
+                        color: 'hsl(0, 0%, 80%)',
+                    }]}>
+                        {currentFolio?.folioName || ''}
+                    </Text>
+                </View>
                 <View>
                     <Text style={[styles.bigText]}>
                         {folioEntry ? convertToCurrencyFormat(coinMarket.current_price * folioEntry.quantity, currencyType, false, true) : convertToCurrencyFormat(0, currencyType, false, true)}
