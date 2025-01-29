@@ -128,22 +128,22 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                                 Date{getSortIndicator("date")}
                             </Text>
                         </DataTable.Title>
-                        <DataTable.Title numeric onPress={() => handleSort("quantity")}>
+                        <DataTable.Title numeric style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} onPress={() => handleSort("quantity")}>
                             <Text style={styles.dataTableTitle}>
                                 Quantity{getSortIndicator("quantity")}
                             </Text>
                         </DataTable.Title>
-                        <DataTable.Title numeric onPress={() => handleSort("folio")}>
+                        <DataTable.Title onPress={() => handleSort("folio")}>
                             <Text style={styles.dataTableTitle}>
                                 Folio{getSortIndicator("folio")}
                             </Text>
                         </DataTable.Title>
-                        <DataTable.Title numeric onPress={() => handleSort("type")}>
+                        <DataTable.Title numeric style={{ flex: .5, justifyContent: 'center', alignItems: 'center' }} onPress={() => handleSort("type")}>
                             <Text style={styles.dataTableTitle}>
                                 Type{getSortIndicator("type")}
                             </Text>
                         </DataTable.Title>
-                        <DataTable.Cell numeric style={{ flex: .3 }}>
+                        <DataTable.Cell numeric style={{ flex: .35, paddingRight: 12.5, justifyContent: 'center', alignItems: 'center' }}>
                             <></>
                         </DataTable.Cell>
                     </DataTable.Header>
@@ -170,24 +170,24 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                                     </Text>
                                 </DataTable.Cell>
                                 <DataTable.Cell numeric>
-                                    <Text style={styles.normal} numberOfLines={1} ellipsizeMode="middle">
+                                    <Text style={[styles.normal]} numberOfLines={1} ellipsizeMode="middle">
                                         {getNameOfFolio(userTransactionEntry.folioId)}
                                     </Text>
                                 </DataTable.Cell>
                                 <DataTable.Cell numeric>
                                     <MaterialIcons style={{
-                                        color: userTransactionEntry.type === "BUY" ? "#00ff00" : "red",
+                                        color: userTransactionEntry.type === "BUY" ? "#00ff00" : "red", flex: .5, justifyContent: 'center', alignItems: 'center'
                                     }} name={userTransactionEntry.type === "BUY" ? "add-circle-outline" : "remove-circle-outline"} size={30} />
                                 </DataTable.Cell>
                                 <TouchableOpacity
-                                    style={{ flex: .3, justifyContent: 'center', alignItems: 'center' }}
+                                    style={{ flex: .35, paddingRight: 12.5, justifyContent: 'center', alignItems: 'center' }}
                                     onPress={(event) => {
                                         setMenuTransaction(userTransactionEntry);
                                         openTransactionSettingsMenu(event);
                                     }}>
                                     <DataTable.Cell numeric>
                                         <MaterialIcons style={{
-                                            color: "rgba(255, 255, 255, 0.8)",
+                                            color: "rgba(255, 255, 255, 0.8)"
                                         }} name="more-horiz" size={20} />
                                     </DataTable.Cell>
                                 </TouchableOpacity>
