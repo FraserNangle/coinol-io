@@ -4,7 +4,6 @@ import {
     Dimensions,
     ScrollView,
     StyleSheet,
-    TouchableOpacity,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import { useNavigation } from "expo-router";
@@ -12,91 +11,72 @@ import { useRoute } from "@react-navigation/native";
 import { FolioEntry } from "@/app/models/FolioEntry";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { RootState } from "@/app/store/store";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { TransactionHistoryTable } from "@/components/coinGraphScreen/transactionHistoryTable";
-import { UserTransaction } from "@/app/models/UserTransaction";
-import { getTransactionListByCoinId } from "@/app/services/transactionService";
 import { useSQLiteContext } from "expo-sqlite";
 import { LineGraph } from "@/components/coinGraphScreen/lineGraph";
-import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
+import { CoinMarketHistoricalDataPoint, CoinsMarkets } from "@/app/models/CoinsMarkets";
 import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
 import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
 import { Image } from "expo-image";
-import { triggerRefresh } from "@/app/slices/refreshSlice";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { CoinHoldingsPanel } from "@/components/coinGraphScreen/coinHoldingsPanel";
+import { refreshButton } from "@/components/refreshButton";
 
 type RouteParams = {
-    folioEntry: FolioEntry;
+    coinId: string;
 };
 
 export default function CoinGraphScreen() {
     const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-    const dispatch = useDispatch();
 
     const [timeRange, setTimeRange] = useState("24H");
+    const [infoView, setInfoView] = useState("HOLDINGS");
     const [historicalLineGraphData, setHistoricalLineGraphData] = useState<CoinMarketHistoricalDataPoint[]>([]);
-    const [userTransactionData, setUserTransactionData] = useState<UserTransaction[]>([]);
     const [isLoadingHistoricalData, setIsLoadingHistoricalData] = useState(true);
-    const [isLoadingTransactionData, setIsLoadingTransactionData] = useState(true);
+    const [refresh, setRefresh] = useState(false);
+    const [folioEntry, setFolioEntry] = useState<FolioEntry>();
+    const [coinsMarket, setCoinsMarket] = useState<CoinsMarkets>();
 
     const route = useRoute();
-    const { folioEntry }: { folioEntry: FolioEntry } = route.params as RouteParams;
+    const { coinId }: { coinId: string } = route.params as RouteParams;
 
     const navigation = useNavigation();
     const db = useSQLiteContext();
 
+    const allTransactions = useSelector((state: RootState) => state.allTransactions.transactions) || [];
+    const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
-    const refresh = useSelector((state: RootState) => state.refresh.refresh);
+    const coinsMarketsList = useSelector((state: RootState) => state.allCoinData.coinsMarketsList) || [];
 
     const rotateAnim = useRef(new Animated.Value(0)).current;
 
-    const startAnimation = () => {
-        rotateAnim.setValue(0);
-        Animated.timing(rotateAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const rotate = rotateAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg'],
-    });
+    useEffect(() => {
+        setCoinsMarket(coinsMarketsList.find((coin) => coin.id === coinId));
+        setFolioEntry(allFolioEntries.find((folio) => folio.coinId === coinId));
+    }, [coinId, allTransactions, allFolioEntries]);
 
     useEffect(() => {
         navigation.setOptions({
-            title: folioEntry.name,
+            title: coinsMarket?.name,
             headerTitle: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Image
-                        source={{ uri: folioEntry.image }}
+                        source={{ uri: coinsMarket?.image }}
                         style={{ width: 30, height: 30, marginRight: 10 }}
                     />
-                    <Text style={{ color: 'white', fontSize: 18 }}>{folioEntry.name}</Text>
+                    <Text style={{ color: 'white', fontSize: 18 }}>{coinsMarket?.name}</Text>
                 </View>
             ),
             headerRight: () => (
-                <View style={[{ justifyContent: 'center' }]}>
-                    <TouchableOpacity onPress={() => {
-                        startAnimation();
-                        dispatch(triggerRefresh());
-                    }}>
-                        <Animated.View style={{ transform: [{ rotate }] }}>
-                            <MaterialIcons style={[{
-                                color: 'white',
-                            }]} name={"refresh"} size={30} />
-                        </Animated.View>
-                    </TouchableOpacity>
-                </View>
+                refreshButton(setRefresh, rotateAnim)
             ),
         });
-    }, [navigation]);
+    }, [navigation, coinsMarket]);
 
-    const fetchHistoricalLineGraphData = async (folioEntry: FolioEntry) => {
+    const fetchHistoricalLineGraphData = async (coinsMarketId: string) => {
         setIsLoadingHistoricalData(true);
-        const historicalData = await getCoinHistoryDataPoints(db, folioEntry.coinId);
+        const historicalData = await getCoinHistoryDataPoints(db, coinsMarketId);
         setHistoricalLineGraphData(historicalData || []);
         setIsLoadingHistoricalData(false);
     };
@@ -115,33 +95,37 @@ export default function CoinGraphScreen() {
 
     };
 
-    const fetchUserTransactionData = async (folioEntry: FolioEntry) => {
-        setIsLoadingTransactionData(true);
-        const transactionData = await getTransactionListByCoinId(db, folioEntry.coinId);
-        setUserTransactionData(transactionData || []);
-        setIsLoadingTransactionData(false);
-    };
-
     useEffect(() => {
-        if (folioEntry) {
-            fetchHistoricalLineGraphData(folioEntry);
+        if (coinsMarket) {
+            fetchHistoricalLineGraphData(coinsMarket.id);
         }
-    }, [refresh]);
-
-    useEffect(() => {
-        if (folioEntry) {
-            fetchUserTransactionData(folioEntry);
-        }
-    }, [folioEntry, refresh]);
+    }, [refresh, coinsMarket]);
 
     function timeRangeControlButton(value: string) {
         return <Button
             buttonColor="transparent"
             textColor={'white'}
-            rippleColor={folioEntry.color}
+            rippleColor={coinsMarket?.color}
             labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
-            style={[styles.button, value === timeRange ? { opacity: 1, borderTopWidth: 2, borderColor: folioEntry.color } : { opacity: .5 }]}
+            style={[styles.button, value === timeRange ?
+                { opacity: 1, borderTopWidth: 2, borderColor: folioEntry?.color ?? coinsMarket?.color }
+                : { opacity: .5 }]}
             onPress={() => setTimeRange(value)}
+            mode="contained">
+            {value}
+        </Button>;
+    }
+
+    function infoViewControlButton(value: string) {
+        return <Button
+            buttonColor="transparent"
+            textColor={'white'}
+            rippleColor={coinsMarket?.color}
+            labelStyle={{ marginHorizontal: 0, marginVertical: 5, fontSize: 15 }}
+            style={[styles.modeButton, value === infoView ?
+                { opacity: 1, borderBottomWidth: 1, borderColor: folioEntry?.color ?? coinsMarket?.color }
+                : { opacity: .5 }]}
+            onPress={() => setInfoView(value)}
             mode="contained">
             {value}
         </Button>;
@@ -155,7 +139,7 @@ export default function CoinGraphScreen() {
                         if (isLoadingHistoricalData) {
                             return (
                                 <View style={styles.loadingContainer}>
-                                    <ActivityIndicator size="large" color={folioEntry.color} />
+                                    <ActivityIndicator size="large" color={coinsMarket?.color} />
                                 </View>
                             );
                         } else if (historicalLineGraphData.length > 0) {
@@ -166,7 +150,7 @@ export default function CoinGraphScreen() {
                                     width={screenWidth}
                                     height={screenHeight}
                                     timeRange={timeRange}
-                                    color={folioEntry.color}
+                                    color={folioEntry?.color ?? coinsMarket?.color ?? "white"}
                                 >
                                 </LineGraph>
                             );
@@ -187,16 +171,21 @@ export default function CoinGraphScreen() {
                     {timeRangeControlButton("ALL")}
                 </View>
                 <View style={styles.tableContainer}>
-                    {isLoadingTransactionData ? (
-                        <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color={folioEntry.color} />
-                        </View>
-                    ) : (
-                        <ScrollView fadingEdgeLength={25}>
-                            <CoinStatsPanel folioEntry={folioEntry} />
-                            <TransactionHistoryTable data={userTransactionData} />
-                        </ScrollView>
-                    )}
+                    <View style={styles.modeButtonContainer}>
+                        {infoViewControlButton("HOLDINGS")}
+                        {infoViewControlButton("STATS")}
+                    </View>
+                    <ScrollView fadingEdgeLength={25}>
+                        {infoView === "HOLDINGS" &&
+                            <>
+                                {coinsMarket && <CoinHoldingsPanel folioEntry={folioEntry} coinMarket={coinsMarket} />}
+                                <TransactionHistoryTable data={allTransactions.filter(transaction => {
+                                    return transaction.coinId === folioEntry?.coinId;
+                                })} db={db} />
+                            </>
+                        }
+                        {infoView === "STATS" && coinsMarket && <CoinStatsPanel coinsMarkets={coinsMarket} />}
+                    </ScrollView>
                 </View>
             </>
         </View>
@@ -220,16 +209,31 @@ const styles = StyleSheet.create({
         borderWidth: 0,
         borderColor: "rgba(255, 255, 255, 1)",
     },
+    modeButtonContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "center",
+        justifyContent: "space-between",
+        alignContent: "center",
+        width: "90%",
+    },
+    modeButton: {
+        width: "50%",
+        justifyContent: "center",
+        alignContent: "center",
+        borderRadius: 5,
+        borderWidth: 0,
+        borderColor: "white",
+    },
     tableContainer: {
         flex: 1,
         width: "100%",
         justifyContent: "center",
         alignContent: "center",
         backgroundColor: "transparent",
-        paddingTop: 20,
     },
     graphContainer: {
-        flex: 2,
+        flex: 1.5,
         justifyContent: "center",
     },
     errorText: {

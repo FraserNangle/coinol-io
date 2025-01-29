@@ -8,7 +8,7 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { deleteFolioById } from "@/app/services/folioService";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useDispatch } from "react-redux";
-import { deleteFolioFromSliceById, setFavoriteFolioReducer } from "@/app/slices/foliosSlice";
+import { deleteFolioFromSliceById } from "@/app/slices/foliosSlice";
 
 interface FolioDeletionModalProps {
     db: SQLiteDatabase;

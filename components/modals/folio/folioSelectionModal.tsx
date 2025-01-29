@@ -173,7 +173,7 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                             </ScrollView>
                                         </DataTable.Cell>
                                         <TouchableOpacity
-                                            style={{ flex: 1 }}
+                                            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
                                             onPress={(event) => {
                                                 setMenuFolio(folio);
                                                 openFolioSettingsMenu(event);
@@ -185,7 +185,7 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                             </DataTable.Cell>
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            style={{ flex: .35, paddingRight: 15 }}
+                                            style={{ flex: .35, paddingRight: 12.5, justifyContent: 'center', alignItems: 'center' }}
                                             onPress={() => {
                                                 handleSetFavoriteFolio(folio.folioId)
                                             }}
@@ -236,8 +236,8 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                 folioToDelete={menuFolio}
             />
             <Menu
-                style={{ backgroundColor: 'transparent', width: 120, borderRadius: 5, borderColor: "rgba(255, 255, 255, .3)", paddingTop: 0, marginTop: 0 }}
-                contentStyle={{ backgroundColor: 'black', borderWidth: 1, borderColor: "rgba(255, 255, 255, .2)" }}
+                style={{ backgroundColor: 'transparent', width: 120, borderRadius: 5, borderColor: "rgba(255, 255, 255, .3)" }}
+                contentStyle={{ backgroundColor: 'black', borderWidth: 1, borderColor: "rgba(255, 255, 255, .2)", paddingVertical: 0 }}
                 visible={isFolioSettingsMenuVisible}
                 onDismiss={closeFolioSettingsMenu}
                 anchor={menuAnchor}>

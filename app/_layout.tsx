@@ -96,7 +96,7 @@ function RootLayoutNav() {
                   }}
                 />
                 <Stack.Screen
-                  name="pages/addTransaction/addTransactionScreen"
+                  name="pages/addTransaction/transactionScreen"
                   options={{
                     presentation: "fullScreenModal",
                     title: "Add Transaction",

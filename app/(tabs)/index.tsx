@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   Dimensions,
   Pressable,
+  TouchableOpacity,
+  Animated,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "@/components/index/folioTable/foliotable";
-import { Link } from "expo-router";
-import { fetchUserData } from "../services/folioService";
+import { Link, useNavigation } from "expo-router";
+import { fetchUserData, generateFolioEntries } from "../services/folioService";
 import { useDispatch, useSelector } from "react-redux";
 import { setTotalPortfolioPercentageChange24hr, setTotalPortfolioValue } from "../slices/totalPortfolioValueSlice";
-import { setAllFolioEntries as setAllFolioEntries, setCurrentFolioEntries } from "../slices/folioEntriesSlice";
+import { setAllFolioEntries, setCurrentFolioEntries } from "../slices/folioEntriesSlice";
 import { RootState } from "../store/store";
 import { DonutChart } from "@/components/index/donutChart/donutChart";
 import { useSQLiteContext } from "expo-sqlite";
@@ -21,33 +23,44 @@ import { setFolios } from "../slices/foliosSlice";
 import { deleteAllUserDataFromLocalStorage } from "../services/sqlService";
 import { setCurrentlySelectedFolio } from "../slices/currentlySelectedFolioSlice";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { setAllTransactions } from "../slices/allTransactionsSlice";
+import { UserData } from "../models/UserData";
+import { CoinsMarkets } from "../models/CoinsMarkets";
+import { refreshButton } from "@/components/refreshButton";
+import { setCoinsMarketsList } from "../slices/allCoinDataSlice";
 
 export default function TabOneScreen() {
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
 
   const db = useSQLiteContext();
-
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
   const currentFolioEntries = useSelector((state: RootState) => state.folioEntries.currentFolioEntries) || [];
+  const allTransactions = useSelector((state: RootState) => state.allTransactions.transactions) || [];
+  const coinsMarketsList = useSelector((state: RootState) => state.allCoinData.coinsMarketsList) || [];
+  const foliosList = useSelector((state: RootState) => state.folios.folios) || [];
   const currentlySelectedFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
   const lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
-  const refresh = useSelector((state: RootState) => state.refresh.refresh);
 
   const [isLoadingFolioData, setIsLoadingFolioData] = useState(true);
+  const [refresh, setRefresh] = useState(false);
 
-  const fetchUserFolioData = async () => {
+  const fetchData = async () => {
     setIsLoadingFolioData(true);
-    const userData = await fetchUserData(db);
-    const favoriteFolio = userData.foliosList.find((folio) => folio.isFavorite);
+    const data: { userData: UserData, coinsMarketsList: CoinsMarkets[] } = await fetchUserData(db);
+    const favoriteFolio = data.userData.folios.find((folio) => folio.isFavorite);
     if (currentlySelectedFolio === undefined) {
       dispatch(setCurrentlySelectedFolio(favoriteFolio));
     }
-    dispatch(setFolios(userData.foliosList));
-    dispatch(setAllFolioEntries(userData.folioEntries));
+    dispatch(setFolios(data.userData.folios));
+    dispatch(setCoinsMarketsList(data.coinsMarketsList));
+    dispatch(setAllTransactions(data.userData.transactions));
     setIsLoadingFolioData(false);
   };
 
@@ -55,8 +68,13 @@ export default function TabOneScreen() {
     if (refresh) {
       dispatch(setLastTransaction(null));
     }
-    fetchUserFolioData();
+    fetchData();
   }, [lastTransaction, refresh]);
+
+  useEffect(() => {
+    const folioEntries = generateFolioEntries(allTransactions, coinsMarketsList, foliosList);
+    dispatch(setAllFolioEntries(folioEntries));
+  }, [allTransactions]);
 
   useEffect(() => {
     if (currentlySelectedFolio && currentFolioEntries) {
@@ -79,6 +97,14 @@ export default function TabOneScreen() {
     dispatch(setTotalPortfolioValue(totalPortfolioValue));
     dispatch(setTotalPortfolioPercentageChange24hr(totalPortfolioPercentageChange24hr));
   }, [currentFolioEntries]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        refreshButton(setRefresh, rotateAnim, 10)
+      ),
+    });
+  }, [navigation]);
 
   return (
     <>

@@ -3,27 +3,25 @@ import { UserTransaction } from "../models/UserTransaction";
 import { fetchCoinDataByCoinsList } from "./coinService";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { SQLiteDatabase } from "expo-sqlite";
-import { Image } from 'expo-image';
 import { Folio } from "../models/Folio";
 import api, { isGuest } from "./apiService";
 import { getUserData } from "./userDataService";
 import { UserData } from "../models/UserData";
 import { createFoliosTable } from "./sqlService";
 import { deleteTransactionsByFolioId } from "./transactionService";
+import Decimal from "decimal.js";
 
 export async function fetchUserData(db: SQLiteDatabase) {
     const userData: UserData = await getUserData(db);
-    const transactionList: UserTransaction[] = userData.transactions;
-    const foliosList: Folio[] = userData.folios;
 
     // Send the unique coinIds from the transactionList to the backend to get the complex data of each coin
-    const uniqueCoinIds = [...new Set(transactionList.map((transaction) => transaction.coinId))];
-    let coinsMarketsList: CoinsMarkets[] = [];
-    await fetchCoinDataByCoinsList(uniqueCoinIds).then((data) => {
-        coinsMarketsList = data;
-    });
+    const uniqueCoinIds = [...new Set(userData.transactions.map((transaction) => transaction.coinId))];
+    const coinsMarketsList: CoinsMarkets[] = await fetchCoinDataByCoinsList(uniqueCoinIds);
 
-    // populate the folio entries based on the transactionList and the coinsMarketsList
+    return { userData, coinsMarketsList };
+}
+
+export function generateFolioEntries(transactionList: UserTransaction[], coinsMarketsList: CoinsMarkets[], foliosList: Folio[]) {
     const folioEntries: FolioEntry[] = [];
     transactionList.forEach((transaction) => {
         const existingEntry = folioEntries.find((entry) => entry.coinId === transaction.coinId && entry.folio.folioId === transaction.folioId);
@@ -31,9 +29,9 @@ export async function fetchUserData(db: SQLiteDatabase) {
 
         if (existingEntry) {
             if (transaction.type === 'BUY') {
-                existingEntry.quantity += transaction.quantity;
+                existingEntry.quantity = new Decimal(existingEntry.quantity).plus(transaction.quantity).toNumber();
             } else if (transaction.type === 'SELL') {
-                existingEntry.quantity -= transaction.quantity;
+                existingEntry.quantity = new Decimal(existingEntry.quantity).minus(transaction.quantity).toNumber();
             }
             if (existingEntry.quantity <= 0) {
                 folioEntries.splice(folioEntries.indexOf(existingEntry), 1);
@@ -52,7 +50,7 @@ export async function fetchUserData(db: SQLiteDatabase) {
                 folioEntries.push({
                     folio: folio,
                     coinId: transaction.coinId,
-                    quantity: newQuantity,
+                    quantity: new Decimal(newQuantity).toNumber(),
                     ticker: coinMarket ? coinMarket.symbol : "ERROR",
                     name: coinMarket ? coinMarket.name : "ERROR FINDING COIN",
                     image: coinMarket ? coinMarket.image : "",
@@ -60,32 +58,11 @@ export async function fetchUserData(db: SQLiteDatabase) {
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
                     priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,
-                    ranking: coinMarket ? coinMarket.market_cap_rank : 0,
-                    marketCap: coinMarket ? coinMarket.market_cap : 0,
-                    fullyDilutedValuation: coinMarket ? coinMarket.fully_diluted_valuation : 0,
-                    totalVolume: coinMarket ? coinMarket.total_volume : 0,
-                    high24h: coinMarket ? coinMarket.high_24h : 0,
-                    low24h: coinMarket ? coinMarket.low_24h : 0,
-                    circulatingSupply: coinMarket ? coinMarket.circulating_supply : 0,
-                    totalSupply: coinMarket ? coinMarket.total_supply : 0,
-                    maxSupply: coinMarket ? coinMarket.max_supply : 0,
-                    ath: coinMarket ? coinMarket.ath : 0,
-                    athChangePercentage: coinMarket ? coinMarket.ath_change_percentage : 0,
-                    athDate: coinMarket ? coinMarket.ath_date : "NOT FOUND",
-                    atl: coinMarket ? coinMarket.atl : 0,
-                    atlChangePercentage: coinMarket ? coinMarket.atl_change_percentage : 0,
-                    atlDate: coinMarket ? coinMarket.atl_date : "NOT FOUND",
-                });
-                //Prefetch the images for the folio entries to improve the performance
-                folioEntries.forEach(async (folioEntry) => {
-                    // Prefetch the image
-                    Image.prefetch(folioEntry.image, 'memory-disk');
                 });
             }
         }
     });
-
-    return { folioEntries, foliosList };
+    return folioEntries;
 }
 
 function adjustColor(color: string): string {

@@ -4,8 +4,8 @@ import totalPortfolioValueReducer from '../slices/totalPortfolioValueSlice';
 import allFolioEntriesReducer from '../slices/folioEntriesSlice';
 import allCoinDataReducer from '../slices/allCoinDataSlice';
 import lastTransactionReducer from '../slices/lastTransactionSlice';
+import allTransactionsReducer from '../slices/allTransactionsSlice';
 import currencyTypeReducer from '../slices/currencyTypeSlice';
-import refreshReducer from "../slices/refreshSlice";
 import foliosReducer from "../slices/foliosSlice";
 import currentlySelectedFolioReducer from "../slices/currentlySelectedFolioSlice";
 
@@ -13,11 +13,11 @@ const store = configureStore({
     reducer: {
         selectedSection: selectedSectionReducer,
         lastTransaction: lastTransactionReducer,
+        allTransactions: allTransactionsReducer,
         totalPortfolioValue: totalPortfolioValueReducer,
         folioEntries: allFolioEntriesReducer,
         allCoinData: allCoinDataReducer,
         currencyType: currencyTypeReducer,
-        refresh: refreshReducer,
         folios: foliosReducer,
         currentlySelectedFolio: currentlySelectedFolioReducer,
     },

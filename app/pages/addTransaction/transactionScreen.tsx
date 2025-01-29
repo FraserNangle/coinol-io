@@ -2,9 +2,9 @@ import { StyleSheet, TouchableHighlight, TextInput, TouchableOpacity } from "rea
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { Button } from "react-native-paper";
+import { ActivityIndicator, Button } from "react-native-paper";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { addBatchTransactionData } from "@/app/services/transactionService";
+import { addBatchTransactionData, deleteTransactionById } from "@/app/services/transactionService";
 import { UserTransaction } from "@/app/models/UserTransaction";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
@@ -17,38 +17,55 @@ import { Image } from "expo-image";
 import { MultiSelect } from 'react-native-element-dropdown';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ScrollView } from "react-native-gesture-handler";
-import FolioCreationModal from "@/components/modals/folioCreationModal";
+import FolioCreationModal from "@/components/modals/folio/folioCreationModal";
 import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
 import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
+import Decimal from 'decimal.js';
+import { addTransactionSlice, deleteTransactionByIdSlice } from "@/app/slices/allTransactionsSlice";
 
-type RouteParams = {
-    item: Coin;
+export type TransactionScreenRouteParams = {
+    item?: Coin;
+    transactionToEdit?: UserTransaction;
 };
 
-export default function AddTransactionBuySellScreen() {
+export default function TransactionScreen() {
     const showModal = () => setIsModalVisible(true);
 
     const db = useSQLiteContext();
 
     // Retrieve the item parameter from the currency list page
     const route = useRoute();
-    const { item }: { item: Coin } = route.params as RouteParams;
+    const { item, transactionToEdit }: { item?: Coin; transactionToEdit?: UserTransaction } = route.params as TransactionScreenRouteParams;
 
     const navigation = useNavigation();
     const dispatch = useDispatch();
 
     const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
     const folios = useSelector((state: RootState) => state.folios.folios) || [];
+    const coinsMarketsList = useSelector((state: RootState) => state.allCoinData.coinsMarketsList) || [];
     const currentFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
 
-    const [transactionType, setTransactionType] = useState("BUY");
-    const [total, setTotal] = useState('');
-    const [date, setDate] = useState(new Date());
+    const [persistedItem, setPersistedItem] = useState<Coin | undefined>(item);
+    const [transactionType, setTransactionType] = useState(transactionToEdit?.type ?? "BUY");
+    const [total, setTotal] = useState(transactionToEdit?.quantity ? transactionToEdit?.quantity.toString() : "");
+    const [date, setDate] = useState(transactionToEdit?.date ? new Date(transactionToEdit?.date) : new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [canSell, setCanSell] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [selectedFolios, setSelectedFolios] = useState<string[]>([currentFolio?.folioId ?? '']);
+    const [selectedFolios, setSelectedFolios] = useState<string[]>([transactionToEdit?.folioId ?? currentFolio?.folioId ?? '']);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (transactionToEdit) {
+            setPersistedItem(coinsMarketsList.find((coin) => coin.id === transactionToEdit?.coinId) ?? {
+                id: '',
+                name: '',
+                symbol: '',
+                image: '',
+            });
+        }
+    }, [transactionToEdit, navigation, coinsMarketsList]);
 
     useEffect(() => {
         if (selectedFolios.length === 0) {
@@ -61,7 +78,7 @@ export default function AddTransactionBuySellScreen() {
             const entriesMatchingFolio = allFolioEntries.filter(folioEntry => folioEntry.folio.folioId === folioId);
             if (entriesMatchingFolio.length === 0) return false;
 
-            const matchingEntry = entriesMatchingFolio.find(folioEntry => folioEntry.coinId === item.id);
+            const matchingEntry = entriesMatchingFolio.find(folioEntry => folioEntry.coinId === persistedItem?.id);
             return matchingEntry && matchingEntry.quantity > 0;
         });
 
@@ -69,7 +86,7 @@ export default function AddTransactionBuySellScreen() {
             setCanSell(false);
             if (transactionType === "SELL") {
                 setTransactionType("BUY");
-                Toast.show(`Selected folio has no ${item.name} to sell.`, {
+                Toast.show(`Selected folio has no ${persistedItem?.name} to sell.`, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
                 });
@@ -78,13 +95,13 @@ export default function AddTransactionBuySellScreen() {
         }
 
         setCanSell(true);
-    }, [allFolioEntries, selectedFolios, item.id]);
+    }, [allFolioEntries, selectedFolios, persistedItem]);
 
     useEffect(() => {
         if (transactionType === "SELL") {
             let minQuantity = Infinity;
             allFolioEntries.forEach((folioEntry) => {
-                if (folioEntry.coinId === item.id && selectedFolios.includes(folioEntry.folio.folioId)) {
+                if (folioEntry.coinId === persistedItem?.id && selectedFolios.includes(folioEntry.folio.folioId)) {
                     if (folioEntry.quantity < minQuantity) {
                         minQuantity = folioEntry.quantity;
                     }
@@ -92,30 +109,29 @@ export default function AddTransactionBuySellScreen() {
             });
             if (Number(total) > minQuantity) {
                 setTotal(minQuantity.toString());
-                Toast.show(`Sell Total is limited to your ${item.name} quantity. `, {
+                Toast.show(`Sell Total is limited to your ${persistedItem?.name} quantity. `, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
                 });
             }
         }
 
-    }, [allFolioEntries, selectedFolios, transactionType, total, item]);
+    }, [allFolioEntries, selectedFolios, transactionType, total, persistedItem]);
 
 
     useEffect(() => {
         navigation.setOptions({
-            title: 'Add Transaction',
             headerTitle: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Image
-                        source={{ uri: item.image }}
+                        source={{ uri: persistedItem?.image }}
                         style={{ width: 30, height: 30, marginRight: 10 }}
                     />
-                    <Text style={{ color: 'white', fontSize: 18 }}>{item.name}</Text>
+                    <Text style={{ color: 'white', fontSize: 18 }}>{persistedItem?.name}</Text>
                 </View>
             ),
         });
-    }, [navigation]);
+    }, [navigation, persistedItem]);
 
     const changeDate = (event: DateTimePickerEvent, changedDate: Date | undefined) => {
         setShowDatePicker(false);
@@ -148,21 +164,53 @@ export default function AddTransactionBuySellScreen() {
     };
 
     const addTransactions = (db: SQLiteDatabase, transactions: UserTransaction[]) => {
+        setIsLoading(true);
         addBatchTransactionData(db, transactions)
             .then(() => {
-                Toast.show(`Added ${item.name} transaction to ${getNamesOfSelectedFolios().join(", ")}. `, {
+                Toast.show(`Added ${persistedItem?.name} transaction to ${getNamesOfSelectedFolios().join(", ")}. `, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
-                    position: Toast.positions.CENTER,
+                    position: Toast.positions.BOTTOM,
                 });
                 const lastTransaction = transactions.length > 0 ? transactions[transactions.length - 1] : null;
                 dispatch(setLastTransaction(lastTransaction));
                 dispatch(setCurrentlySelectedFolio(folios.find(folio => folio.folioId === selectedFolios[0]) ?? null));
-                navigation.navigate('index');
+                navigation.navigate("pages/coinGraph/coinGraphScreen", { coinId: persistedItem?.id });
+                setIsLoading(false);
             })
             .catch(error => {
                 console.error('Error:', error);
+                setIsLoading(false);
             });
+    };
+
+    const editTransactions = (db: SQLiteDatabase, newTransactions: UserTransaction[]) => {
+        if (transactionToEdit) {
+            setIsLoading(true);
+            deleteTransactionById(db, transactionToEdit?.id)
+                .then(() => addBatchTransactionData(db, newTransactions))
+                .then(() => {
+                    dispatch(deleteTransactionByIdSlice(transactionToEdit?.id));
+                    newTransactions.forEach(newTransaction => {
+                        dispatch(addTransactionSlice(newTransaction));
+                    });
+                })
+                .then(() => {
+                    Toast.show(`Saved edits to ${persistedItem?.name} transaction.`, {
+                        backgroundColor: "hsl(0, 0%, 15%)",
+                        duration: Toast.durations.LONG,
+                        position: Toast.positions.BOTTOM,
+                    });
+                    const lastTransaction = newTransactions.length > 0 ? newTransactions[newTransactions.length - 1] : null;
+                    dispatch(setLastTransaction(lastTransaction));
+                    setIsLoading(false);
+                    navigation.navigate("pages/coinGraph/coinGraphScreen", { coinId: persistedItem?.id });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    setIsLoading(false);
+                });
+        }
     };
 
     const handleTotalInputChange = (text: string) => {
@@ -209,7 +257,7 @@ export default function AddTransactionBuySellScreen() {
                         <View style={styles.inputContainer}>
                             <TextInput
                                 style={styles.textInput}
-                                value={total.toString()}
+                                value={total}
                                 multiline={false}
                                 numberOfLines={1}
                                 keyboardType='decimal-pad'
@@ -221,7 +269,7 @@ export default function AddTransactionBuySellScreen() {
                                 maxLength={60}
                                 textAlign="right"
                             />
-                            <Text>{' '}{item.symbol.toUpperCase()}</Text>
+                            <Text>{' '}{persistedItem?.symbol.toUpperCase()}</Text>
                             {transactionType === "SELL" &&
                                 <TouchableHighlight
                                     onPress={() => sellAll()}
@@ -280,11 +328,11 @@ export default function AddTransactionBuySellScreen() {
                                     setSelectedFolios(folios);
                                 }}
                                 visibleSelectedItem={false}
-                                renderItem={(item) => {
+                                renderItem={(folio) => {
                                     return (
                                         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent' }}>
                                             <Text style={[{ height: 60, paddingLeft: 15, textAlignVertical: 'center' }]}>
-                                                {item.folioName}
+                                                {folio.folioName}
                                             </Text>
                                             <ScrollView
                                                 horizontal
@@ -292,7 +340,7 @@ export default function AddTransactionBuySellScreen() {
                                                 contentContainerStyle={styles.row}
                                                 showsHorizontalScrollIndicator={false}
                                             >
-                                                {getFolioCoinImages(item.folioId, allFolioEntries).map((image, index) => {
+                                                {getFolioCoinImages(folio.folioId, allFolioEntries).map((image, index) => {
                                                     return (
                                                         <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
                                                             <Image
@@ -362,18 +410,23 @@ export default function AddTransactionBuySellScreen() {
                         }
 
                         const newTransactions: UserTransaction[] = selectedFolios.map(folio => {
+                            const decimalTotal = new Decimal(total).toNumber();
                             return {
                                 id: randomUUID(),
-                                coinId: item.id,
+                                coinId: persistedItem?.id ?? '',
                                 date: date.toISOString(),
-                                quantity: Number(total),
+                                quantity: decimalTotal,
                                 type: transactionType,
                                 folioId: folio,
                             };
                         });
-                        addTransactions(db, newTransactions)
+                        transactionToEdit ? editTransactions(db, newTransactions) : addTransactions(db, newTransactions)
                     }}>
-                    ADD TRANSACTION
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color={"white"} />
+                    ) : (
+                        transactionToEdit ? 'EDIT TRANSACTION' : 'ADD TRANSACTION'
+                    )}
                 </Button>
                 {showDatePicker && (
                     <RNDateTimePicker

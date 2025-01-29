@@ -256,7 +256,7 @@ export const LineGraph: React.FC<LineGraphProps> = ({
                 </View>
             </View>
             <View style={styles.lineGraph}>
-                <Svg width={width} height={height} translateY={height / 10}>
+                <Svg width={width} height={height} translateY={height / 7}>
                     <Defs>
                         <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="35%" x2="50%" y2="0%">
                             <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
