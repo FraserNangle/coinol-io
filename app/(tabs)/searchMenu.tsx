@@ -11,7 +11,7 @@ import { RootState } from "@/app/store/store";
 import { Coin } from "@/app/models/Coin";
 import { Image } from "expo-image";
 
-export default function AddTransactionCurrencyListScreen() {
+export default function SearchMenuScreen() {
   const [query, setQuery] = useState("");
   const [filteredData, setFilteredData] = useState<Coin[]>();
   const navigation = useNavigation();
@@ -45,30 +45,13 @@ export default function AddTransactionCurrencyListScreen() {
   return (
     <View style={styles.screenContainer}>
       <View style={styles.tableContainer}>
-        <TextInput
-          selectionColor={'hsl(0, 0%, 30%)'}
-          cursorColor="white"
-          maxLength={60}
-          textAlign="right"
-          multiline={false}
-          numberOfLines={1}
-          inputMode="search"
-          placeholderTextColor={'hsl(0, 0%, 30%)'}
-          textColor="white"
-          style={styles.searchBar}
-          value={query}
-          placeholder="Search..."
-          onChangeText={handleSearch}
-          underlineColor="rgba(255, 255, 255, 0.3)"
-          activeUnderlineColor="rgba(255, 255, 255, 0.5)"
-        />
         <FlatList
           data={filteredData}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <TouchableHighlight
               onPress={() =>
-                navigation.navigate("pages/addTransaction/transactionScreen", { item: item })
+                navigation.navigate("pages/coinGraph/coinGraphScreen", { coinId: item.id })
               }
             >
               <DataTable.Row key={item.name} style={[{ borderColor: "rgba(255, 255, 255, 0.3)", borderBottomWidth: .5 }]}>
@@ -98,6 +81,23 @@ export default function AddTransactionCurrencyListScreen() {
               </DataTable.Row>
             </TouchableHighlight>
           )}
+        />
+        <TextInput
+          selectionColor={'hsl(0, 0%, 50%)'}
+          cursorColor="white"
+          maxLength={60}
+          textAlign="right"
+          multiline={false}
+          numberOfLines={1}
+          inputMode="search"
+          placeholderTextColor={'hsl(0, 0%, 60%)'}
+          textColor="white"
+          style={styles.searchBar}
+          value={query}
+          placeholder="Search..."
+          onChangeText={handleSearch}
+          underlineColor="transparent"
+          activeUnderlineColor="transparent"
         />
       </View>
     </View>

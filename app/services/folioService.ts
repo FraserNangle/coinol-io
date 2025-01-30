@@ -16,7 +16,13 @@ export async function fetchUserData(db: SQLiteDatabase) {
 
     // Send the unique coinIds from the transactionList to the backend to get the complex data of each coin
     const uniqueCoinIds = [...new Set(userData.transactions.map((transaction) => transaction.coinId))];
-    const coinsMarketsList: CoinsMarkets[] = await fetchCoinDataByCoinsList(uniqueCoinIds);
+    let coinsMarketsList: CoinsMarkets[] = await fetchCoinDataByCoinsList(uniqueCoinIds);
+
+    // Apply adjustColor to the color property of each CoinsMarkets object
+    coinsMarketsList = coinsMarketsList.map((coinMarket) => ({
+        ...coinMarket,
+        color: adjustColor(coinMarket.color)
+    }));
 
     return { userData, coinsMarketsList };
 }
@@ -54,7 +60,7 @@ export function generateFolioEntries(transactionList: UserTransaction[], coinsMa
                     ticker: coinMarket ? coinMarket.symbol : "ERROR",
                     name: coinMarket ? coinMarket.name : "ERROR FINDING COIN",
                     image: coinMarket ? coinMarket.image : "",
-                    color: coinMarket ? adjustColor(coinMarket.color) : "hsl(0, 0%, 50%)",
+                    color: coinMarket ? coinMarket.color : "hsl(0, 0%, 50%)",
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
                     priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,

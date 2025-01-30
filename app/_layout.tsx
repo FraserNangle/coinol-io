@@ -87,15 +87,6 @@ function RootLayoutNav() {
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="modal" options={{ presentation: "modal" }} />
                 <Stack.Screen
-                  name="pages/addTransaction/addTransactionCurrencyListScreen"
-                  options={{
-                    presentation: "fullScreenModal",
-                    title: "Select Currency",
-                    headerStyle: { backgroundColor: 'black' },
-                    headerTitleAlign: 'center',
-                  }}
-                />
-                <Stack.Screen
                   name="pages/addTransaction/transactionScreen"
                   options={{
                     presentation: "fullScreenModal",

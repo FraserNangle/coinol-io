@@ -52,6 +52,28 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
+        name="searchMenu"
+        options={{
+          title: "Select Currency",
+          headerStyle: { backgroundColor: 'black' },
+          headerTitleAlign: 'center',
+          tabBarActiveBackgroundColor: "black",
+          tabBarInactiveBackgroundColor: "black",
+          headerTitle: () => (
+            <View style={styles.titleContainer}>
+              <Text style={styles.headerTitle}>
+                Select Currency
+              </Text>
+            </View>
+          ),
+          tabBarLabel: () => null,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="search" color={color} />
+          ),
+          tabBarIconStyle: { justifyContent: "center", alignItems: "center", flex: 1, textAlign: "center", textAlignVertical: "center" },
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
           title: "Portfolio",
@@ -94,20 +116,7 @@ export default function TabLayout() {
             </View>
           ),
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="data-usage" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="plusMenu"
-        options={{
-          headerShown: false,
-          tabBarActiveBackgroundColor: "black",
-          tabBarInactiveBackgroundColor: "black",
-          headerTitle: () => null,
-          tabBarLabel: () => null,
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="add-circle" color={color} size={40} />
+            <TabBarIcon name="data-usage" color={color} size={40} />
           ),
           tabBarIconStyle: { justifyContent: "center", alignItems: "center", flex: 1, textAlign: "center", textAlignVertical: "center" },
         }}
@@ -127,6 +136,7 @@ export default function TabLayout() {
             </View>
           ),
           tabBarIcon: ({ color }) => <TabBarIcon name="settings" color={color} />,
+          tabBarIconStyle: { justifyContent: "center", alignItems: "center", flex: 1, textAlign: "center", textAlignVertical: "center" },
         }}
       />
     </Tabs>

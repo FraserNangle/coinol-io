@@ -7,8 +7,10 @@ import { Folio } from "@/app/models/Folio";
 import { SQLiteDatabase } from "expo-sqlite";
 import { deleteFolioById } from "@/app/services/folioService";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { deleteFolioFromSliceById } from "@/app/slices/foliosSlice";
+import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
+import { RootState } from "@/app/store/store";
 
 interface FolioDeletionModalProps {
     db: SQLiteDatabase;
@@ -20,18 +22,21 @@ interface FolioDeletionModalProps {
 export default function FolioDeletionModal({ db, visible, setVisible, folioToDelete }: FolioDeletionModalProps) {
     const dispatch = useDispatch();
 
+    const folios = useSelector((state: RootState) => state.folios.folios) || [];
+
     const hideModal = () => setVisible(false);
 
     const deleteFolio = (db: SQLiteDatabase, folio: Folio) => {
         deleteFolioById(db, folio.folioId)
             .then(() => {
                 dispatch(deleteFolioFromSliceById(folio.folioId));
+                dispatch(setCurrentlySelectedFolio(folios[0]));
+                hideModal();
                 Toast.show(`Deleted "${folio.folioName}".`, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
                     position: Toast.positions.BOTTOM,
                 });
-                hideModal();
             })
             .catch(error => {
                 console.error('Error:', error);
