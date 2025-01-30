@@ -11,6 +11,7 @@ import { useNavigation } from "expo-router";
 import { RootState } from "@/app/store/store";
 import { useSelector } from "react-redux";
 import { CoinsMarkets } from "@/app/models/CoinsMarkets";
+import { Button } from "react-native-paper";
 
 interface CoinHoldingsPanelProps {
     folioEntry?: FolioEntry;
@@ -30,8 +31,8 @@ export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
         <View style={styles.infoContainer}>
             <View style={[styles.holdingsContainer, { borderColor: coinMarket?.color }]}>
                 <View style={{ justifyContent: "center", alignContent: "center" }}>
-                    <Text style={[styles.bigText, {
-                        color: 'hsl(0, 0%, 80%)',
+                    <Text style={[styles.smallText, {
+                        color: 'white',
                     }]}>
                         {currentFolio?.folioName || ''}
                     </Text>
@@ -46,23 +47,30 @@ export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
                         {folioEntry ? folioEntry.quantity : 0} {coinMarket.symbol.toUpperCase()}
                     </Text>
                 </View>
-                <TouchableOpacity
-                    style={{ justifyContent: "center", alignContent: "center" }}
-                    onPress={() =>
-                        navigation.navigate("pages/addTransaction/transactionScreen",
-                            {
-                                item: {
-                                    id: coinMarket.id,
-                                    symbol: coinMarket.symbol,
-                                    name: coinMarket.name,
-                                    image: coinMarket.image,
-                                }
-                            })
-                    }
-                >
-                    <MaterialIcons name="add-card" color={coinMarket.color} size={40} />
-                </TouchableOpacity>
             </View>
+            <Button
+                buttonColor="black"
+                textColor={"white"}
+                rippleColor={coinMarket.color}
+                style={[styles.bigButton, { borderColor: coinMarket.color }]}
+                compact
+                mode="contained"
+                onPress={() =>
+                    navigation.navigate("pages/addTransaction/transactionScreen",
+                        {
+                            item: {
+                                id: coinMarket.id,
+                                symbol: coinMarket.symbol,
+                                name: coinMarket.name,
+                                image: coinMarket.image,
+                            }
+                        })
+                }>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <MaterialIcons name="add-circle" color={coinMarket.color} size={20} />
+                    <Text style={{ color: 'white', fontSize: 14 }}> ADD TRANSACTION</Text>
+                </View>
+            </Button>
         </View>
     );
 };
@@ -73,15 +81,13 @@ const styles = StyleSheet.create({
         alignContent: "center",
         alignSelf: "center",
         width: "90%",
+        paddingBottom: 10,
     },
     holdingsContainer: {
         justifyContent: 'space-between',
         flexDirection: 'row',
-        paddingVertical: 10,
+        paddingVertical: 20,
         paddingHorizontal: 10,
-        borderRadius: 5,
-        borderBottomWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.3)"
     },
     bigText: {
         fontSize: 16,
@@ -91,7 +97,12 @@ const styles = StyleSheet.create({
     },
     smallText: {
         color: "white",
-        textAlign: "left",
+        textAlign: "right",
         textAlignVertical: "center",
+    },
+    bigButton: {
+        width: "100%",
+        borderRadius: 5,
+        borderWidth: 1,
     },
 });

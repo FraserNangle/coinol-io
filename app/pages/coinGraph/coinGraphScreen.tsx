@@ -224,6 +224,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         borderWidth: 0,
         borderColor: "white",
+        paddingTop: 10,
     },
     tableContainer: {
         flex: 1,
