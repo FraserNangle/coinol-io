@@ -61,7 +61,7 @@ export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
                         renderItem={(folio) => {
                             return (
                                 <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent' }}>
-                                    <Text style={[{ height: 60, paddingLeft: 15, textAlignVertical: 'center' }]}>
+                                    <Text style={[{ height: 50, paddingLeft: 15, textAlignVertical: 'center' }]}>
                                         {folio.folioName}
                                     </Text>
                                 </View>
@@ -160,6 +160,9 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         color: "white",
         borderWidth: 0,
+        height: 40,
+        paddingVertical: 0,
+        marginVertical: 0,
     },
     row: {
         flexDirection: "row",
