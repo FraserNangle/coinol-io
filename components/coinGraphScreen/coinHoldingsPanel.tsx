@@ -1,7 +1,6 @@
 import * as React from "react";
 import {
     StyleSheet,
-    TouchableOpacity,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -9,33 +8,67 @@ import { FolioEntry } from "@/app/models/FolioEntry";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { useNavigation } from "expo-router";
 import { RootState } from "@/app/store/store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { CoinsMarkets } from "@/app/models/CoinsMarkets";
 import { Button } from "react-native-paper";
+import { Dropdown } from "react-native-element-dropdown";
+import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
+import { useEffect, useState } from "react";
 
 interface CoinHoldingsPanelProps {
-    folioEntry?: FolioEntry;
     coinMarket: CoinsMarkets;
 }
 
 export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
-    folioEntry,
     coinMarket
 }: CoinHoldingsPanelProps) => {
-
     const navigation = useNavigation();
+    const dispatch = useDispatch();
+
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
     const currentFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
+    const folios = useSelector((state: RootState) => state.folios.folios) || [];
+    const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
+
+    const [folioEntry, setFolioEntry] = useState<FolioEntry>();
+
+    useEffect(() => {
+        setFolioEntry(allFolioEntries.find((folioEntry) => folioEntry.coinId === coinMarket.id && folioEntry.folio.folioId === currentFolio?.folioId));
+    }, [allFolioEntries, coinMarket, currentFolio]);
 
     return (
         <View style={styles.infoContainer}>
             <View style={[styles.holdingsContainer, { borderColor: coinMarket?.color }]}>
-                <View style={{ justifyContent: "center", alignContent: "center" }}>
-                    <Text style={[styles.smallText, {
-                        color: 'white',
-                    }]}>
-                        {currentFolio?.folioName || ''}
-                    </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Dropdown
+                        style={styles.dropdown}
+                        containerStyle={styles.dropdownContainer}
+                        activeColor="rgba(255, 255, 255, 0.15)"
+                        itemContainerStyle={styles.dropdownItemContainer}
+                        iconStyle={styles.iconStyle}
+                        selectedTextProps={{ style: styles.smallText }}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        data={folios}
+                        labelField="folioName"
+                        valueField="folioId"
+                        search
+                        searchField="folioName"
+                        value={currentFolio}
+                        searchPlaceholder="Search..."
+                        onChange={(folio) => {
+                            dispatch(setCurrentlySelectedFolio(folio));
+                        }}
+                        renderItem={(folio) => {
+                            return (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent' }}>
+                                    <Text style={[{ height: 60, paddingLeft: 15, textAlignVertical: 'center' }]}>
+                                        {folio.folioName}
+                                    </Text>
+                                </View>
+                            );
+                        }}
+                    >
+                    </Dropdown>
                 </View>
                 <View>
                     <Text style={[styles.bigText]}>
@@ -104,5 +137,35 @@ const styles = StyleSheet.create({
         width: "100%",
         borderRadius: 5,
         borderWidth: 1,
+    },
+    dropdown: {
+        width: 150,
+    },
+    dropdownContainer: {
+        backgroundColor: "black",
+        borderWidth: 0,
+        borderRadius: 5,
+        padding: 5,
+    },
+    dropdownItemContainer: {
+        borderRadius: 5,
+        textAlignVertical: 'center',
+    },
+    iconStyle: {
+        width: 20,
+        height: 20,
+        marginLeft: 5,
+    },
+    inputSearchStyle: {
+        backgroundColor: "transparent",
+        color: "white",
+        borderWidth: 0,
+    },
+    row: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        height: 20,
+        padding: 0,
     },
 });
