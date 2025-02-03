@@ -42,11 +42,13 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
     const [sortField, setSortField] = useState<SortField>("date");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
     const [isTransactionSettingsMenuVisible, setIsTransactionSettingsMenuVisible] = useState(false);
+    const [isAllTransactionSettingsMenuVisible, setIsAllTransactionSettingsMenuVisible] = useState(false);
     const [isDeletionModalVisible, setIsDeletionModalVisible] = useState(false);
+    const [deleteAll, setDeleteAll] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
     const [menuTransaction, setMenuTransaction] = useState<UserTransaction>()
 
-    const openTransactionSettingsMenu = (event: GestureResponderEvent) => {
+    const openTransactionSettingsMenu = (event: GestureResponderEvent, all: boolean = false) => {
         const { nativeEvent } = event;
         const anchor = {
             x: nativeEvent.pageX,
@@ -54,12 +56,18 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
         };
 
         setMenuAnchor(anchor);
-        setIsTransactionSettingsMenuVisible(true)
+        if (all) {
+            setIsAllTransactionSettingsMenuVisible(true)
+        } else {
+            setIsTransactionSettingsMenuVisible(true)
+        }
     };
 
     const closeTransactionSettingsMenu = () => setIsTransactionSettingsMenuVisible(false);
+    const closeAllTransactionSettingsMenu = () => setIsAllTransactionSettingsMenuVisible(false);
 
     const showDeletionModal = () => {
+        console.log('showDeletionModal');
         closeTransactionSettingsMenu();
         setIsDeletionModalVisible(true)
     };
@@ -143,9 +151,17 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                                 Type{getSortIndicator("type")}
                             </Text>
                         </DataTable.Title>
-                        <DataTable.Cell numeric style={{ flex: .35, paddingRight: 12.5, justifyContent: 'center', alignItems: 'center' }}>
-                            <></>
-                        </DataTable.Cell>
+                        <TouchableOpacity
+                            style={{ flex: .35, justifyContent: 'center', alignItems: 'center' }}
+                            onPress={(event) => {
+                                openTransactionSettingsMenu(event, true);
+                            }}>
+                            <DataTable.Cell numeric>
+                                <MaterialIcons style={{
+                                    color: "rgba(255, 255, 255, 0.8)"
+                                }} name="more-horiz" size={20} />
+                            </DataTable.Cell>
+                        </TouchableOpacity>
                     </DataTable.Header>
 
                     {sortedData.map((userTransactionEntry) => {
@@ -201,6 +217,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                 visible={isDeletionModalVisible}
                 setVisible={setIsDeletionModalVisible}
                 transactionToDelete={menuTransaction}
+                deleteAllTransactions={deleteAll}
             />
             <Menu
                 style={{ backgroundColor: 'transparent', width: 120, borderRadius: 5, borderColor: "rgba(255, 255, 255, .3)" }}
@@ -210,7 +227,21 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                 anchor={menuAnchor}>
                 <Menu.Item onPress={handleOpenTransactionEditScreen} title="Edit" />
                 <Divider />
-                <Menu.Item titleStyle={{ color: 'red' }} onPress={showDeletionModal} title="Delete" />
+                <Menu.Item titleStyle={{ color: 'red' }} onPress={() => {
+                    setDeleteAll(false);
+                    showDeletionModal();
+                }} title="Delete" />
+            </Menu>
+            <Menu
+                style={{ backgroundColor: 'transparent', width: 120, borderRadius: 5, borderColor: "rgba(255, 255, 255, .3)" }}
+                contentStyle={{ backgroundColor: 'black', borderWidth: 1, borderColor: "rgba(255, 255, 255, .2)", paddingVertical: 0 }}
+                visible={isAllTransactionSettingsMenuVisible}
+                onDismiss={closeAllTransactionSettingsMenu}
+                anchor={menuAnchor}>
+                <Menu.Item titleStyle={{ color: 'red' }} onPress={() => {
+                    setDeleteAll(true);
+                    showDeletionModal();
+                }} title="Delete All" />
             </Menu>
         </>
     );
