@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start", // Align items to the start of the screen
+    justifyContent: "flex-start",
   },
   tableContainer: {
     flex: 1,
@@ -120,13 +120,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     fontWeight: "bold",
     color: "white",
+    borderColor: "white",
+    borderTopWidth: 5,
+    borderRadius: 5,
   },
   bold: {
     fontWeight: "bold",
-    color: "#fff",
+    color: "white",
   },
   normal: {
-    color: "#fff",
+    color: "white",
   },
   light: {
     fontWeight: "100",
