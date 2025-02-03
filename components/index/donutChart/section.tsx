@@ -98,7 +98,7 @@ export const Section: React.FC<SectionProps> = ({
 
     const handlePress = useCallback(() => {
         if (selectedSection?.details?.coinId === section.coinId) {
-            navigation.navigate("pages/coinGraph/coinGraphScreen", { folioEntry: section });
+            navigation.navigate("pages/coinGraph/coinGraphScreen", { coinId: section.coinId });
         }
         dispatch(setSelectedSection({ details: section, index: index }));
     }, [dispatch, index, section, selectedSection]);

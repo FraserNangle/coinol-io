@@ -1,5 +1,5 @@
 import * as React from "react";
-import { DataTable, PaperProvider } from "react-native-paper";
+import { Button, DataTable, PaperProvider } from "react-native-paper";
 import {
   StyleSheet,
   Text,
@@ -17,6 +17,7 @@ import { useEffect, useRef } from "react";
 import { Image } from "expo-image";
 import { View } from "@/components/Themed";
 import { numberFormatter } from "@/app/utils/numberFormatter";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -192,6 +193,22 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
             );
           })}
         </DataTable>
+        <Button
+          buttonColor="black"
+          textColor={"white"}
+          rippleColor={selectedSection?.details?.color}
+          style={[styles.bigButton]}
+          contentStyle={{ height: ROW_HEIGHT }}
+          compact
+          mode="contained"
+          onPress={() =>
+            navigation.navigate("searchMenu")
+          }>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+            <MaterialIcons name="add-circle" color={selectedSection?.details?.color} size={20} />
+            <Text style={{ color: 'white', fontSize: 14, textAlignVertical: 'center' }}> ADD TRANSACTION</Text>
+          </View>
+        </Button>
       </PaperProvider>
     </ScrollView >
   );
@@ -244,5 +261,8 @@ const getStyles = () =>
       flexDirection: "row",
       justifyContent: 'flex-start',
       backgroundColor: 'transparent'
+    },
+    bigButton: {
+      width: "100%",
     },
   });
