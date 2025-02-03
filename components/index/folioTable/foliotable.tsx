@@ -264,5 +264,6 @@ const getStyles = () =>
     },
     bigButton: {
       width: "100%",
+      borderRadius: 5,
     },
   });
