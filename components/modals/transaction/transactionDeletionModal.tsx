@@ -43,7 +43,6 @@ export default function TransactionDeletionModal({ db, visible, setVisible, tran
                     setIsDeletionLoading(false);
                 });
         } else {
-            console.log('Deleting all transactions for coin:', transaction.coinId);
             deleteTransactionsByCoinId(db, transaction.coinId)
                 .then(() => {
                     dispatch(deleteTransactionsByCoinIdSlice(transaction.coinId));

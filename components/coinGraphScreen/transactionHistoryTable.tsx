@@ -67,7 +67,6 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
     const closeAllTransactionSettingsMenu = () => setIsAllTransactionSettingsMenuVisible(false);
 
     const showDeletionModal = () => {
-        console.log('showDeletionModal');
         closeTransactionSettingsMenu();
         setIsDeletionModalVisible(true)
     };
