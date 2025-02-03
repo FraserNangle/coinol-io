@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { UserTransaction } from "@/app/models/UserTransaction";
+import { deleteTransactionsByCoinId } from "../services/transactionService";
 
 interface AllTransactionsState {
   transactions: UserTransaction[];
@@ -21,10 +22,13 @@ const allTransactionsSlice = createSlice({
     },
     deleteTransactionByIdSlice: (state, action: PayloadAction<string>) => {
       state.transactions = state.transactions.filter((transaction) => transaction.id !== action.payload);
+    },
+    deleteTransactionsByCoinIdSlice: (state, action: PayloadAction<string>) => {
+      state.transactions = state.transactions.filter((transaction) => transaction.coinId !== action.payload);
     }
   },
 });
 
-export const { setAllTransactions, addTransactionSlice, deleteTransactionByIdSlice } = allTransactionsSlice.actions;
+export const { setAllTransactions, addTransactionSlice, deleteTransactionByIdSlice, deleteTransactionsByCoinIdSlice } = allTransactionsSlice.actions;
 
 export default allTransactionsSlice.reducer;

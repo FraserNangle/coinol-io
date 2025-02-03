@@ -7,17 +7,18 @@ import { SQLiteDatabase } from "expo-sqlite";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useDispatch } from "react-redux";
 import { UserTransaction } from "@/app/models/UserTransaction";
-import { deleteTransactionById } from "@/app/services/transactionService";
-import { deleteTransactionByIdSlice } from "@/app/slices/allTransactionsSlice";
+import { deleteTransactionById, deleteTransactionsByCoinId } from "@/app/services/transactionService";
+import { deleteTransactionByIdSlice, deleteTransactionsByCoinIdSlice } from "@/app/slices/allTransactionsSlice";
 
 interface TransactionDeletionModalProps {
     db: SQLiteDatabase;
     visible: boolean;
     setVisible: (visible: boolean) => void;
     transactionToDelete?: UserTransaction;
+    deleteAllTransactions: boolean;
 }
 
-export default function TransactionDeletionModal({ db, visible, setVisible, transactionToDelete }: TransactionDeletionModalProps) {
+export default function TransactionDeletionModal({ db, visible, setVisible, transactionToDelete, deleteAllTransactions }: TransactionDeletionModalProps) {
     const [isDeletionLoading, setIsDeletionLoading] = useState(false);
     const dispatch = useDispatch();
 
@@ -25,21 +26,39 @@ export default function TransactionDeletionModal({ db, visible, setVisible, tran
 
     const deleteTransaction = (db: SQLiteDatabase, transaction: UserTransaction) => {
         setIsDeletionLoading(true);
-        deleteTransactionById(db, transaction.id)
-            .then(() => {
-                dispatch(deleteTransactionByIdSlice(transaction.id));
-                Toast.show(`Transaction Deleted.`, {
-                    backgroundColor: "hsl(0, 0%, 15%)",
-                    duration: Toast.durations.LONG,
-                    position: Toast.positions.BOTTOM,
+        if (!deleteAllTransactions) {
+            deleteTransactionById(db, transaction.id)
+                .then(() => {
+                    dispatch(deleteTransactionByIdSlice(transaction.id));
+                    Toast.show(`Transaction Deleted.`, {
+                        backgroundColor: "hsl(0, 0%, 15%)",
+                        duration: Toast.durations.LONG,
+                        position: Toast.positions.BOTTOM,
+                    });
+                    hideModal();
+                    setIsDeletionLoading(false);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    setIsDeletionLoading(false);
                 });
-                hideModal();
-                setIsDeletionLoading(false);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                setIsDeletionLoading(false);
-            });
+        } else {
+            deleteTransactionsByCoinId(db, transaction.coinId)
+                .then(() => {
+                    dispatch(deleteTransactionsByCoinIdSlice(transaction.coinId));
+                    Toast.show(`All ${transaction.coinId} transactions Deleted.`, {
+                        backgroundColor: "hsl(0, 0%, 15%)",
+                        duration: Toast.durations.LONG,
+                        position: Toast.positions.BOTTOM,
+                    });
+                    hideModal();
+                    setIsDeletionLoading(false);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    setIsDeletionLoading(false);
+                });
+        }
     };
 
     return (
@@ -49,7 +68,7 @@ export default function TransactionDeletionModal({ db, visible, setVisible, tran
                 onDismiss={hideModal}
                 contentContainerStyle={styles.modalContainer}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={{ fontWeight: 'bold' }}>Delete this transaction?</Text>
+                    <Text style={{ fontWeight: 'bold' }}>{deleteAllTransactions ? `Delete all ${transactionToDelete?.coinId} transactions?` : 'Delete this transaction?'}</Text>
                     <TouchableOpacity onPress={hideModal}>
                         <MaterialIcons color="white" name="cancel" size={20} />
                     </TouchableOpacity>

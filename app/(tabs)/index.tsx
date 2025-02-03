@@ -111,7 +111,7 @@ export default function TabOneScreen() {
       {!isLoadingFolioData &&
         currentFolioEntries.length === 0 && (
           <View style={styles.container}>
-            <Link href="/plusMenu" asChild>
+            <Link href="/(tabs)/searchMenu" asChild>
               <Pressable>
                 {({ pressed }) => (
                   <>
@@ -123,8 +123,8 @@ export default function TabOneScreen() {
                         "Tap here to get started."
                       ) : (
                         <View style={[{ flexDirection: 'row', alignItems: 'center' }, { opacity: pressed ? 0.5 : 1 }]}>
-                          <Text>Click here or the </Text>
-                          <MaterialIcons name="add-circle" size={20} style={{ color: 'white' }} />
+                          <Text>Click here or on the </Text>
+                          <MaterialIcons name="search" size={20} style={{ color: 'white' }} />
                           <Text> icon to add a transaction.</Text>
                         </View>
                       )}

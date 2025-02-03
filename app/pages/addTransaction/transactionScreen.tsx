@@ -82,11 +82,11 @@ export default function TransactionScreen() {
             return matchingEntry && matchingEntry.quantity > 0;
         });
 
-        if (!allEntriesValid) {
+        if (!allEntriesValid && persistedItem) {
             setCanSell(false);
             if (transactionType === "SELL") {
                 setTransactionType("BUY");
-                Toast.show(`Selected folio has no ${persistedItem?.name} to sell.`, {
+                Toast.show(`A selected folio has no ${persistedItem?.name} to sell.`, {
                     backgroundColor: "hsl(0, 0%, 15%)",
                     duration: Toast.durations.LONG,
                 });

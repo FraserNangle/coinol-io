@@ -114,6 +114,23 @@ export const deleteTransactionsByFolioId = async (db: SQLiteDatabase, folioId: s
   }
 }
 
+export const deleteTransactionsByCoinId = async (db: SQLiteDatabase, coinId: string) => {
+  await createTransactionsTable(db);
+
+  await db.runAsync('DELETE FROM transactions WHERE coinId = ?', coinId);
+
+  if (!isGuest()) {
+    // If the user is not a guest, delete the transactions on the server
+    const response = await api.post('/transactions/deleteByCoinId', {
+      coinId
+    });
+
+    if (response.status >= 200 && response.status < 300) {
+      return response.data;
+    }
+  }
+}
+
 export const deleteTransactionById = async (db: SQLiteDatabase, id: string) => {
   await createTransactionsTable(db);
 

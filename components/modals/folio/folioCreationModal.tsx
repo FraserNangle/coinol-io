@@ -1,6 +1,6 @@
 import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Modal, Portal } from "react-native-paper";
 import { randomUUID } from "expo-crypto";
 import Toast from 'react-native-root-toast';
@@ -23,6 +23,10 @@ export default function FolioCreationModal({ db, visible, setVisible, onNewFolio
     const dispatch = useDispatch();
 
     const [name, setName] = useState('');
+
+    useEffect(() => {
+        setName('');
+    }, [visible]);
 
     const hideModal = () => setVisible(false);
 

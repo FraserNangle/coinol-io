@@ -343,8 +343,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                             source={selectedSection.details.image}
                                             style={{ width: circleSize * 2, height: circleSize * 2 }}
                                             transition={100}
-                                            cachePolicy={'disk'}
-                                            priority={'high'}
                                         />
                                     ) : (
                                         <MaterialIcons style={[styles.selectedSliceCircle, {
