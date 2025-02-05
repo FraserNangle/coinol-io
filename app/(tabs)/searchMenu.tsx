@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     fontWeight: "bold",
     color: "white",
-    borderColor: "white",
+    borderColor: "rgba(255, 255, 255, .3)",
     borderTopWidth: 5,
     borderRadius: 5,
   },
