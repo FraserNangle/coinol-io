@@ -1,5 +1,4 @@
-import { FlatList, StyleSheet, TouchableHighlight } from "react-native";
-
+import { FlatList, StyleSheet, TouchableHighlight, Image } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { DataTable, TextInput } from "react-native-paper";
@@ -9,7 +8,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setAllCoinData } from "@/app/slices/allCoinDataSlice";
 import { RootState } from "@/app/store/store";
 import { Coin } from "@/app/models/Coin";
-import { Image } from "expo-image";
 
 export default function SearchMenuScreen() {
   const [query, setQuery] = useState("");
@@ -59,13 +57,8 @@ export default function SearchMenuScreen() {
                   <View style={styles.row}>
                     <View style={{ flexDirection: 'column', alignSelf: "center", paddingRight: 15, backgroundColor: 'transparent' }}>
                       <Image
-                        source={item.image}
+                        src={item.image}
                         style={{ width: 25, height: 25 }}
-                        transition={100}
-                        cachePolicy={'disk'}
-                        priority={'high'}
-                        contentPosition={'center'}
-                        contentFit="cover"
                       />
                     </View>
                     <View style={styles.row}>

@@ -4,7 +4,7 @@ import React, {
     useCallback,
     useRef,
 } from "react";
-import { View, StyleSheet, Animated, Text } from "react-native";
+import { View, StyleSheet, Animated, Text, Image } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
 import Svg, { G, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
@@ -14,7 +14,6 @@ import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from 'expo-haptics';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Image } from 'expo-image';
 
 
 interface DonutChartProps {
@@ -340,10 +339,8 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                 <View style={[{ flexDirection: "row", justifyContent: "center" }]}>
                                     {selectedSection.details?.image ? (
                                         <Image
-                                            source={selectedSection.details.image}
+                                            src={selectedSection.details.image}
                                             style={{ width: circleSize * 2, height: circleSize * 2 }}
-                                            transition={100}
-                                            priority={'high'}
                                         />
                                     ) : (
                                         <MaterialIcons style={[styles.selectedSliceCircle, {

@@ -1,4 +1,4 @@
-import { GestureResponderEvent, Platform, ScrollView, StyleSheet, TouchableOpacity, UIManager } from "react-native";
+import { GestureResponderEvent, Platform, ScrollView, StyleSheet, TouchableOpacity, UIManager, Image } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { Button, DataTable, Divider, Menu, Modal, PaperProvider, Portal } from "react-native-paper";
@@ -9,7 +9,6 @@ import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { RootState } from "@/app/store/store";
 import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSlice";
 import { Folio } from "@/app/models/Folio";
-import { Image } from "expo-image";
 import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
 import FolioCreationModal from "./folioCreationModal";
 import { setFavoriteFolio } from "@/app/services/folioService";
@@ -159,13 +158,8 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                                     return (
                                                         <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
                                                             <Image
-                                                                source={image}
+                                                                src={image}
                                                                 style={{ width: 20, height: 20 }}
-                                                                transition={100}
-                                                                cachePolicy={'disk'}
-                                                                priority={'high'}
-                                                                contentPosition={'center'}
-                                                                contentFit="cover"
                                                             />
                                                         </View>
                                                     );

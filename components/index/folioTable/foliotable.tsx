@@ -7,6 +7,7 @@ import {
   UIManager,
   Platform,
   ScrollView,
+  Image
 } from "react-native";
 import { useSelector } from "react-redux";
 import { FolioEntry } from "@/app/models/FolioEntry";
@@ -14,7 +15,6 @@ import { RootState } from "@/app/store/store";
 import { useNavigation } from "@react-navigation/native";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { useEffect, useRef } from "react";
-import { Image } from "expo-image";
 import { View } from "@/components/Themed";
 import { numberFormatter } from "@/app/utils/numberFormatter";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -150,13 +150,8 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                   <View style={styles.row}>
                     <View style={{ flexDirection: 'column', alignSelf: "center", paddingRight: 15, backgroundColor: 'transparent' }}>
                       <Image
-                        source={folioEntry.image}
-                        style={{ width: 25, height: 25 }}
-                        transition={100}
-                        cachePolicy={'disk'}
-                        priority={'high'}
-                        contentPosition={'center'}
-                        contentFit="cover"
+                        source={{ uri: folioEntry.image, height: 25, width: 25 }}
+                        style={{ width: 25, height: 25, resizeMode: 'center', alignSelf: 'center', backgroundColor: 'transparent' }}
                       />
                     </View>
                     <View style={[styles.column]}>

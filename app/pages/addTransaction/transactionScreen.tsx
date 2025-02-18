@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableHighlight, TextInput, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableHighlight, TextInput, TouchableOpacity, Image } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -13,7 +13,6 @@ import { randomUUID } from "expo-crypto";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import Toast from 'react-native-root-toast';
 import { Coin } from "@/app/models/Coin";
-import { Image } from "expo-image";
 import { MultiSelect } from 'react-native-element-dropdown';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ScrollView } from "react-native-gesture-handler";
@@ -124,7 +123,7 @@ export default function TransactionScreen() {
             headerTitle: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Image
-                        source={{ uri: persistedItem?.image }}
+                        src={persistedItem?.image}
                         style={{ width: 30, height: 30, marginRight: 10 }}
                     />
                     <Text style={{ color: 'white', fontSize: 18 }}>{persistedItem?.name}</Text>
@@ -344,13 +343,8 @@ export default function TransactionScreen() {
                                                     return (
                                                         <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
                                                             <Image
-                                                                source={image}
+                                                                src={image}
                                                                 style={{ width: 20, height: 20 }}
-                                                                transition={100}
-                                                                cachePolicy={'disk'}
-                                                                priority={'high'}
-                                                                contentPosition={'center'}
-                                                                contentFit="cover"
                                                             />
                                                         </View>
                                                     );

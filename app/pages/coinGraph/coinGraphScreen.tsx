@@ -4,6 +4,7 @@ import {
     Dimensions,
     ScrollView,
     StyleSheet,
+    Image
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import { useNavigation } from "expo-router";
@@ -18,7 +19,6 @@ import { CoinMarketHistoricalDataPoint, CoinsMarkets } from "@/app/models/CoinsM
 import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
 import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
-import { Image } from "expo-image";
 import { CoinHoldingsPanel } from "@/components/coinGraphScreen/coinHoldingsPanel";
 import { refreshButton } from "@/components/refreshButton";
 
@@ -54,22 +54,24 @@ export default function CoinGraphScreen() {
     }, [coinId, allTransactions, allFolioEntries]);
 
     useEffect(() => {
-        navigation.setOptions({
-            title: coinsMarket?.name,
-            headerTitle: () => (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Image
-                        source={{ uri: coinsMarket?.image }}
-                        style={{ width: 30, height: 30, marginRight: 10 }}
-                    />
-                    <Text style={{ color: 'white', fontSize: 18 }}>{coinsMarket?.name}</Text>
-                </View>
-            ),
-            headerRight: () => (
-                refreshButton(setRefresh, rotateAnim)
-            ),
-        });
-    }, [navigation, coinsMarket]);
+        if (coinsMarket) {
+            navigation.setOptions({
+                title: coinsMarket?.name,
+                headerTitle: () => (
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Image
+                            source={{ uri: coinsMarket?.image, height: 30, width: 30 }}
+                            style={{ width: 30, height: 30, marginRight: 10 }}
+                        />
+                        <Text style={{ color: 'white', fontSize: 18 }}>{coinsMarket?.name}</Text>
+                    </View>
+                ),
+                headerRight: () => (
+                    refreshButton(setRefresh, rotateAnim)
+                ),
+            });
+        }
+    }, [coinsMarket]);
 
     const fetchHistoricalLineGraphData = async (coinsMarketId: string) => {
         setIsLoadingHistoricalData(true);
