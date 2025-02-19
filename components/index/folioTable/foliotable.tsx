@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, DataTable, PaperProvider } from "react-native-paper";
+import { ActivityIndicator, Button, DataTable, PaperProvider } from "react-native-paper";
 import {
   StyleSheet,
   Text,
@@ -7,7 +7,6 @@ import {
   UIManager,
   Platform,
   ScrollView,
-  Image
 } from "react-native";
 import { useSelector } from "react-redux";
 import { FolioEntry } from "@/app/models/FolioEntry";
@@ -18,6 +17,7 @@ import { useEffect, useRef } from "react";
 import { View } from "@/components/Themed";
 import { numberFormatter } from "@/app/utils/numberFormatter";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { SvgCssUri } from 'react-native-svg/css';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -149,10 +149,14 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                 <DataTable.Cell>
                   <View style={styles.row}>
                     <View style={{ flexDirection: 'column', alignSelf: "center", paddingRight: 15, backgroundColor: 'transparent' }}>
-                      <Image
-                        source={{ uri: folioEntry.image, height: 25, width: 25 }}
-                        style={{ width: 25, height: 25, resizeMode: 'center', alignSelf: 'center', backgroundColor: 'transparent' }}
-                      />
+                      <View style={{ width: 25, height: 25 }}>
+                        <SvgCssUri
+                          width={25}
+                          height={25}
+                          uri={folioEntry.image}
+                          onError={() => console.error("Error loading image", folioEntry.image)}
+                        />
+                      </View>
                     </View>
                     <View style={[styles.column]}>
                       <View style={styles.row}>

@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableHighlight, TextInput, TouchableOpacity, Image } from "react-native";
+import { StyleSheet, TouchableHighlight, TextInput, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -21,6 +21,7 @@ import { setCurrentlySelectedFolio } from "@/app/slices/currentlySelectedFolioSl
 import { getFolioCoinImages } from "@/app/helpers/folioHelpers";
 import Decimal from 'decimal.js';
 import { addTransactionSlice, deleteTransactionByIdSlice } from "@/app/slices/allTransactionsSlice";
+import { SvgCssUri } from 'react-native-svg/css';
 
 export type TransactionScreenRouteParams = {
     item?: Coin;
@@ -122,10 +123,14 @@ export default function TransactionScreen() {
         navigation.setOptions({
             headerTitle: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Image
-                        src={persistedItem?.image}
-                        style={{ width: 30, height: 30, marginRight: 10 }}
-                    />
+                    <View style={{ width: 30, height: 30, marginRight: 10 }}>
+                        <SvgCssUri
+                            width={30}
+                            height={30}
+                            uri={persistedItem?.image ?? ''}
+                            onError={() => console.error("Error loading image", persistedItem?.image)}
+                        />
+                    </View>
                     <Text style={{ color: 'white', fontSize: 18 }}>{persistedItem?.name}</Text>
                 </View>
             ),
@@ -342,10 +347,14 @@ export default function TransactionScreen() {
                                                 {getFolioCoinImages(folio.folioId, allFolioEntries).map((image, index) => {
                                                     return (
                                                         <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
-                                                            <Image
-                                                                src={image}
-                                                                style={{ width: 20, height: 20 }}
-                                                            />
+                                                            <View style={{ width: 20, height: 20, backgroundColor: 'transparent' }}>
+                                                                <SvgCssUri
+                                                                    width={20}
+                                                                    height={20}
+                                                                    uri={image}
+                                                                    onError={() => console.error("Error loading image", image)}
+                                                                />
+                                                            </View>
                                                         </View>
                                                     );
                                                 })}

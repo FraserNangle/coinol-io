@@ -3,8 +3,7 @@ import {
     Animated,
     Dimensions,
     ScrollView,
-    StyleSheet,
-    Image
+    StyleSheet
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import { useNavigation } from "expo-router";
@@ -21,6 +20,7 @@ import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
 import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
 import { CoinHoldingsPanel } from "@/components/coinGraphScreen/coinHoldingsPanel";
 import { refreshButton } from "@/components/refreshButton";
+import { SvgCssUri } from 'react-native-svg/css';
 
 type RouteParams = {
     coinId: string;
@@ -59,10 +59,14 @@ export default function CoinGraphScreen() {
                 title: coinsMarket?.name,
                 headerTitle: () => (
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Image
-                            source={{ uri: coinsMarket?.image, height: 30, width: 30 }}
-                            style={{ width: 30, height: 30, marginRight: 10 }}
-                        />
+                        <View style={{ width: 30, height: 30, marginRight: 10 }}>
+                            <SvgCssUri
+                                width={30}
+                                height={30}
+                                uri={coinsMarket?.image}
+                                onError={() => console.error("Error loading image", coinsMarket?.image)}
+                            />
+                        </View>
                         <Text style={{ color: 'white', fontSize: 18 }}>{coinsMarket?.name}</Text>
                     </View>
                 ),

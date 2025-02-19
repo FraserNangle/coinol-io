@@ -4,7 +4,7 @@ import React, {
     useCallback,
     useRef,
 } from "react";
-import { View, StyleSheet, Animated, Text, Image } from "react-native";
+import { View, StyleSheet, Animated, Text } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";
 import Svg, { G, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
@@ -14,7 +14,7 @@ import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from 'expo-haptics';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-
+import { SvgCssUri } from 'react-native-svg/css';
 
 interface DonutChartProps {
     data: FolioEntry[],
@@ -338,10 +338,14 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                 </Text>
                                 <View style={[{ flexDirection: "row", justifyContent: "center" }]}>
                                     {selectedSection.details?.image ? (
-                                        <Image
-                                            src={selectedSection.details.image}
-                                            style={{ width: circleSize * 2, height: circleSize * 2 }}
-                                        />
+                                        <View style={{ width: circleSize * 2, height: circleSize * 2, backgroundColor: 'transparent' }}>
+                                            <SvgCssUri
+                                                width={circleSize * 2}
+                                                height={circleSize * 2}
+                                                uri={selectedSection.details.image}
+                                                onError={() => console.error("Error loading image", selectedSection?.details?.image)}
+                                            />
+                                        </View>
                                     ) : (
                                         <MaterialIcons style={[styles.selectedSliceCircle, {
                                             width: 20,

@@ -15,6 +15,7 @@ import { setFavoriteFolio } from "@/app/services/folioService";
 import { setFavoriteFolioReducer } from "@/app/slices/foliosSlice";
 import FolioRenamingModal from "./folioRenamingModal";
 import FolioDeletionModal from "./folioDeletionModal";
+import { SvgCssUri } from 'react-native-svg/css';
 
 interface FolioSelectionModalProps {
     db: SQLiteDatabase;
@@ -157,10 +158,14 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                                 {getFolioCoinImages(folio.folioId, allFolioEntries).map((image, index) => {
                                                     return (
                                                         <View key={index} style={{ paddingLeft: 10, backgroundColor: 'transparent' }}>
-                                                            <Image
-                                                                src={image}
-                                                                style={{ width: 20, height: 20 }}
-                                                            />
+                                                            <View style={{ width: 20, height: 20, backgroundColor: 'transparent' }}>
+                                                                <SvgCssUri
+                                                                    width={20}
+                                                                    height={20}
+                                                                    uri={image}
+                                                                    onError={() => console.error("Error loading image", image)}
+                                                                />
+                                                            </View>
                                                         </View>
                                                     );
                                                 })}
