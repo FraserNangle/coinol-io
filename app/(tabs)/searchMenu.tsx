@@ -1,5 +1,4 @@
 import { FlatList, StyleSheet, TouchableHighlight } from "react-native";
-
 import { Text, View } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { DataTable, TextInput } from "react-native-paper";
@@ -9,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setAllCoinData } from "@/app/slices/allCoinDataSlice";
 import { RootState } from "@/app/store/store";
 import { Coin } from "@/app/models/Coin";
-import { Image } from "expo-image";
+import { SvgCssUri } from 'react-native-svg/css';
 
 export default function SearchMenuScreen() {
   const [query, setQuery] = useState("");
@@ -58,15 +57,14 @@ export default function SearchMenuScreen() {
                 <DataTable.Cell>
                   <View style={styles.row}>
                     <View style={{ flexDirection: 'column', alignSelf: "center", paddingRight: 15, backgroundColor: 'transparent' }}>
-                      <Image
-                        source={item.image}
-                        style={{ width: 25, height: 25 }}
-                        transition={100}
-                        cachePolicy={'disk'}
-                        priority={'high'}
-                        contentPosition={'center'}
-                        contentFit="cover"
-                      />
+                      <View style={{ width: 25, height: 25 }}>
+                        <SvgCssUri
+                          width={25}
+                          height={25}
+                          uri={item.image}
+                          onError={() => console.error("Error loading image", item.image)}
+                        />
+                      </View>
                     </View>
                     <View style={styles.row}>
                       <Text style={[styles.bold, { paddingRight: 5 }]}>
@@ -120,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     fontWeight: "bold",
     color: "white",
-    borderColor: "white",
+    borderColor: "rgba(255, 255, 255, .3)",
     borderTopWidth: 5,
     borderRadius: 5,
   },

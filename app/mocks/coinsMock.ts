@@ -34,19 +34,19 @@ export const coinsMock: Coin[] = [{
     id: "polkadot",
     symbol: "dot",
     name: "Polkadot",
-    image: "path/to/polkadot.png",
+    image: "https://cryptologos.cc/logos/cardano-ada-logo.svg?v=035",
 },
 {
     id: "bitcoin-cash",
     symbol: "bch",
     name: "Bitcoin Cash",
-    image: "path/to/bitcoin-cash.png",
+    image: "https://cryptologos.cc/logos/cardano-ada-logo.svg?v=035",
 },
 {
     id: "stellar",
     symbol: "xlm",
     name: "Stellar",
-    image: "path/to/stellar.png",
+    image: "https://cryptologos.cc/logos/cardano-ada-logo.svg?v=035",
 },
 {
     id: "chainlink",
@@ -58,7 +58,7 @@ export const coinsMock: Coin[] = [{
     id: "binance-coin",
     symbol: "bnb",
     name: "Binance Coin",
-    image: "path/to/binance-coin.png",
+    image: "https://cryptologos.cc/logos/cardano-ada-logo.svg?v=035",
 },
 {
     id: "tether",
@@ -70,7 +70,7 @@ export const coinsMock: Coin[] = [{
     id: "usd-coin",
     symbol: "usdc",
     name: "USD Coin",
-    image: "path/to/usd-coin.png",
+    image: "https://cryptologos.cc/logos/cardano-ada-logo.svg?v=035",
 },
 {
     id: "uniswap",
@@ -82,5 +82,5 @@ export const coinsMock: Coin[] = [{
     id: "dogecoin",
     symbol: "doge",
     name: "Dogecoin",
-    image: "path/to/dogecoin.png",
+    image: "https://cryptologos.cc/logos/cardano-ada-logo.svg?v=035",
 }];

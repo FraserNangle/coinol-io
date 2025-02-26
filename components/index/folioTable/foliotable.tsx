@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, DataTable, PaperProvider } from "react-native-paper";
+import { ActivityIndicator, Button, DataTable, PaperProvider } from "react-native-paper";
 import {
   StyleSheet,
   Text,
@@ -14,10 +14,10 @@ import { RootState } from "@/app/store/store";
 import { useNavigation } from "@react-navigation/native";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { useEffect, useRef } from "react";
-import { Image } from "expo-image";
 import { View } from "@/components/Themed";
 import { numberFormatter } from "@/app/utils/numberFormatter";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { SvgCssUri } from 'react-native-svg/css';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === "android") {
@@ -149,15 +149,14 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                 <DataTable.Cell>
                   <View style={styles.row}>
                     <View style={{ flexDirection: 'column', alignSelf: "center", paddingRight: 15, backgroundColor: 'transparent' }}>
-                      <Image
-                        source={folioEntry.image}
-                        style={{ width: 25, height: 25 }}
-                        transition={100}
-                        cachePolicy={'disk'}
-                        priority={'high'}
-                        contentPosition={'center'}
-                        contentFit="cover"
-                      />
+                      <View style={{ width: 25, height: 25 }}>
+                        <SvgCssUri
+                          width={25}
+                          height={25}
+                          uri={folioEntry.image}
+                          onError={() => console.error("Error loading image", folioEntry.image)}
+                        />
+                      </View>
                     </View>
                     <View style={[styles.column]}>
                       <View style={styles.row}>

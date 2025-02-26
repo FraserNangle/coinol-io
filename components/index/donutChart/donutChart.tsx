@@ -14,8 +14,7 @@ import { FolioEntry, SectionFolioEntry } from "@/app/models/FolioEntry";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from 'expo-haptics';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Image } from 'expo-image';
-
+import { SvgCssUri } from 'react-native-svg/css';
 
 interface DonutChartProps {
     data: FolioEntry[],
@@ -339,11 +338,14 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                 </Text>
                                 <View style={[{ flexDirection: "row", justifyContent: "center" }]}>
                                     {selectedSection.details?.image ? (
-                                        <Image
-                                            source={selectedSection.details.image}
-                                            style={{ width: circleSize * 2, height: circleSize * 2 }}
-                                            transition={100}
-                                        />
+                                        <View style={{ width: circleSize * 2, height: circleSize * 2, backgroundColor: 'transparent' }}>
+                                            <SvgCssUri
+                                                width={circleSize * 2}
+                                                height={circleSize * 2}
+                                                uri={selectedSection.details.image}
+                                                onError={() => console.error("Error loading image", selectedSection?.details?.image)}
+                                            />
+                                        </View>
                                     ) : (
                                         <MaterialIcons style={[styles.selectedSliceCircle, {
                                             width: 20,

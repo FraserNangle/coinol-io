@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useCallback, useEffect } from "react";
+import React, { useLayoutEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { G } from "react-native-svg";
 import {
@@ -10,7 +10,6 @@ import {
     useAnimatedStyle,
 } from "react-native-reanimated";
 import {
-    totalAnimationTime,
     AnimatedPath,
 } from "@/components/Animation";
 import { setSelectedSection } from "@/app/slices/selectedSectionSlice";

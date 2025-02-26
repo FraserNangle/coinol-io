@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Dimensions,
   Pressable,
-  TouchableOpacity,
   Animated,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
@@ -28,8 +27,12 @@ import { UserData } from "../models/UserData";
 import { CoinsMarkets } from "../models/CoinsMarkets";
 import { refreshButton } from "@/components/refreshButton";
 import { setCoinsMarketsList } from "../slices/allCoinDataSlice";
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+
 
 export default function TabOneScreen() {
+  const adUnitId = process.env.NODE_ENV === 'development' ? TestIds.ADAPTIVE_BANNER : 'ca-app-pub-7783549357889885/7026088718';
+
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
 
@@ -38,6 +41,7 @@ export default function TabOneScreen() {
   const navigation = useNavigation();
 
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const bannerRef = useRef<BannerAd>(null);
 
   const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
   const currentFolioEntries = useSelector((state: RootState) => state.folioEntries.currentFolioEntries) || [];
@@ -160,6 +164,11 @@ export default function TabOneScreen() {
           </View>
         )
       }
+      <BannerAd
+        ref={bannerRef}
+        unitId={adUnitId}
+        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+      />
     </>
   );
 }
