@@ -149,7 +149,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                 <DataTable.Cell>
                   <View style={styles.row}>
                     <View style={{ flexDirection: 'column', alignSelf: "center", paddingRight: 15, backgroundColor: 'transparent' }}>
-                      <View style={{ width: 25, height: 25 }}>
+                      <View style={{ width: 25, height: 25, backgroundColor: 'transparent' }}>
                         <SvgCssUri
                           width={25}
                           height={25}
