@@ -2,6 +2,7 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { coinMarketHistoricalData24hMock } from "../mocks/coinMarketHistoricalDataMock";
 import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
 import { randomUUID } from "expo-crypto";
+import api from "./apiService";
 
 async function fetchAllHistoricalCoinDataByCoinId(coinId: string) {
     if (process.env.NODE_ENV === 'development') {
@@ -13,13 +14,9 @@ async function fetchAllHistoricalCoinDataByCoinId(coinId: string) {
         });
     } else {
         // send the coinId to the backend to get the historical data for the coin
-        const response = await fetch(`/api/coinMarkets/historicalData/${coinId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        return await response.json() as CoinMarketHistoricalDataPoint[];
+        const response = await api.post<CoinMarketHistoricalDataPoint[]>((`/coinMarkets/historicalData/${coinId}`));
+
+        return response.data;
     }
 }
 
@@ -42,14 +39,10 @@ async function fetchHistoricalCoinDataByCoinIdForDates(coinId: string, startDate
     } else {
         // Fetch the data from backend in other environments
         // send the coinId, startDate and endDate to the backend to get the historical data for the coin
-        const response = await fetch(`/api/coinMarkets/historicalData`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ coinId, startDate, endDate }),
+        const response = await api.post<CoinMarketHistoricalDataPoint[]>('/coinMarkets/historicalData', {
+            coinId, startDate, endDate
         });
-        return await response.json() as CoinMarketHistoricalDataPoint[];
+        return response.data;
     }
 }
 

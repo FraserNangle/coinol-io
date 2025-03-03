@@ -27,7 +27,7 @@ export const getUserData = async (db: SQLiteDatabase) => {
 
 async function downloadUserDataToLocalStorage() {
     // download the user data from the server and save it to local storage
-    const response = await api.get<UserData>('/user-data/all');
+    const response = await api.get<UserData>('/userData');
 
     if (response.data) {
         //TODO: Compare the data with local storage and see which is more recent then update accordingly
