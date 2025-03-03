@@ -103,7 +103,7 @@ export const deleteTransactionsByFolioId = async (db: SQLiteDatabase, folioId: s
   await db.runAsync('DELETE FROM transactions WHERE folioId = ?', folioId);
 
   if (!isGuest()) {
-    // If the user is not a guest, delete the transactions on the server
+    // If the user is not a guest, delete the transactions on the server by folioId
     const response = await api.post('/transactions/deleteByFolioId', {
       folioId
     });
@@ -120,7 +120,7 @@ export const deleteTransactionsByCoinId = async (db: SQLiteDatabase, coinId: str
   await db.runAsync('DELETE FROM transactions WHERE coinId = ?', coinId);
 
   if (!isGuest()) {
-    // If the user is not a guest, delete the transactions on the server
+    // If the user is not a guest, delete the transactions on the server by coinId
     const response = await api.post('/transactions/deleteByCoinId', {
       coinId
     });

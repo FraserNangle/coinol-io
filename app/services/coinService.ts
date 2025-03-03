@@ -2,6 +2,7 @@ import { coinsMarketsMock } from "../mocks/coinsMarketsMock";
 import { coinsMock } from "../mocks/coinsMock";
 import { Coin } from "../models/Coin";
 import { CoinsMarkets } from "../models/CoinsMarkets";
+import api from "./apiService";
 
 export async function fetchCoinDataByCoinsList(coinsList: string[]) {
     if (process.env.NODE_ENV === 'development') {
@@ -12,16 +13,12 @@ export async function fetchCoinDataByCoinsList(coinsList: string[]) {
             }, 100); // Simulate a delay of 1 second
         });
     } else {
-        // Fetch the data from backend in other environments
-        // send the coinsList to the backend to get the data of each coin
-        const response = await fetch('/api/coinsMarkets', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ coinsList }),
+        // send the coinsList to the backend to get the longform data of each coin
+        const response = await api.post<CoinsMarkets[]>('/coinMarkets', {
+            coinsList
         });
-        return await response.json() as CoinsMarkets[];
+
+        return response.data;
     }
 }
 
@@ -34,8 +31,8 @@ export async function fetchAllCoins() {
             }, 100); // Simulate a delay of 1 second
         });
     } else {
-        // Fetch the data from backend in other environments
-        const response = await fetch('/api/allCoins');
-        return await response.json() as Coin[];
+        // Fetch all coins shorthand data
+        const response = await api.get<Coin[]>('/coinMarkets');
+        return response.data;
     }
 }

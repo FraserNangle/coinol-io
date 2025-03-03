@@ -107,7 +107,7 @@ export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {
 
     if (!isGuest()) {
         // If the user is not a guest, update the folios on the server
-        const response = await api.post('/userFolios/add', {
+        const response = await api.post('/userData/userFolios/add', {
             newFolio
         });
 
@@ -128,7 +128,7 @@ export const deleteFolioById = async (db: SQLiteDatabase, folioId: string) => {
 
     if (!isGuest()) {
         // If the user is not a guest, update the folios on the server
-        const response = await api.post('/userFolios/delete', {
+        const response = await api.post('/userData/userFolios/delete', {
             folioId
         });
 
@@ -146,7 +146,7 @@ export const updateFolioName = async (db: SQLiteDatabase, folioId: string, newFo
 
     if (!isGuest()) {
         // If the user is not a guest, update the folios on the server
-        const response = await api.post('/userFolios/update/folioName', {
+        const response = await api.post('/userData/userFolios/update', {
             folioId,
             newFolioName
         });
@@ -189,7 +189,7 @@ export const getFoliosList = async (db: SQLiteDatabase) => {
 
 async function downloadFoliosToLocalStorage() {
     // download the folios from the server and save them to local storage
-    const response = await api.get<Folio[]>('/userFolios');
+    const response = await api.get<Folio[]>('/userData/userFolios');
 
     if (response.data.length > 0) {
         //TODO: Compare the folios with the ones in the local storage and see which is more recent then update accordingly
