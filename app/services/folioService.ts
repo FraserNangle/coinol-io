@@ -18,13 +18,72 @@ export async function fetchUserData(db: SQLiteDatabase) {
     const uniqueCoinIds = [...new Set(userData.transactions.map((transaction) => transaction.coinId))];
     let coinsMarketsList: CoinsMarkets[] = await fetchCoinDataByCoinsList(uniqueCoinIds);
 
-    // Apply adjustColor to the color property of each CoinsMarkets object
-    coinsMarketsList = coinsMarketsList.map((coinMarket) => ({
-        ...coinMarket,
-        color: adjustColor(coinMarket.color)
-    }));
+    // Fetch colors for each coinMarket asynchronously
+    const colorPromises = coinsMarketsList.map(async (coinMarket) => {
+        try {
+            const colors = await fetchSvgData(coinMarket.image);
+            return { ...coinMarket, color: adjustColors(colors) };
+        } catch (error) {
+            console.error(`Error fetching color for coinMarket ${coinMarket.id}:`, error);
+            return { ...coinMarket, color: 'hsl(0, 0%, 50%)' }; // Fallback color
+        }
+    });
+
+    // Wait for all color fetches to complete
+    coinsMarketsList = await Promise.all(colorPromises);
 
     return { userData, coinsMarketsList };
+}
+
+async function fetchSvgData(url: string) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch SVG data: ${response.statusText}`);
+        }
+        const svgData = await response.text();
+
+        // Extract colors from the SVG data
+        const colorRegex = /fill[:=]["']?(#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}|rgba?\(\d+,\s*\d+,\s*\d+(?:,\s*\d+)?\))["']?/g;
+        const colors = [...svgData.matchAll(colorRegex)].map(match => match[1]);
+
+        return colors;
+    } catch (error) {
+        console.error('Error fetching SVG data:', error);
+        throw error;
+    }
+}
+
+function adjustColors(colors: string[]): string {
+    const normalizeColor = (color: string): string => {
+        if (color.length === 4) {
+            return `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`;
+        }
+        return color.toLowerCase();
+    };
+
+    const calculateBrightness = (color: string): number => {
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return (r * 299 + g * 587 + b * 114) / 1000;
+    };
+
+    let brightestColor = 'hsl(0, 0%, 5%)';
+    let maxBrightness = -1;
+
+    for (const color of colors) {
+        const normalizedColor = normalizeColor(color);
+        if (normalizedColor !== '#000000' && normalizedColor !== '#ffffff') {
+            const brightness = calculateBrightness(normalizedColor);
+            if (brightness > maxBrightness) {
+                maxBrightness = brightness;
+                brightestColor = color;
+            }
+        }
+    }
+    return brightestColor;
 }
 
 export function generateFolioEntries(transactionList: UserTransaction[], coinsMarketsList: CoinsMarkets[], foliosList: Folio[]) {
@@ -60,7 +119,7 @@ export function generateFolioEntries(transactionList: UserTransaction[], coinsMa
                     ticker: coinMarket ? coinMarket.symbol : "ERROR",
                     name: coinMarket ? coinMarket.name : "ERROR FINDING COIN",
                     image: coinMarket ? coinMarket.image : "",
-                    color: coinMarket ? coinMarket.color : "hsl(0, 0%, 50%)",
+                    color: coinMarket ? coinMarket.color : "hsl(0, 0%, 100%)",
                     currentPrice: coinMarket ? coinMarket.current_price : 0,
                     priceChange24h: coinMarket ? coinMarket.price_change_24h : 0,
                     priceChangePercentage24h: coinMarket ? coinMarket.price_change_percentage_24h : 0,
@@ -69,22 +128,6 @@ export function generateFolioEntries(transactionList: UserTransaction[], coinsMa
         }
     });
     return folioEntries;
-}
-
-function adjustColor(color: string): string {
-    // Parse the HSL color
-    const hsl = RegExp(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/).exec(color);
-    if (!hsl) return color; // Return the original color if it's not in HSL format
-
-    let [hue, saturation, lightness] = hsl.slice(1).map(Number);
-
-    // Adjust the lightness and saturation if the color is dark
-    if (lightness < 30) {
-        lightness += 25; // Increase lightness
-        saturation += 10; // Increase saturation
-    }
-
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
 export const addNewFolio = async (db: SQLiteDatabase, newFolio: Folio) => {
