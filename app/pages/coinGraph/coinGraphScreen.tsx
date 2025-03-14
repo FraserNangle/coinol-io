@@ -14,9 +14,7 @@ import { useSelector } from "react-redux";
 import { TransactionHistoryTable } from "@/components/coinGraphScreen/transactionHistoryTable";
 import { useSQLiteContext } from "expo-sqlite";
 import { LineGraph } from "@/components/coinGraphScreen/lineGraph";
-import { CoinMarketHistoricalDataPoint, CoinsMarkets } from "@/app/models/CoinsMarkets";
-import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
-import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
+import { CoinsMarkets } from "@/app/models/CoinsMarkets";
 import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
 import { CoinHoldingsPanel } from "@/components/coinGraphScreen/coinHoldingsPanel";
 import { refreshButton } from "@/components/refreshButton";
@@ -29,10 +27,7 @@ type RouteParams = {
 export default function CoinGraphScreen() {
     const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-    const [timeRange, setTimeRange] = useState("24H");
     const [infoView, setInfoView] = useState("HOLDINGS");
-    const [historicalLineGraphData, setHistoricalLineGraphData] = useState<CoinMarketHistoricalDataPoint[]>([]);
-    const [isLoadingHistoricalData, setIsLoadingHistoricalData] = useState(true);
     const [refresh, setRefresh] = useState(false);
     const [coinsMarket, setCoinsMarket] = useState<CoinsMarkets>();
 
@@ -77,48 +72,6 @@ export default function CoinGraphScreen() {
         }
     }, [coinsMarket]);
 
-    const fetchHistoricalLineGraphData = async (coinsMarketId: string) => {
-        setIsLoadingHistoricalData(true);
-        const historicalData = await getCoinHistoryDataPoints(db, coinsMarketId);
-        setHistoricalLineGraphData(historicalData || []);
-        setIsLoadingHistoricalData(false);
-    };
-
-    const filterHistoricalLineGraphDataByDate = (historicalData: CoinMarketHistoricalDataPoint[]) => {
-        let days: number = getDaysFromTimeRange(timeRange);
-        const currentDate = new Date();
-        const startDate = new Date(currentDate);
-        startDate.setDate(startDate.getDate() - days);
-
-        return historicalData
-            .filter((coin) => {
-                const coinDate = new Date(coin.date);
-                return coinDate >= startDate && coinDate <= currentDate;
-            });
-
-    };
-
-    useEffect(() => {
-        if (coinsMarket) {
-            fetchHistoricalLineGraphData(coinsMarket.id);
-        }
-    }, [refresh, coinsMarket]);
-
-    function timeRangeControlButton(value: string) {
-        return <Button
-            buttonColor="transparent"
-            textColor={'white'}
-            rippleColor={coinsMarket?.color}
-            labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
-            style={[styles.button, value === timeRange ?
-                { opacity: 1, borderTopWidth: 2, borderColor: coinsMarket?.color }
-                : { opacity: .5 }]}
-            onPress={() => setTimeRange(value)}
-            mode="contained">
-            {value}
-        </Button>;
-    }
-
     function infoViewControlButton(value: string) {
         return <Button
             buttonColor="transparent"
@@ -138,40 +91,17 @@ export default function CoinGraphScreen() {
         <View style={styles.screenContainer}>
             <>
                 <View style={styles.graphContainer}>
-                    {(() => {
-                        if (isLoadingHistoricalData) {
-                            return (
-                                <View style={styles.loadingContainer}>
-                                    <ActivityIndicator size="large" color={coinsMarket?.color} />
-                                </View>
-                            );
-                        } else if (historicalLineGraphData.length > 0) {
-                            return (
-                                <LineGraph
-                                    data={filterHistoricalLineGraphDataByDate(historicalLineGraphData)}
-                                    currencyType={currencyType}
-                                    width={screenWidth}
-                                    height={screenHeight}
-                                    timeRange={timeRange}
-                                    color={coinsMarket?.color ?? "white"}
-                                >
-                                </LineGraph>
-                            );
-                        } else {
-                            return (
-                                <View style={styles.errorText}>
-                                    <Text>Failed to load chart data</Text>
-                                </View>
-                            );
-                        }
-                    })()}
-                </View>
-                <View style={styles.buttonContainer}>
-                    {timeRangeControlButton("24H")}
-                    {timeRangeControlButton("7D")}
-                    {timeRangeControlButton("1M")}
-                    {timeRangeControlButton("1Y")}
-                    {timeRangeControlButton("ALL")}
+                    {coinsMarket ? (
+                        <LineGraph
+                            coinsMarket={coinsMarket}
+                            currencyType={currencyType}
+                            width={screenWidth}
+                            height={screenHeight}
+                            refresh={refresh}
+                        />
+                    ) : (
+                        <ActivityIndicator size="large" />
+                    )}
                 </View>
                 <View style={styles.tableContainer}>
                     <View style={styles.modeButtonContainer}>
@@ -182,9 +112,12 @@ export default function CoinGraphScreen() {
                         {infoView === "HOLDINGS" &&
                             <>
                                 {coinsMarket && <CoinHoldingsPanel coinMarket={coinsMarket} />}
-                                <TransactionHistoryTable data={allTransactions.filter(transaction => {
-                                    return transaction.coinId === coinsMarket?.id;
-                                })} db={db} />
+                                <TransactionHistoryTable
+                                    data={allTransactions.filter(transaction => {
+                                        return transaction.coinId === coinsMarket?.id;
+                                    })}
+                                    db={db}
+                                />
                             </>
                         }
                         {infoView === "STATS" && coinsMarket && <CoinStatsPanel coinsMarkets={coinsMarket} />}
@@ -200,17 +133,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "flex-start",
         backgroundColor: "black",
-    },
-    buttonContainer: {
-        backgroundColor: "transparent",
-        flexDirection: "row",
-        justifyContent: "space-evenly",
-    },
-    button: {
-        width: "20%",
-        borderRadius: 5,
-        borderWidth: 0,
-        borderColor: "rgba(255, 255, 255, 1)",
     },
     modeButtonContainer: {
         flexDirection: "row",
@@ -239,17 +161,5 @@ const styles = StyleSheet.create({
     graphContainer: {
         flex: 1.5,
         justifyContent: "center",
-    },
-    errorText: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 20,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "black",
     },
 });
