@@ -8,7 +8,6 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import { StyleSheet, View, Text, LayoutChangeEvent, Animated, PanResponder, PanResponderInstance } from "react-native";
 import Svg, { Circle, ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import * as Haptics from 'expo-haptics';
-import { useAnimatedProps, useSharedValue, withTiming } from "react-native-reanimated";
 import { AnimatedPath } from "@/components/Animation";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
@@ -23,28 +22,28 @@ enum TextAlign {
 }
 
 interface LineGraphProps {
-    coinsMarket: CoinsMarkets,
+    coinsMarkets: CoinsMarkets[],
     currencyType: string,
     width: number,
     height: number,
-    refresh: boolean
+    refresh: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const textWidth = 60;
 const textHeight = 20;
 const iconWidth = 12;
+const circleRadius = 12;
 
 const AnimatedStop = Animated.createAnimatedComponent(Stop);
 
 export const LineGraph: FC<LineGraphProps> = ({
-    coinsMarket,
+    coinsMarkets,
     currencyType,
     width,
     height,
     refresh
 }: LineGraphProps) => {
     const db = useSQLiteContext();
-    const [viewLayout, setViewLayout] = useState({ width: 0, height: 0 });
     const [priceChangeAmount, setPriceChangeAmount] = useState(0);
     const [priceChangePercentage, setPriceChangePercentage] = useState(0);
     const [highlightedDataPoint, setHighlightedDataPoint] = useState<LineGraphDataItem | null>(null);
@@ -66,27 +65,32 @@ export const LineGraph: FC<LineGraphProps> = ({
     const animatedValue = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        Animated.timing(animatedValue, {
+        animatedValue.setValue(0);
+        Animated.spring(animatedValue, {
             toValue: 1,
-            duration: 1000,
+            tension: 2,
+            friction: 10,
             useNativeDriver: false,
         }).start();
-    }, [animatedValue, pathData]);
+    }, [pathData, animatedValue, width, height]);
 
     const stopOffset = animatedValue.interpolate({
         inputRange: [0, 1],
-        outputRange: [1, 0],
+        outputRange: [0, 1],
     });
 
     useEffect(() => {
-        if (coinsMarket) {
-            fetchHistoricalLineGraphData(coinsMarket.id);
+        if (coinsMarkets.length > 0) {
+            fetchHistoricalLineGraphData(coinsMarkets.map(coin => coin.id));
+        } else {
+            setIsLoadingHistoricalData(false);
+            setHistoricalLineGraphData([]);
         }
-    }, [refresh, coinsMarket, timeRange]);
+    }, [refresh, coinsMarkets, timeRange]);
 
-    const fetchHistoricalLineGraphData = async (coinsMarketId: string) => {
+    const fetchHistoricalLineGraphData = async (coinsMarketIds: string[]) => {
         setIsLoadingHistoricalData(true);
-        const historicalData = await getCoinHistoryDataPoints(db, coinsMarketId);
+        const historicalData = await getCoinHistoryDataPoints(db, coinsMarketIds);
         const sortedHistoricalDataPointList = [...historicalData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         setHistoricalLineGraphData(filterHistoricalLineGraphDataByDate(sortedHistoricalDataPointList));
@@ -107,7 +111,7 @@ export const LineGraph: FC<LineGraphProps> = ({
     };
 
     useEffect(() => {
-        if (historicalLineGraphData.length > 0 && viewLayout.width > 0 && viewLayout.height > 0) {
+        if (historicalLineGraphData.length > 0) {
             const sortedHistoricalDataPointList = [...historicalLineGraphData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
             // Find the maximum and minimum current_price in the historicalDataPointList
@@ -125,8 +129,8 @@ export const LineGraph: FC<LineGraphProps> = ({
                 if (maxDate > minDate) {
                     // Map the data points to x and y coordinates
                     const newLineGraphData: LineGraphDataItem[] = sortedHistoricalDataPointList.map(dataPoint => {
-                        const x = ((new Date(dataPoint.date).getTime() - minDate) / (maxDate - minDate)) * viewLayout.width;
-                        const y = ((dataPoint.currentPrice - minPrice) / (maxPrice - minPrice)) * (viewLayout.height / 1.5);
+                        const x = ((new Date(dataPoint.date).getTime() - minDate) / (maxDate - minDate)) * width;
+                        const y = ((dataPoint.currentPrice - minPrice) / (maxPrice - minPrice)) * (height / 1.5);
                         return {
                             x: isFinite(x) ? x : 0,
                             y: isFinite(y) ? y : 0,
@@ -140,7 +144,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                     // Calculate path data immediately after setting line graph data
                     if (newLineGraphData.length > 0) {
                         const newPathData = newLineGraphData.map((point, index) => {
-                            const invertedY = viewLayout.height - point.y;
+                            const invertedY = height - point.y;
                             return `${index === 0 ? 'M' : 'L'} ${point.x} ${invertedY}`;
                         }).join(' ');
                         setPathData(newPathData);
@@ -152,14 +156,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                 }
             }
         }
-    }, [historicalLineGraphData, viewLayout, timeRange]);
-
-    const handleLayout = (event: LayoutChangeEvent) => {
-        const { width, height } = event.nativeEvent.layout;
-        if (width > 0 && height > 0) {
-            setViewLayout({ width, height });
-        }
-    };
+    }, [historicalLineGraphData, width, height, timeRange]);
 
     useEffect(() => {
         setPanResponder(PanResponder.create({
@@ -184,10 +181,10 @@ export const LineGraph: FC<LineGraphProps> = ({
         return <Button
             buttonColor="transparent"
             textColor={'white'}
-            rippleColor={coinsMarket?.color}
+            rippleColor={coinsMarkets[0]?.color}
             labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
             style={[styles.button, value === timeRange ?
-                { opacity: 1, borderTopWidth: 2, borderColor: coinsMarket?.color }
+                { opacity: 1, borderTopWidth: 2, borderColor: coinsMarkets[0]?.color }
                 : { opacity: .5 }]}
             onPress={() => setTimeRange(value)}
             mode="contained">
@@ -248,17 +245,17 @@ export const LineGraph: FC<LineGraphProps> = ({
     }, [historicalLineGraphData, timeRange, highlightedDataPoint]);
 
     useEffect(() => {
-        if (minDataPoint && maxDataPoint && viewLayout.width > 0 && viewLayout.height > 0) {
+        if (minDataPoint && maxDataPoint && width > 0 && height > 0) {
             // Adjust the text label position if it goes outside the bounds
-            let minTextAdjustedX = Math.max(0, Math.min(minDataPoint.x - textWidth / 2, viewLayout.width - textWidth));
-            let minTextAdjustedY = Math.max(0, Math.min(minDataPoint.y - textHeight / 2, viewLayout.height - textHeight));
-            let maxTextAdjustedX = Math.max(0, Math.min(maxDataPoint.x - textWidth / 2, viewLayout.width - textWidth));
-            let maxTextAdjustedY = Math.max(0, Math.min(maxDataPoint.y - textHeight / 2, viewLayout.height - textHeight));
+            let minTextAdjustedX = Math.max(0, Math.min(minDataPoint.x - textWidth / 2, width - textWidth));
+            let minTextAdjustedY = Math.max(0, Math.min(minDataPoint.y - textHeight / 2, height - textHeight));
+            let maxTextAdjustedX = Math.max(0, Math.min(maxDataPoint.x - textWidth / 2, width - textWidth));
+            let maxTextAdjustedY = Math.max(0, Math.min(maxDataPoint.y - textHeight / 2, height - textHeight));
             // Adjust the icon label position if it goes outside the bounds
-            let minIconAdjustedX = Math.max(0, Math.min(minDataPoint.x - iconWidth / 2, viewLayout.width - iconWidth));
-            let minIconAdjustedY = Math.max(0, Math.min(minDataPoint.y - iconWidth / 2, viewLayout.height - iconWidth));
-            let maxIconAdjustedX = Math.max(0, Math.min(maxDataPoint.x - iconWidth / 2, viewLayout.width - iconWidth));
-            let maxIconAdjustedY = Math.max(0, Math.min(maxDataPoint.y - iconWidth / 2, viewLayout.height - iconWidth));
+            let minIconAdjustedX = Math.max(0, Math.min(minDataPoint.x - iconWidth / 2, width - iconWidth));
+            let minIconAdjustedY = Math.max(0, Math.min(minDataPoint.y - iconWidth / 2, height - iconWidth));
+            let maxIconAdjustedX = Math.max(0, Math.min(maxDataPoint.x - iconWidth / 2, width - iconWidth));
+            let maxIconAdjustedY = Math.max(0, Math.min(maxDataPoint.y - iconWidth / 2, height - iconWidth));
 
             let minIcon = 'keyboard-arrow-up';
             let maxIcon = 'keyboard-arrow-down';
@@ -272,7 +269,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                 minTextAdjustedY = minDataPoint.y + textHeight / 2;
                 minIconAdjustedX = minDataPoint.x;
                 minIconAdjustedY += iconWidth / 2;
-            } else if (minDataPoint.x + textWidth / 2 > viewLayout.width) {
+            } else if (minDataPoint.x + textWidth / 2 > width) {
                 minIcon = 'keyboard-arrow-right';
                 minTextAlign = TextAlign.Right;
                 minTextAdjustedX = minDataPoint.x - textWidth - iconWidth;
@@ -290,7 +287,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                 maxTextAdjustedY = maxDataPoint.y + textHeight / 2;
                 maxIconAdjustedX = maxDataPoint.x;
                 maxIconAdjustedY += iconWidth;
-            } else if (maxDataPoint.x + textWidth / 2 > viewLayout.width) {
+            } else if (maxDataPoint.x + textWidth / 2 > width) {
                 maxIcon = 'keyboard-arrow-right';
                 maxTextAlign = TextAlign.Right;
                 maxTextAdjustedX = maxDataPoint.x - textWidth - iconWidth;
@@ -309,20 +306,21 @@ export const LineGraph: FC<LineGraphProps> = ({
     }, [minDataPoint, maxDataPoint]);
 
     return (
-        <>
-            {!isLoadingHistoricalData &&
-                historicalLineGraphData.length === 0 && (
-                    <View style={styles.errorText}>
-                        <Text>Failed to load chart data</Text>
-                    </View>
-                )
-            }
-            {
-                historicalLineGraphData.length > 0 && (
-                    <View style={styles.container} onLayout={handleLayout} {...panResponder?.panHandlers}>
+        <View style={styles.container}>
+            {isLoadingHistoricalData ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={coinsMarkets[0]?.color} />
+                </View>
+            ) : coinsMarkets.length === 0 ? (
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.errorText}>Loading coin data...</Text>
+                </View>
+            ) : (
+                <>
+                    <View style={styles.container} {...panResponder?.panHandlers}>
                         {isLoadingHistoricalData ? (
                             <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color={coinsMarket?.color} />
+                                <ActivityIndicator size="large" color={coinsMarkets[0]?.color} />
                             </View>
                         ) : (
                             <><View style={[{ justifyContent: 'space-between', flexDirection: 'row' }]}>
@@ -330,7 +328,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                                     <View style={styles.pricingTitle}>
                                         <View style={[{ flexDirection: 'row' }]}>
                                             <Text style={[styles.headerTitle]}>
-                                                {convertToCurrencyFormat(highlightedDataPoint?.value ?? historicalLineGraphData[historicalLineGraphData.length - 1].currentPrice, currencyType, false, true)}
+                                                {convertToCurrencyFormat(highlightedDataPoint?.value ?? historicalLineGraphData[historicalLineGraphData.length - 1]?.currentPrice, currencyType, false, true)}
                                             </Text>
                                             <Text style={[
                                                 styles.percentageContainer,
@@ -355,27 +353,28 @@ export const LineGraph: FC<LineGraphProps> = ({
                                         </Text>
                                     </View>
                                 </View>
-                            </View><View style={styles.lineGraph}>
-                                    <Svg width={width} height={height} translateY={height / 7}>
+                            </View>
+                                <View style={styles.lineGraph}>
+                                    <Svg width={width} height={height + circleRadius} translateY={-height / 7}>
                                         <Defs>
-                                            <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="35%" x2="50%" y2="0%">
-                                                <AnimatedStop offset={stopOffset} stopColor="transparent" stopOpacity="0" />
-                                                <Stop offset={1} stopColor={coinsMarket?.color} stopOpacity="1" />
+                                            <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="0%" x2="50%" y2="75%">
+                                                <Stop offset={0} stopColor={coinsMarkets[0]?.color} stopOpacity={1} />
+                                                <AnimatedStop offset={stopOffset} stopColor={coinsMarkets[0]?.color} stopOpacity={0} />
                                             </LinearGradient>
-                                            {lineGraphData.length > 0 && viewLayout.height && (
+                                            {lineGraphData.length > 0 && height && (
                                                 <ClipPath id={`clip-${pathData}-${timeRange}`}>
                                                     <Path d={`M0,${height}
-                                    L0,${viewLayout.height - (lineGraphData[0]?.y ?? 0)}
-                                    L${width},${viewLayout.height - (lineGraphData[lineGraphData.length - 1]?.y ?? 0)}
+                                    L0,${height - (lineGraphData[0]?.y ?? 0)}
+                                    L${width},${height - (lineGraphData[lineGraphData.length - 1]?.y ?? 0)}
                                     L${width},${height} ${pathData} Z`} />
                                                 </ClipPath>
                                             )}
                                         </Defs>
-                                        <G x={0} y={0} width={viewLayout.width} height={viewLayout.height} viewBox={`0 0 ${viewLayout.width} ${viewLayout.height}`}>
-                                            {lineGraphData.length > 0 && viewLayout.height && (
+                                        <G x={0} y={0} width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+                                            {lineGraphData.length > 0 && height && (
                                                 <Rect
-                                                    x="0"
-                                                    y="0"
+                                                    x={0}
+                                                    y={0}
                                                     width={width}
                                                     height={height}
                                                     fill={`url(#grad-${pathData}-${timeRange})`}
@@ -395,30 +394,16 @@ export const LineGraph: FC<LineGraphProps> = ({
                                             ))}
                                             <AnimatedPath
                                                 d={pathData}
-                                                stroke={coinsMarket?.color}
+                                                stroke={coinsMarkets[0]?.color}
                                                 strokeWidth="1"
                                                 fill="none"
+                                                strokeDashoffset={2200}
                                                 strokeLinecap={"round"}
                                                 strokeLinejoin={"bevel"} />
-                                            {highlightedDataPoint && (
-                                                <>
-                                                    <Circle
-                                                        cx={highlightedDataPoint.x}
-                                                        cy={viewLayout.height - highlightedDataPoint.y}
-                                                        r={5}
-                                                        fill="grey" />
-                                                    <Circle
-                                                        cx={highlightedDataPoint.x}
-                                                        cy={viewLayout.height - highlightedDataPoint.y}
-                                                        r={12}
-                                                        fill={highlightedDataPoint.value >= historicalLineGraphData[0].currentPrice ? "#00ff00" : "red"}
-                                                        opacity={0.5} />
-                                                </>
-                                            )}
                                             <Text
                                                 style={[styles.dataLabel, {
                                                     left: adjustments.maxText.x,
-                                                    top: viewLayout.height - adjustments.maxText.y,
+                                                    top: height - adjustments.maxText.y,
                                                     textAlign: adjustments.maxText.textAlign
                                                 }]}
                                             >
@@ -426,7 +411,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                                             </Text>
                                             <MaterialIcons style={[styles.dataLabel, {
                                                 left: adjustments.maxText.iconX,
-                                                top: viewLayout.height - adjustments.maxText.iconY,
+                                                top: height - adjustments.maxText.iconY,
                                                 width: 12,
                                                 height: 12,
                                                 color: "#00ff00"
@@ -435,7 +420,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                                             <Text
                                                 style={[styles.dataLabel, {
                                                     left: adjustments.minText.x,
-                                                    top: viewLayout.height - adjustments.minText.y,
+                                                    top: height - adjustments.minText.y,
                                                     textAlign: adjustments.minText.textAlign
                                                 }]}
                                             >
@@ -443,18 +428,33 @@ export const LineGraph: FC<LineGraphProps> = ({
                                             </Text>
                                             <MaterialIcons style={[styles.dataLabel, {
                                                 left: adjustments.minText.iconX,
-                                                top: viewLayout.height - adjustments.minText.iconY,
+                                                top: height - adjustments.minText.iconY,
                                                 width: 12,
                                                 height: 12,
                                                 color: "red"
                                             }]} name={adjustments.minText.icon} color={"red"} size={10} />
+                                            {highlightedDataPoint && (
+                                                <>
+                                                    <Circle
+                                                        cx={highlightedDataPoint.x}
+                                                        cy={height - highlightedDataPoint.y}
+                                                        r={5}
+                                                        fill="grey" />
+                                                    <Circle
+                                                        cx={highlightedDataPoint.x}
+                                                        cy={height - highlightedDataPoint.y}
+                                                        r={circleRadius}
+                                                        fill={highlightedDataPoint.value >= historicalLineGraphData[0].currentPrice ? "#00ff00" : "red"}
+                                                        opacity={0.5} />
+                                                </>
+                                            )}
                                         </G>
                                     </Svg>
                                 </View></>
                         )}
                     </View>
-                )
-            }
+                </>
+            )}
             <View style={styles.buttonContainer}>
                 {timeRangeControlButton("24H")}
                 {timeRangeControlButton("7D")}
@@ -462,7 +462,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                 {timeRangeControlButton("1Y")}
                 {timeRangeControlButton("ALL")}
             </View>
-        </>
+        </View>
     );
 };
 
@@ -512,7 +512,9 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        alignContent: 'center',
     },
     lineGraph: {
         flex: 1,
@@ -537,6 +539,7 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         flexDirection: "row",
         justifyContent: "space-evenly",
+        height: 20
     },
     button: {
         width: "20%",

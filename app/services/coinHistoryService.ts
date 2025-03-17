@@ -4,43 +4,38 @@ import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
 import { randomUUID } from "expo-crypto";
 import api from "./apiService";
 
-async function fetchAllHistoricalCoinDataByCoinId(coinId: string) {
+//TODO: need to sum up all the data points for each coin into a single set of data points for the graph
+async function fetchAllHistoricalCoinDataByCoinIds(coinIds: string[]) {
     if (process.env.NODE_ENV === 'development') {
-        // Mock the data in development environment
         return new Promise<CoinMarketHistoricalDataPoint[]>((resolve) => {
             setTimeout(() => {
-                resolve(coinMarketHistoricalData24hMock.filter((coin) => coin.coinId === coinId));
-            }, 500); // Simulate a delay of .5 second
+                resolve(coinMarketHistoricalData24hMock.filter((coin) => coinIds.includes(coin.coinId)));
+            }, 500);
         });
     } else {
-        // send the coinId to the backend to get the historical data for the coin
-        const response = await api.post<CoinMarketHistoricalDataPoint[]>((`/coinMarkets/historicalData/${coinId}`));
-
+        const response = await api.post<CoinMarketHistoricalDataPoint[]>('/coinMarkets/historicalData/batch', { coinIds });
         return response.data;
     }
 }
 
-async function fetchHistoricalCoinDataByCoinIdForDates(coinId: string, startDate: string, endDate: string) {
+async function fetchHistoricalCoinDataByCoinIdsForDates(coinIds: string[], startDate: string, endDate: string) {
     if (process.env.NODE_ENV === 'development') {
-        // Mock the data in development environment
         return new Promise<CoinMarketHistoricalDataPoint[]>((resolve) => {
             setTimeout(() => {
                 const start = new Date(startDate);
                 const end = new Date(endDate);
                 resolve(coinMarketHistoricalData24hMock
-                    .filter((coin) => coin.coinId === coinId)
+                    .filter((coin) => coinIds.includes(coin.coinId))
                     .filter((coin) => {
                         const coinDate = new Date(coin.date);
                         return coinDate >= start && coinDate <= end;
                     })
                 );
-            }, 500); // Simulate a delay of .5 second
+            }, 500);
         });
     } else {
-        // Fetch the data from backend in other environments
-        // send the coinId, startDate and endDate to the backend to get the historical data for the coin
         const response = await api.post<CoinMarketHistoricalDataPoint[]>('/coinMarkets/historicalData', {
-            coinId, startDate, endDate
+            coinIds, startDate, endDate
         });
         return response.data;
     }
@@ -67,33 +62,48 @@ const addCoinHistoryDataPointsToDb = async (db: SQLiteDatabase, newCoinHistoryDa
     }
 };
 
-const getCoinHistoryDataPointsById = async (db: SQLiteDatabase, coinId: string) => {
-    const coinHistoryDataPoints = await db.getAllAsync<CoinMarketHistoricalDataPoint>('SELECT * FROM coinHistoryDataPoints WHERE coinId = ?', [coinId]);
+const getCoinHistoryDataPointsByIds = async (db: SQLiteDatabase, coinIds: string[]) => {
+    const placeholders = coinIds.map(() => '?').join(',');
+    const coinHistoryDataPoints = await db.getAllAsync<CoinMarketHistoricalDataPoint>(
+        `SELECT * FROM coinHistoryDataPoints WHERE coinId IN (${placeholders})`, 
+        coinIds
+    );
     return coinHistoryDataPoints;
 }
 
-export const getCoinHistoryDataPoints = async (db: SQLiteDatabase, coinId: string) => {
+export const getCoinHistoryDataPoints = async (db: SQLiteDatabase, coinIds: string[]) => {
     await createCoinHistoryTable(db);
-    const existingDataPoints = await getCoinHistoryDataPointsById(db, coinId);
+    const existingDataPoints = await getCoinHistoryDataPointsByIds(db, coinIds);
 
-    if (existingDataPoints.length === 0) {
-        // No data points exist, fetch all historical data for coin id
-        const allHistoricalData = await fetchAllHistoricalCoinDataByCoinId(coinId);
+    const missingCoinIds = coinIds.filter(id => 
+        !existingDataPoints.some(point => point.coinId === id)
+    );
 
-        if (allHistoricalData.length === 0) {
-            return [];
-        } else {
+    let newDataPoints: CoinMarketHistoricalDataPoint[] = [];
+
+    if (missingCoinIds.length > 0) {
+        // Fetch all historical data for missing coins
+        const allHistoricalData = await fetchAllHistoricalCoinDataByCoinIds(missingCoinIds);
+        if (allHistoricalData.length > 0) {
             await addCoinHistoryDataPointsToDb(db, allHistoricalData);
-            return allHistoricalData;
+            newDataPoints = [...newDataPoints, ...allHistoricalData];
         }
-    } else {
-        // Data points exist, fetch new data from the most recent date
+    }
+
+    if (existingDataPoints.length > 0) {
+        // For existing coins, fetch new data since most recent date
         const mostRecentDate = new Date(Math.max(...existingDataPoints.map(dataPoint => new Date(dataPoint.date).getTime())));
         const currentDate = new Date();
-        const newHistoricalData = await fetchHistoricalCoinDataByCoinIdForDates(coinId, mostRecentDate.toISOString(), currentDate.toISOString());
+        const newHistoricalData = await fetchHistoricalCoinDataByCoinIdsForDates(
+            coinIds, 
+            mostRecentDate.toISOString(), 
+            currentDate.toISOString()
+        );
         await addCoinHistoryDataPointsToDb(db, newHistoricalData);
-        return [...existingDataPoints, ...newHistoricalData];
+        newDataPoints = [...newDataPoints, ...newHistoricalData];
     }
+
+    return [...existingDataPoints, ...newDataPoints];
 };
 
 export const deleteAllCoinHistoryFromLocalStorage = async (db: SQLiteDatabase) => {

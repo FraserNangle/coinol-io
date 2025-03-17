@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
     Animated,
     Dimensions,
@@ -38,7 +38,6 @@ export default function CoinGraphScreen() {
     const db = useSQLiteContext();
 
     const allTransactions = useSelector((state: RootState) => state.allTransactions.transactions) || [];
-    const allFolioEntries = useSelector((state: RootState) => state.folioEntries.allFolioEntries) || [];
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
     const coinsMarketsList = useSelector((state: RootState) => state.allCoinData.coinsMarketsList) || [];
 
@@ -46,7 +45,7 @@ export default function CoinGraphScreen() {
 
     useEffect(() => {
         setCoinsMarket(coinsMarketsList.find((coin) => coin.id === coinId));
-    }, [coinId, allTransactions, allFolioEntries]);
+    }, [coinId, coinsMarketsList]);
 
     useEffect(() => {
         if (coinsMarket) {
@@ -72,6 +71,17 @@ export default function CoinGraphScreen() {
         }
     }, [coinsMarket]);
 
+    const memoizedLineGraph = useMemo(() => (
+        <LineGraph
+            coinsMarkets={coinsMarket ? [coinsMarket] : []}
+            currencyType={currencyType}
+            width={screenWidth}
+            height={screenHeight / 2}
+            refresh={setRefresh}
+        />
+    ), [coinsMarket, currencyType, screenWidth, screenHeight, refresh]);
+
+
     function infoViewControlButton(value: string) {
         return <Button
             buttonColor="transparent"
@@ -89,41 +99,30 @@ export default function CoinGraphScreen() {
 
     return (
         <View style={styles.screenContainer}>
-            <>
-                <View style={styles.graphContainer}>
-                    {coinsMarket ? (
-                        <LineGraph
-                            coinsMarket={coinsMarket}
-                            currencyType={currencyType}
-                            width={screenWidth}
-                            height={screenHeight}
-                            refresh={refresh}
-                        />
-                    ) : (
-                        <ActivityIndicator size="large" />
-                    )}
+            <View style={styles.graphContainer}>
+                {memoizedLineGraph}
+            </View>
+            <View style={styles.tableContainer}>
+                <View style={styles.modeButtonContainer}>
+                    {infoViewControlButton("HOLDINGS")}
+                    {infoViewControlButton("STATS")}
                 </View>
-                <View style={styles.tableContainer}>
-                    <View style={styles.modeButtonContainer}>
-                        {infoViewControlButton("HOLDINGS")}
-                        {infoViewControlButton("STATS")}
-                    </View>
-                    <ScrollView fadingEdgeLength={25}>
-                        {infoView === "HOLDINGS" &&
-                            <>
-                                {coinsMarket && <CoinHoldingsPanel coinMarket={coinsMarket} />}
-                                <TransactionHistoryTable
-                                    data={allTransactions.filter(transaction => {
-                                        return transaction.coinId === coinsMarket?.id;
-                                    })}
-                                    db={db}
-                                />
-                            </>
-                        }
-                        {infoView === "STATS" && coinsMarket && <CoinStatsPanel coinsMarkets={coinsMarket} />}
-                    </ScrollView>
-                </View>
-            </>
+                <ScrollView fadingEdgeLength={25}>
+                    {infoView === "HOLDINGS" &&
+                        <>
+                            {coinsMarket && <CoinHoldingsPanel coinMarket={coinsMarket} />}
+                            <TransactionHistoryTable
+                                data={allTransactions.filter(transaction => {
+                                    return transaction.coinId === coinsMarket?.id;
+                                })}
+                                db={db}
+                            />
+                        </>
+                    }
+                    {infoView === "STATS" && coinsMarket &&
+                    <CoinStatsPanel coinsMarkets={coinsMarket} />}
+                </ScrollView>
+            </View>
         </View>
     );
 }
