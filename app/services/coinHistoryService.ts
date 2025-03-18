@@ -3,8 +3,8 @@ import { coinMarketHistoricalData24hMock } from "../mocks/coinMarketHistoricalDa
 import { CoinMarketHistoricalDataPoint } from "../models/CoinsMarkets";
 import { randomUUID } from "expo-crypto";
 import api from "./apiService";
+import { UserTransaction } from "../models/UserTransaction";
 
-//TODO: need to sum up all the data points for each coin into a single set of data points for the graph
 async function fetchAllHistoricalCoinDataByCoinIds(coinIds: string[]) {
     if (process.env.NODE_ENV === 'development') {
         return new Promise<CoinMarketHistoricalDataPoint[]>((resolve) => {
@@ -39,6 +39,30 @@ async function fetchHistoricalCoinDataByCoinIdsForDates(coinIds: string[], start
         });
         return response.data;
     }
+}
+
+export const getTotalPortfolioValueDataPoints = (coinHistoryDataPoints: CoinMarketHistoricalDataPoint[], transactions: UserTransaction[]) => {
+    const totalPortfolioValueDataPoints: CoinMarketHistoricalDataPoint[] = [];
+    // we want to get the total portfolio value at each date in coinHistoryDataPoints
+    // for each date, get all the coins they had at that date
+    // get the current price of those coins multiplied by the quantity they had
+    // add up all the values
+    // return the total portfolio value at each date
+
+    coinHistoryDataPoints.forEach((coinHistoryDataPoint) => {
+        const totalPortfolioValueAtDate = transactions.reduce((total, transaction) => {
+            if (transaction.date === coinHistoryDataPoint.date) {
+                return total + (transaction.quantity * coinHistoryDataPoint.currentPrice);
+            }
+            return total;
+        }, 0);
+        totalPortfolioValueDataPoints.push({
+            coinId: 'total',
+            date: coinHistoryDataPoint.date,
+            currentPrice: totalPortfolioValueAtDate
+        });
+    });
+    return totalPortfolioValueDataPoints;
 }
 
 const createCoinHistoryTable = async (db: SQLiteDatabase) => {

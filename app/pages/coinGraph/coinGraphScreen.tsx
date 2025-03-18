@@ -73,11 +73,12 @@ export default function CoinGraphScreen() {
 
     const memoizedLineGraph = useMemo(() => (
         <LineGraph
-            coinsMarkets={coinsMarket ? [coinsMarket] : []}
+            coinsMarketsIds={coinsMarket ? [coinsMarket.id] : []}
             currencyType={currencyType}
             width={screenWidth}
             height={screenHeight / 2}
             refresh={setRefresh}
+            color={coinsMarket?.color ?? '#fff'}
         />
     ), [coinsMarket, currencyType, screenWidth, screenHeight, refresh]);
 

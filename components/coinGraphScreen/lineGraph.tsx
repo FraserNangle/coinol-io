@@ -1,17 +1,18 @@
-import { CoinMarketHistoricalDataPoint, CoinsMarkets } from "@/app/models/CoinsMarkets";
+import { CoinMarketHistoricalDataPoint } from "@/app/models/CoinsMarkets";
 import { LineGraphDataItem } from "@/app/models/LineGraphDataItem";
 import { convertToCurrencyFormat } from "@/app/utils/convertToCurrencyValue";
 import { getDaysFromTimeRange } from "@/app/utils/getDaysFromTimeRange";
 import { getPercentageChangeDisplay } from "@/app/utils/getPercentageChange";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { FC, useEffect, useRef, useState } from "react";
-import { StyleSheet, View, Text, LayoutChangeEvent, Animated, PanResponder, PanResponderInstance } from "react-native";
+import { StyleSheet, View, Text, Animated, PanResponder, PanResponderInstance } from "react-native";
 import Svg, { Circle, ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import * as Haptics from 'expo-haptics';
 import { AnimatedPath } from "@/components/Animation";
 import { ActivityIndicator, Button } from "react-native-paper";
-import { getCoinHistoryDataPoints } from "@/app/services/coinHistoryService";
+import { getCoinHistoryDataPoints, getTotalPortfolioValueDataPoints } from "@/app/services/coinHistoryService";
 import { useSQLiteContext } from "expo-sqlite";
+import { UserTransaction } from "@/app/models/UserTransaction";
 
 enum TextAlign {
     Auto = "auto",
@@ -22,11 +23,14 @@ enum TextAlign {
 }
 
 interface LineGraphProps {
-    coinsMarkets: CoinsMarkets[],
+    coinsMarketsIds: string[],
     currencyType: string,
     width: number,
     height: number,
-    refresh: React.Dispatch<React.SetStateAction<boolean>>
+    refresh: React.Dispatch<React.SetStateAction<boolean>>,
+    color: string,
+    transactions?: UserTransaction[],
+    onHighlightChange?: (isHighlighted: boolean) => void
 }
 
 const textWidth = 60;
@@ -37,11 +41,14 @@ const circleRadius = 12;
 const AnimatedStop = Animated.createAnimatedComponent(Stop);
 
 export const LineGraph: FC<LineGraphProps> = ({
-    coinsMarkets,
+    coinsMarketsIds,
     currencyType,
     width,
     height,
-    refresh
+    refresh,
+    color,
+    transactions,
+    onHighlightChange
 }: LineGraphProps) => {
     const db = useSQLiteContext();
     const [priceChangeAmount, setPriceChangeAmount] = useState(0);
@@ -80,17 +87,22 @@ export const LineGraph: FC<LineGraphProps> = ({
     });
 
     useEffect(() => {
-        if (coinsMarkets.length > 0) {
-            fetchHistoricalLineGraphData(coinsMarkets.map(coin => coin.id));
+        if (coinsMarketsIds.length > 0) {
+            fetchHistoricalLineGraphData(coinsMarketsIds);
         } else {
             setIsLoadingHistoricalData(false);
             setHistoricalLineGraphData([]);
         }
-    }, [refresh, coinsMarkets, timeRange]);
+    }, [refresh, coinsMarketsIds, timeRange]);
 
     const fetchHistoricalLineGraphData = async (coinsMarketIds: string[]) => {
         setIsLoadingHistoricalData(true);
-        const historicalData = await getCoinHistoryDataPoints(db, coinsMarketIds);
+        let historicalData = await getCoinHistoryDataPoints(db, coinsMarketIds);
+
+        if(coinsMarketIds.length > 1 && transactions && transactions.length > 0){
+            historicalData = getTotalPortfolioValueDataPoints(historicalData, transactions);
+        }
+       
         const sortedHistoricalDataPointList = [...historicalData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         setHistoricalLineGraphData(filterHistoricalLineGraphDataByDate(sortedHistoricalDataPointList));
@@ -169,10 +181,12 @@ export const LineGraph: FC<LineGraphProps> = ({
                         return Math.abs(curr.x - touchX) < Math.abs(prev.x - touchX) ? curr : prev;
                     }, lineGraphData[0]);
                     setHighlightedDataPoint(closestDataPoint);
+                    onHighlightChange?.(true);
                 }
             },
             onPanResponderRelease: () => {
                 setHighlightedDataPoint(null);
+                onHighlightChange?.(false);
             },
         }));
     }, [lineGraphData]);
@@ -181,10 +195,10 @@ export const LineGraph: FC<LineGraphProps> = ({
         return <Button
             buttonColor="transparent"
             textColor={'white'}
-            rippleColor={coinsMarkets[0]?.color}
+            rippleColor={color}
             labelStyle={{ marginHorizontal: 0, marginVertical: 0, fontSize: 10 }}
             style={[styles.button, value === timeRange ?
-                { opacity: 1, borderTopWidth: 2, borderColor: coinsMarkets[0]?.color }
+                { opacity: 1, borderTopWidth: 2, borderColor: color }
                 : { opacity: .5 }]}
             onPress={() => setTimeRange(value)}
             mode="contained">
@@ -309,9 +323,9 @@ export const LineGraph: FC<LineGraphProps> = ({
         <View style={styles.container}>
             {isLoadingHistoricalData ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={coinsMarkets[0]?.color} />
+                    <ActivityIndicator size="large" color={color} />
                 </View>
-            ) : coinsMarkets.length === 0 ? (
+            ) : coinsMarketsIds.length === 0 ? (
                 <View style={styles.loadingContainer}>
                     <Text style={styles.errorText}>Loading coin data...</Text>
                 </View>
@@ -320,7 +334,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                     <View style={styles.container} {...panResponder?.panHandlers}>
                         {isLoadingHistoricalData ? (
                             <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color={coinsMarkets[0]?.color} />
+                                <ActivityIndicator size="large" color={color} />
                             </View>
                         ) : (
                             <><View style={[{ justifyContent: 'space-between', flexDirection: 'row' }]}>
@@ -358,8 +372,8 @@ export const LineGraph: FC<LineGraphProps> = ({
                                     <Svg width={width} height={height + circleRadius} translateY={-height / 7}>
                                         <Defs>
                                             <LinearGradient id={`grad-${pathData}-${timeRange}`} x1="50%" y1="0%" x2="50%" y2="75%">
-                                                <Stop offset={0} stopColor={coinsMarkets[0]?.color} stopOpacity={1} />
-                                                <AnimatedStop offset={stopOffset} stopColor={coinsMarkets[0]?.color} stopOpacity={0} />
+                                                <Stop offset={0} stopColor={color} stopOpacity={1} />
+                                                <AnimatedStop offset={stopOffset} stopColor={color} stopOpacity={0} />
                                             </LinearGradient>
                                             {lineGraphData.length > 0 && height && (
                                                 <ClipPath id={`clip-${pathData}-${timeRange}`}>
@@ -394,7 +408,7 @@ export const LineGraph: FC<LineGraphProps> = ({
                                             ))}
                                             <AnimatedPath
                                                 d={pathData}
-                                                stroke={coinsMarkets[0]?.color}
+                                                stroke={color}
                                                 strokeWidth="1"
                                                 fill="none"
                                                 strokeDashoffset={2200}

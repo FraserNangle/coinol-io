@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   StyleSheet,
   Dimensions,
   Pressable,
   Animated,
+  TouchableOpacity,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "@/components/index/folioTable/foliotable";
@@ -28,6 +29,7 @@ import { CoinsMarkets } from "../models/CoinsMarkets";
 import { refreshButton } from "@/components/refreshButton";
 import { setCoinsMarketsList } from "../slices/allCoinDataSlice";
 import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { LineGraph } from "@/components/coinGraphScreen/lineGraph";
 
 
 export default function TabOneScreen() {
@@ -54,6 +56,8 @@ export default function TabOneScreen() {
 
   const [isLoadingFolioData, setIsLoadingFolioData] = useState(true);
   const [refresh, setRefresh] = useState(false);
+  const [chart, setChart] = useState<'DONUT' | 'LINE'>('DONUT');
+  const [isGraphHighlighted, setIsGraphHighlighted] = useState(false);
 
   const fetchData = async () => {
     setIsLoadingFolioData(true);
@@ -66,6 +70,10 @@ export default function TabOneScreen() {
     dispatch(setCoinsMarketsList(data.coinsMarketsList));
     dispatch(setAllTransactions(data.userData.transactions));
     setIsLoadingFolioData(false);
+  };
+
+  const handleToggleChart = () => {
+    setChart(chart === 'DONUT' ? 'LINE' : 'DONUT');
   };
 
   useEffect(() => {
@@ -110,6 +118,19 @@ export default function TabOneScreen() {
     });
   }, [navigation]);
 
+  const memoizedLineGraph = useMemo(() => (
+    <LineGraph
+      coinsMarketsIds={currentFolioEntries.map((folioEntry) => folioEntry.coinId)}
+      width={screenWidth}
+      height={screenHeight / 4}
+      currencyType={currencyType}
+      refresh={setRefresh}
+      color={'white'}
+      transactions={allTransactions}
+      onHighlightChange={setIsGraphHighlighted}
+    />
+), [currentFolioEntries, currencyType, screenWidth, screenHeight, refresh]);
+
   return (
     <>
       {!isLoadingFolioData &&
@@ -149,12 +170,29 @@ export default function TabOneScreen() {
               </View>
             ) : (
               <>
-                <View style={styles.donutContainer}>
-                  <DonutChart
-                    data={currentFolioEntries}
-                    width={screenWidth * 0.95}
-                    height={screenHeight / 2}
-                    currencyTicker={currencyType} />
+                <View style={styles.chartContainer}>
+                  {chart === 'DONUT' && (
+                    <DonutChart
+                      data={currentFolioEntries}
+                      width={screenWidth}
+                      height={screenHeight / 2}
+                      currencyTicker={currencyType} />
+                  )}
+                  {chart === 'LINE' && 
+                    memoizedLineGraph
+                  }
+                  {!isGraphHighlighted && (
+                    <TouchableOpacity
+                      style={[styles.toggleButton, { left: screenWidth - 60, bottom: screenHeight/2 - 150 }]}
+                      onPress={handleToggleChart}
+                    >
+                      {chart === 'DONUT' ? (
+                        <MaterialIcons style={{ color: "white", textAlign: 'center' }} name="show-chart" size={30} />
+                      ) : (
+                        <MaterialIcons style={{ color: "white", textAlign: 'center' }} name="data-usage" size={30} />
+                      )}
+                    </TouchableOpacity>
+                  )}
                 </View>
                 <View style={styles.tableContainer}>
                   <FolioTable data={currentFolioEntries} />
@@ -180,11 +218,12 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     backgroundColor: "black",
   },
-  donutContainer: {
+  chartContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-start",
     backgroundColor: "black",
+    marginVertical: 10,
   },
   tableContainer: {
     flex: 1,
@@ -211,5 +250,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "black",
+  },
+  toggleButton: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
+    height: 50,
+    width: 50,
+    display: 'flex',
+    alignContent: 'center',
   },
 });
