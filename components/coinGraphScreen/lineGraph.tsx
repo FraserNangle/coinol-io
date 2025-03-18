@@ -31,6 +31,7 @@ interface LineGraphProps {
     color: string,
     transactions?: UserTransaction[],
     onHighlightChange?: (isHighlighted: boolean) => void
+    totalsGraph?: boolean
 }
 
 const textWidth = 60;
@@ -48,7 +49,8 @@ export const LineGraph: FC<LineGraphProps> = ({
     refresh,
     color,
     transactions,
-    onHighlightChange
+    onHighlightChange,
+    totalsGraph
 }: LineGraphProps) => {
     const db = useSQLiteContext();
     const [priceChangeAmount, setPriceChangeAmount] = useState(0);
@@ -99,7 +101,7 @@ export const LineGraph: FC<LineGraphProps> = ({
         setIsLoadingHistoricalData(true);
         let historicalData = await getCoinHistoryDataPoints(db, coinsMarketIds);
 
-        if(coinsMarketIds.length > 1 && transactions && transactions.length > 0){
+        if(totalsGraph && transactions && transactions.length > 0){
             historicalData = getTotalPortfolioValueDataPoints(historicalData, transactions);
         }
        
@@ -573,4 +575,4 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         fontSize: 20,
     }
-})
+});

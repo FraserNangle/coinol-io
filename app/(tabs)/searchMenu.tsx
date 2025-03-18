@@ -49,9 +49,9 @@ export default function SearchMenuScreen() {
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <TouchableHighlight
-              onPress={() =>
-                navigation.navigate("pages/coinGraph/coinGraphScreen", { coinId: item.id })
-              }
+              onPress={() => {
+                navigation.navigate("pages/coinGraph/coinGraphScreen", { coinId: item.id });
+              }}
             >
               <DataTable.Row key={item.name} style={[{ borderColor: "rgba(255, 255, 255, 0.3)", borderBottomWidth: .5 }]}>
                 <DataTable.Cell>

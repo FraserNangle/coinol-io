@@ -5,19 +5,6 @@ import { randomUUID } from "expo-crypto";
 import api from "./apiService";
 import { UserTransaction } from "../models/UserTransaction";
 
-async function fetchAllHistoricalCoinDataByCoinIds(coinIds: string[]) {
-    if (process.env.NODE_ENV === 'development') {
-        return new Promise<CoinMarketHistoricalDataPoint[]>((resolve) => {
-            setTimeout(() => {
-                resolve(coinMarketHistoricalData24hMock.filter((coin) => coinIds.includes(coin.coinId)));
-            }, 500);
-        });
-    } else {
-        const response = await api.post<CoinMarketHistoricalDataPoint[]>('/coinMarkets/historicalData/batch', { coinIds });
-        return response.data;
-    }
-}
-
 async function fetchHistoricalCoinDataByCoinIdsForDates(coinIds: string[], startDate: string, endDate: string) {
     if (process.env.NODE_ENV === 'development') {
         return new Promise<CoinMarketHistoricalDataPoint[]>((resolve) => {
@@ -34,7 +21,7 @@ async function fetchHistoricalCoinDataByCoinIdsForDates(coinIds: string[], start
             }, 500);
         });
     } else {
-        const response = await api.post<CoinMarketHistoricalDataPoint[]>('/coinMarkets/historicalData', {
+        const response = await api.post<CoinMarketHistoricalDataPoint[]>('/coinMarkets/historicalData/batch', {
             coinIds, startDate, endDate
         });
         return response.data;
@@ -43,25 +30,86 @@ async function fetchHistoricalCoinDataByCoinIdsForDates(coinIds: string[], start
 
 export const getTotalPortfolioValueDataPoints = (coinHistoryDataPoints: CoinMarketHistoricalDataPoint[], transactions: UserTransaction[]) => {
     const totalPortfolioValueDataPoints: CoinMarketHistoricalDataPoint[] = [];
-    // we want to get the total portfolio value at each date in coinHistoryDataPoints
-    // for each date, get all the coins they had at that date
-    // get the current price of those coins multiplied by the quantity they had
-    // add up all the values
-    // return the total portfolio value at each date
-
-    coinHistoryDataPoints.forEach((coinHistoryDataPoint) => {
-        const totalPortfolioValueAtDate = transactions.reduce((total, transaction) => {
-            if (transaction.date === coinHistoryDataPoint.date) {
-                return total + (transaction.quantity * coinHistoryDataPoint.currentPrice);
-            }
-            return total;
-        }, 0);
-        totalPortfolioValueDataPoints.push({
-            coinId: 'total',
-            date: coinHistoryDataPoint.date,
-            currentPrice: totalPortfolioValueAtDate
+    
+    // Add data points for transaction times if they don't exist
+    const transactionDataPoints: CoinMarketHistoricalDataPoint[] = [];
+    transactions.forEach(transaction => {
+        const transactionTime = new Date(transaction.date).getTime();
+        // Find the closest historical data point before this transaction
+        const closestPoint = coinHistoryDataPoints
+            .filter(point => point.coinId === transaction.coinId)
+            .reduce((prev, curr) => {
+                const prevDiff = Math.abs(new Date(prev.date).getTime() - transactionTime);
+                const currDiff = Math.abs(new Date(curr.date).getTime() - transactionTime);
+                return prevDiff < currDiff ? prev : curr;
+            });
+        
+        // Add a data point at transaction time using the closest price
+        transactionDataPoints.push({
+            coinId: transaction.coinId,
+            date: transaction.date,
+            currentPrice: closestPoint.currentPrice
         });
     });
+
+    // Combine historical and transaction data points
+    const allDataPoints = [...coinHistoryDataPoints, ...transactionDataPoints];
+    
+    // Group history points by date for easier lookup
+    const historyByDate = new Map<string, CoinMarketHistoricalDataPoint[]>();
+    allDataPoints.forEach(point => {
+        const points = historyByDate.get(point.date) || [];
+        points.push(point);
+        historyByDate.set(point.date, points);
+    });
+
+    // Sort dates chronologically
+    const dates = Array.from(historyByDate.keys()).sort();
+
+    // For each date, we'll calculate the total value based on all transactions up to that point
+    dates.forEach(date => {
+        const dataPointsAtDate = historyByDate.get(date)!;
+        let totalValue = 0;
+
+        // If we have no transactions yet for this date, skip it
+        const dateTime = new Date(date).getTime();
+        const hasTransactionsBeforeOrAt = transactions.some(t => new Date(t.date).getTime() <= dateTime);
+        
+        if (!hasTransactionsBeforeOrAt) {
+            totalPortfolioValueDataPoints.push({
+                coinId: 'total',
+                date: date,
+                currentPrice: 0
+            });
+            return;
+        }
+
+        // Group transactions by coinId
+        const holdingsByCoin = new Map<string, number>();
+        
+        // Calculate holdings for each coin up to this date
+        transactions.forEach(transaction => {
+            if (new Date(transaction.date).getTime() <= dateTime) {
+                const currentHoldings = holdingsByCoin.get(transaction.coinId) || 0;
+                // Add for BUY, subtract for SELL
+                const quantityChange = transaction.type === 'BUY' ? transaction.quantity : -transaction.quantity;
+                holdingsByCoin.set(transaction.coinId, currentHoldings + quantityChange);
+            }
+        });
+
+        // Calculate total value using current holdings and prices
+        holdingsByCoin.forEach((quantity, coinId) => {
+            const coinPrice = dataPointsAtDate.find(point => point.coinId === coinId)?.currentPrice || 0;
+            totalValue += quantity * coinPrice;
+        });
+
+        totalPortfolioValueDataPoints.push({
+            coinId: 'total',
+            date: date,
+            currentPrice: totalValue
+        });
+    });
+
     return totalPortfolioValueDataPoints;
 }
 
@@ -106,8 +154,14 @@ export const getCoinHistoryDataPoints = async (db: SQLiteDatabase, coinIds: stri
     let newDataPoints: CoinMarketHistoricalDataPoint[] = [];
 
     if (missingCoinIds.length > 0) {
+        const oldestPossibleDate = new Date('2013-01-01');
+        const currentDate = new Date();
         // Fetch all historical data for missing coins
-        const allHistoricalData = await fetchAllHistoricalCoinDataByCoinIds(missingCoinIds);
+        const allHistoricalData = await fetchHistoricalCoinDataByCoinIdsForDates(
+            coinIds, 
+            oldestPossibleDate.toISOString(), 
+            currentDate.toISOString()
+        );
         if (allHistoricalData.length > 0) {
             await addCoinHistoryDataPointsToDb(db, allHistoricalData);
             newDataPoints = [...newDataPoints, ...allHistoricalData];

@@ -53,7 +53,11 @@ export default function TransactionScreen() {
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [canSell, setCanSell] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [selectedFolios, setSelectedFolios] = useState<string[]>([transactionToEdit?.folioId ?? currentFolio?.folioId ?? '']);
+    const [selectedFolios, setSelectedFolios] = useState<string[]>(
+        transactionToEdit?.folioId ? [transactionToEdit.folioId] : 
+        currentFolio?.folioId ? [currentFolio.folioId] : 
+        []
+    );
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -329,7 +333,9 @@ export default function TransactionScreen() {
                                     }
                                 }}
                                 onChange={(folios) => {
-                                    setSelectedFolios(folios);
+                                    if(folios.length > 0){
+                                        setSelectedFolios(folios);
+                                    }
                                 }}
                                 visibleSelectedItem={false}
                                 renderItem={(folio) => {
@@ -372,7 +378,7 @@ export default function TransactionScreen() {
                         </View>
                     </View>
                 </View>
-                {selectedFolios.length > 0 && (
+                {folios.length > 0 && selectedFolios.length > 0 && (
                     <View style={styles.tableContainer}>
                         <ScrollView horizontal contentContainerStyle={styles.row}>
                             {selectedFolios.map(folio => (

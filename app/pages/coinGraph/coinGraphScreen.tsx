@@ -19,6 +19,7 @@ import { CoinStatsPanel } from "@/components/coinGraphScreen/coinStatsPanel";
 import { CoinHoldingsPanel } from "@/components/coinGraphScreen/coinHoldingsPanel";
 import { refreshButton } from "@/components/refreshButton";
 import { SvgCssUri } from 'react-native-svg/css';
+import { fetchCoinDataByCoinsList } from "@/app/services/coinService";
 
 type RouteParams = {
     coinId: string;
@@ -39,13 +40,14 @@ export default function CoinGraphScreen() {
 
     const allTransactions = useSelector((state: RootState) => state.allTransactions.transactions) || [];
     const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
-    const coinsMarketsList = useSelector((state: RootState) => state.allCoinData.coinsMarketsList) || [];
 
     const rotateAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        setCoinsMarket(coinsMarketsList.find((coin) => coin.id === coinId));
-    }, [coinId, coinsMarketsList]);
+        fetchCoinDataByCoinsList([coinId]).then((coinsMarketsList) => {
+            setCoinsMarket(coinsMarketsList[0]);
+        });
+    }, [coinId]);
 
     useEffect(() => {
         if (coinsMarket) {
