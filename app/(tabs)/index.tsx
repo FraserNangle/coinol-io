@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   StyleSheet,
   Dimensions,
   Pressable,
   Animated,
+  TouchableOpacity,
 } from "react-native";
 import { View, Text } from "@/components/Themed";
 import { FolioTable } from "@/components/index/folioTable/foliotable";
@@ -28,6 +29,10 @@ import { CoinsMarkets } from "../models/CoinsMarkets";
 import { refreshButton } from "@/components/refreshButton";
 import { setCoinsMarketsList } from "../slices/allCoinDataSlice";
 import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { LineGraph } from "@/components/coinGraphScreen/lineGraph";
+import { deleteAllCoinHistoryFromLocalStorage } from "../services/coinHistoryService";
+import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange";
+import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
 
 
 export default function TabOneScreen() {
@@ -51,9 +56,17 @@ export default function TabOneScreen() {
   const currentlySelectedFolio = useSelector((state: RootState) => state.currentlySelectedFolio.currentfolio);
   const lastTransaction = useSelector((state: RootState) => state.lastTransaction.transaction);
   const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
+  const totalPortfolioValue = useSelector(
+    (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
+  );
+  const totalPortfolioPercentageChange24hr = useSelector(
+    (state: any) => state?.totalPortfolioValue?.totalPortfolioPercentageChange24hr
+  );
 
   const [isLoadingFolioData, setIsLoadingFolioData] = useState(true);
   const [refresh, setRefresh] = useState(false);
+  const [chart, setChart] = useState<'DONUT' | 'LINE'>('DONUT');
+  const [isGraphHighlighted, setIsGraphHighlighted] = useState(false);
 
   const fetchData = async () => {
     setIsLoadingFolioData(true);
@@ -66,6 +79,10 @@ export default function TabOneScreen() {
     dispatch(setCoinsMarketsList(data.coinsMarketsList));
     dispatch(setAllTransactions(data.userData.transactions));
     setIsLoadingFolioData(false);
+  };
+
+  const handleToggleChart = () => {
+    setChart(chart === 'DONUT' ? 'LINE' : 'DONUT');
   };
 
   useEffect(() => {
@@ -104,11 +121,45 @@ export default function TabOneScreen() {
 
   useEffect(() => {
     navigation.setOptions({
+      headerTitle: () => (
+        <View style={styles.titleContainer}>
+          {totalPortfolioValue > 0 && chart === 'DONUT' && (
+            <>
+              <Text style={styles.headerTitle}>
+                {convertToCurrencyFormat(totalPortfolioValue, currencyType, true, true)}
+              </Text>
+
+              <Text style={[styles.percentageContainer, { color: totalPortfolioPercentageChange24hr >= 0 ? "#00ff00" : "red" }]}
+              >
+                {getPercentageChangeDisplayNoSymbol(totalPortfolioPercentageChange24hr)}%
+                <MaterialIcons style={{
+                  color: totalPortfolioPercentageChange24hr >= 0 ? "#00ff00" : "red",
+                }} name={totalPortfolioPercentageChange24hr >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
+              </Text>
+            </>
+          )}
+        </View>
+      ),
       headerRight: () => (
         refreshButton(setRefresh, rotateAnim, 10)
       ),
     });
-  }, [navigation]);
+  }, [navigation, chart, totalPortfolioValue, totalPortfolioPercentageChange24hr, currencyType]);
+
+  const memoizedLineGraph = useMemo(() => (
+    <LineGraph
+      coinsMarketsIds={currentFolioEntries.map((folioEntry) => folioEntry.coinId)}
+      width={screenWidth}
+      height={screenHeight / 4}
+      currencyType={currencyType}
+      refresh={setRefresh}
+      color={'white'}
+      transactions={allTransactions}
+      onHighlightChange={setIsGraphHighlighted}
+      totalsGraph
+      currentFolioId={currentlySelectedFolio?.folioId}
+    />
+  ), [currentFolioEntries, currencyType, screenWidth, screenHeight, refresh]);
 
   return (
     <>
@@ -140,6 +191,15 @@ export default function TabOneScreen() {
           </View>
         )
       }
+      {isLoadingFolioData &&
+        currentFolioEntries.length === 0 && (
+          <View style={styles.container}>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="white" />
+            </View>
+          </View>
+        )
+      }
       {
         currentFolioEntries.length > 0 && (
           <View style={styles.screenContainer}>
@@ -149,12 +209,29 @@ export default function TabOneScreen() {
               </View>
             ) : (
               <>
-                <View style={styles.donutContainer}>
-                  <DonutChart
-                    data={currentFolioEntries}
-                    width={screenWidth * 0.95}
-                    height={screenHeight / 2}
-                    currencyTicker={currencyType} />
+                <View style={styles.chartContainer}>
+                  {chart === 'DONUT' && (
+                    <DonutChart
+                      data={currentFolioEntries}
+                      width={screenWidth * 0.95}
+                      height={screenHeight / 2}
+                      currencyTicker={currencyType} />
+                  )}
+                  {chart === 'LINE' &&
+                    memoizedLineGraph
+                  }
+                  {!isGraphHighlighted && (
+                    <TouchableOpacity
+                      style={[styles.toggleButton, { left: screenWidth - 60, bottom: screenHeight / 2 - 150 }]}
+                      onPress={handleToggleChart}
+                    >
+                      {chart === 'DONUT' ? (
+                        <MaterialIcons style={{ color: "white", textAlign: 'center' }} name="show-chart" size={30} />
+                      ) : (
+                        <MaterialIcons style={{ color: "white", textAlign: 'center', left: 10 }} name="data-usage" size={30} />
+                      )}
+                    </TouchableOpacity>
+                  )}
                 </View>
                 <View style={styles.tableContainer}>
                   <FolioTable data={currentFolioEntries} />
@@ -180,7 +257,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     backgroundColor: "black",
   },
-  donutContainer: {
+  chartContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-start",
@@ -211,5 +288,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "black",
+  },
+  toggleButton: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
+    height: 50,
+    width: 50,
+    display: 'flex',
+    alignContent: 'center',
+  },
+  titleContainer: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "white",
+  },
+  percentageContainer: {
+    marginLeft: 10,
+    color: "white",
   },
 });

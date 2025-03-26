@@ -27,17 +27,6 @@ export default function TabLayout() {
 
   const db = useSQLiteContext();
 
-  const totalPortfolioValue = useSelector(
-    (state: any) => state?.totalPortfolioValue?.totalPortfolioValue
-  );
-
-  const totalPortfolioPercentageChange24hr = useSelector(
-    (state: any) => state?.totalPortfolioValue?.totalPortfolioPercentageChange24hr
-  );
-  const currencyType = useSelector((state: RootState) => state.currencyType.currencyType) ?? '';
-
-  const formattedTotalPortfolioValue = convertToCurrencyFormat(totalPortfolioValue, currencyType, true, true);
-
   return (
     <Tabs
       screenOptions={{
@@ -96,25 +85,6 @@ export default function TabLayout() {
               />
             </>
           ),
-          headerTitle: () => (
-            <View style={styles.titleContainer}>
-              {totalPortfolioValue > 0 && (
-                <>
-                  <Text style={styles.headerTitle}>
-                    {formattedTotalPortfolioValue}
-                  </Text>
-
-                  <Text style={[styles.percentageContainer, { color: totalPortfolioPercentageChange24hr >= 0 ? "#00ff00" : "red" }]}
-                  >
-                    {getPercentageChangeDisplayNoSymbol(totalPortfolioPercentageChange24hr)}%
-                    <MaterialIcons style={{
-                      color: totalPortfolioPercentageChange24hr >= 0 ? "#00ff00" : "red",
-                    }} name={totalPortfolioPercentageChange24hr >= 0 ? "arrow-drop-up" : "arrow-drop-down"} />
-                  </Text>
-                </>
-              )}
-            </View>
-          ),
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="data-usage" color={color} size={40} />
           ),
@@ -131,7 +101,7 @@ export default function TabLayout() {
           headerTitle: () => (
             <View style={styles.titleContainer}>
               <Text style={styles.headerTitle}>
-                {formattedTotalPortfolioValue} ({totalPortfolioPercentageChange24hr}%)
+                Two
               </Text>
             </View>
           ),

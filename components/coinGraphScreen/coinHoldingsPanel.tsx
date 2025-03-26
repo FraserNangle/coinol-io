@@ -48,6 +48,7 @@ export const CoinHoldingsPanel: React.FC<CoinHoldingsPanelProps> = ({
                         iconStyle={styles.iconStyle}
                         selectedTextProps={{ style: styles.smallText }}
                         inputSearchStyle={styles.inputSearchStyle}
+                        placeholder={folios.length > 0 ? 'Select a folio' : 'No Folios'}
                         data={folios}
                         labelField="folioName"
                         valueField="folioId"

@@ -215,7 +215,7 @@ export const TransactionHistoryTable: React.FC<TransactionHistoryTableProps> = (
                 db={props.db}
                 visible={isDeletionModalVisible}
                 setVisible={setIsDeletionModalVisible}
-                transactionToDelete={menuTransaction}
+                transactionToDelete={menuTransaction ?? props.data[0]}
                 deleteAllTransactions={deleteAll}
             />
             <Menu
