@@ -157,6 +157,7 @@ export default function TabOneScreen() {
       transactions={allTransactions}
       onHighlightChange={setIsGraphHighlighted}
       totalsGraph
+      currentFolioId={currentlySelectedFolio?.folioId}
     />
   ), [currentFolioEntries, currencyType, screenWidth, screenHeight, refresh]);
 

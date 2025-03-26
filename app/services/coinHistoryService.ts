@@ -30,7 +30,7 @@ async function fetchHistoricalCoinDataByCoinIdsForDates(coinIds: string[], start
 
 export const getTotalPortfolioValueDataPoints = (coinHistoryDataPoints: CoinMarketHistoricalDataPoint[], transactions: UserTransaction[]) => {
     const totalPortfolioValueDataPoints: CoinMarketHistoricalDataPoint[] = [];
-    
+
     // Add data points for transaction times if they don't exist
     const transactionDataPoints: CoinMarketHistoricalDataPoint[] = [];
     transactions.forEach(transaction => {
@@ -43,7 +43,7 @@ export const getTotalPortfolioValueDataPoints = (coinHistoryDataPoints: CoinMark
                 const currDiff = Math.abs(new Date(curr.date).getTime() - transactionTime);
                 return prevDiff < currDiff ? prev : curr;
             });
-        
+
         // Add a data point at transaction time using the closest price
         transactionDataPoints.push({
             coinId: transaction.coinId,
@@ -54,7 +54,7 @@ export const getTotalPortfolioValueDataPoints = (coinHistoryDataPoints: CoinMark
 
     // Combine historical and transaction data points
     const allDataPoints = [...coinHistoryDataPoints, ...transactionDataPoints];
-    
+
     // Group history points by date for easier lookup
     const historyByDate = new Map<string, CoinMarketHistoricalDataPoint[]>();
     allDataPoints.forEach(point => {
@@ -74,7 +74,7 @@ export const getTotalPortfolioValueDataPoints = (coinHistoryDataPoints: CoinMark
         // If we have no transactions yet for this date, skip it
         const dateTime = new Date(date).getTime();
         const hasTransactionsBeforeOrAt = transactions.some(t => new Date(t.date).getTime() <= dateTime);
-        
+
         if (!hasTransactionsBeforeOrAt) {
             totalPortfolioValueDataPoints.push({
                 coinId: 'total',
@@ -86,7 +86,7 @@ export const getTotalPortfolioValueDataPoints = (coinHistoryDataPoints: CoinMark
 
         // Group transactions by coinId
         const holdingsByCoin = new Map<string, number>();
-        
+
         // Calculate holdings for each coin up to this date
         transactions.forEach(transaction => {
             if (new Date(transaction.date).getTime() <= dateTime) {
@@ -112,7 +112,6 @@ export const getTotalPortfolioValueDataPoints = (coinHistoryDataPoints: CoinMark
 
     return totalPortfolioValueDataPoints;
 }
-
 const createCoinHistoryTable = async (db: SQLiteDatabase) => {
     await db.execAsync(
         `CREATE TABLE IF NOT EXISTS coinHistoryDataPoints (
@@ -137,7 +136,7 @@ const addCoinHistoryDataPointsToDb = async (db: SQLiteDatabase, newCoinHistoryDa
 const getCoinHistoryDataPointsByIds = async (db: SQLiteDatabase, coinIds: string[]) => {
     const placeholders = coinIds.map(() => '?').join(',');
     const coinHistoryDataPoints = await db.getAllAsync<CoinMarketHistoricalDataPoint>(
-        `SELECT * FROM coinHistoryDataPoints WHERE coinId IN (${placeholders})`, 
+        `SELECT * FROM coinHistoryDataPoints WHERE coinId IN (${placeholders})`,
         coinIds
     );
     return coinHistoryDataPoints;
@@ -147,7 +146,7 @@ export const getCoinHistoryDataPoints = async (db: SQLiteDatabase, coinIds: stri
     await createCoinHistoryTable(db);
     const existingDataPoints = await getCoinHistoryDataPointsByIds(db, coinIds);
 
-    const missingCoinIds = coinIds.filter(id => 
+    const missingCoinIds = coinIds.filter(id =>
         !existingDataPoints.some(point => point.coinId === id)
     );
 
@@ -158,8 +157,8 @@ export const getCoinHistoryDataPoints = async (db: SQLiteDatabase, coinIds: stri
         const currentDate = new Date();
         // Fetch all historical data for missing coins
         const allHistoricalData = await fetchHistoricalCoinDataByCoinIdsForDates(
-            coinIds, 
-            oldestPossibleDate.toISOString(), 
+            coinIds,
+            oldestPossibleDate.toISOString(),
             currentDate.toISOString()
         );
         if (allHistoricalData.length > 0) {
@@ -173,8 +172,8 @@ export const getCoinHistoryDataPoints = async (db: SQLiteDatabase, coinIds: stri
         const mostRecentDate = new Date(Math.max(...existingDataPoints.map(dataPoint => new Date(dataPoint.date).getTime())));
         const currentDate = new Date();
         const newHistoricalData = await fetchHistoricalCoinDataByCoinIdsForDates(
-            coinIds, 
-            mostRecentDate.toISOString(), 
+            coinIds,
+            mostRecentDate.toISOString(),
             currentDate.toISOString()
         );
         await addCoinHistoryDataPointsToDb(db, newHistoricalData);
@@ -182,6 +181,10 @@ export const getCoinHistoryDataPoints = async (db: SQLiteDatabase, coinIds: stri
     }
 
     return [...existingDataPoints, ...newDataPoints];
+};
+
+export const deleteAllCoinHistoryDataFromLocalStorageForId = async (db: SQLiteDatabase, coinId: string) => {
+    await db.runAsync('DELETE FROM coinHistoryDataPoints WHERE coinId = ?', coinId);
 };
 
 export const deleteAllCoinHistoryFromLocalStorage = async (db: SQLiteDatabase) => {

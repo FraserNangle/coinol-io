@@ -10,7 +10,7 @@ import Svg, { Circle, ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop 
 import * as Haptics from 'expo-haptics';
 import { AnimatedPath } from "@/components/Animation";
 import { ActivityIndicator, Button } from "react-native-paper";
-import { getCoinHistoryDataPoints, getTotalPortfolioValueDataPoints } from "@/app/services/coinHistoryService";
+import { deleteAllCoinHistoryDataFromLocalStorageForId, getCoinHistoryDataPoints, getTotalPortfolioValueDataPoints } from "@/app/services/coinHistoryService";
 import { useSQLiteContext } from "expo-sqlite";
 import { UserTransaction } from "@/app/models/UserTransaction";
 
@@ -31,7 +31,8 @@ interface LineGraphProps {
     color: string,
     transactions?: UserTransaction[],
     onHighlightChange?: (isHighlighted: boolean) => void
-    totalsGraph?: boolean
+    totalsGraph?: boolean,
+    currentFolioId?: string
 }
 
 const textWidth = 60;
@@ -50,7 +51,8 @@ export const LineGraph: FC<LineGraphProps> = ({
     color,
     transactions,
     onHighlightChange,
-    totalsGraph
+    totalsGraph,
+    currentFolioId
 }: LineGraphProps) => {
     const db = useSQLiteContext();
     const [priceChangeAmount, setPriceChangeAmount] = useState(0);
@@ -101,10 +103,12 @@ export const LineGraph: FC<LineGraphProps> = ({
         setIsLoadingHistoricalData(true);
         let historicalData = await getCoinHistoryDataPoints(db, coinsMarketIds);
 
-        if(totalsGraph && transactions && transactions.length > 0){
-            historicalData = getTotalPortfolioValueDataPoints(historicalData, transactions);
+        if (totalsGraph && transactions && transactions.length > 0 && currentFolioId) {
+            await deleteAllCoinHistoryDataFromLocalStorageForId(db, 'total');
+            const transactionsByFolioId = transactions.filter(transaction => transaction.folioId == currentFolioId);
+            historicalData = getTotalPortfolioValueDataPoints(historicalData, transactionsByFolioId);
         }
-       
+
         const sortedHistoricalDataPointList = [...historicalData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         setHistoricalLineGraphData(filterHistoricalLineGraphDataByDate(sortedHistoricalDataPointList));
@@ -327,9 +331,9 @@ export const LineGraph: FC<LineGraphProps> = ({
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={color} />
                 </View>
-            ) : coinsMarketsIds.length === 0 ? (
+            ) : coinsMarketsIds.length === 0 || lineGraphData.length === 0 ? (
                 <View style={styles.loadingContainer}>
-                    <Text style={styles.errorText}>Loading coin data...</Text>
+                    <Text style={styles.errorText}>No data available for {coinsMarketsIds[0]}</Text>
                 </View>
             ) : (
                 <>
@@ -573,6 +577,10 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
+        alignContent: "center",
+        textAlign: "center",
+        textAlignVertical: "center",
         fontSize: 20,
+        color: "white",
     }
 });
