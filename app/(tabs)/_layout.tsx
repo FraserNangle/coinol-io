@@ -10,6 +10,7 @@ import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange
 import { RootState } from "../store/store";
 import FolioSelectionModal from "@/components/modals/folio/folioSelectionModal";
 import { useSQLiteContext } from "expo-sqlite";
+import { Button } from "react-native-paper";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: Readonly<{
@@ -92,20 +93,38 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="mainMenu"
         options={{
           tabBarActiveBackgroundColor: "black",
           tabBarInactiveBackgroundColor: "black",
           tabBarLabel: () => null,
           tabBarShowLabel: true,
+          headerShown: true,
           headerTitle: () => (
             <View style={styles.titleContainer}>
-              <Text style={styles.headerTitle}>
-                Two
-              </Text>
+              <Button
+                buttonColor="black"
+                textColor={"white"}
+                rippleColor="white"
+                style={styles.bigButton}
+                compact
+                mode="contained"
+                onPress={() => { console.log("Button pressed!"); }}>
+                LOG IN
+              </Button>
+              <Button
+                buttonColor="black"
+                textColor={"white"}
+                rippleColor="white"
+                style={styles.bigButton}
+                compact
+                mode="contained"
+                onPress={() => { console.log("Button pressed!"); }}>
+                SIGN UP
+              </Button>
             </View>
           ),
-          tabBarIcon: ({ color }) => <TabBarIcon name="settings" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="menu" color={color} />,
           tabBarIconStyle: { justifyContent: "center", alignItems: "center", flex: 1, textAlign: "center", textAlignVertical: "center" },
         }}
       />
@@ -129,5 +148,12 @@ const styles = StyleSheet.create({
   percentageContainer: {
     marginLeft: 10,
     color: "white",
+  },
+  bigButton: {
+    width: "30%",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderBottomWidth: 5,
+    borderColor: "rgba(255, 255, 255, .3)",
   },
 });
