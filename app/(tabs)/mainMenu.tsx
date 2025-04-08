@@ -1,20 +1,59 @@
 import { StyleSheet } from "react-native";
 
-import { View } from "@/components/Themed";
-import React, { useEffect } from "react";
+import { View, Text } from "@/components/Themed";
+import React from "react";
 import { ScrollView } from "react-native-gesture-handler";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TabTwoScreen() {
   return (
     <View style={styles.screenContainer}>
-      <View style={styles.graphContainer}>
-      </View>
-      <View style={styles.tableContainer}>
-        <View style={styles.modeButtonContainer}>
+      <ScrollView fadingEdgeLength={25}>
+        <View style={styles.settingsRow}>
+          <MaterialIcons
+            name="manage-accounts"
+            size={30}
+            color="white"
+            style={{ paddingRight: 10 }}
+          />
+          <Text>
+            {"Account"}
+          </Text>
         </View>
-        <ScrollView fadingEdgeLength={25}>
-        </ScrollView>
-      </View>
+        <View style={styles.settingsRow}>
+          <MaterialIcons
+            name="settings"
+            size={30}
+            color="white"
+            style={{ paddingRight: 10 }}
+          />
+          <Text>
+            {"Preferences"}
+          </Text>
+        </View>
+        <View style={styles.settingsRow}>
+          <MaterialIcons
+            name="notifications"
+            size={30}
+            color="white"
+            style={{ paddingRight: 10 }}
+          />
+          <Text>
+            {"Alerts"}
+          </Text>
+        </View>
+        <View style={styles.settingsRow}>
+          <MaterialIcons
+            name="info"
+            size={30}
+            color="white"
+            style={{ paddingRight: 10 }}
+          />
+          <Text>
+            {"About App"}
+          </Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -25,33 +64,20 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     backgroundColor: "black",
   },
-  modeButtonContainer: {
+  settingsRow: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignContent: "center",
-    width: "90%",
-  },
-  modeButton: {
-    width: "50%",
-    justifyContent: "center",
-    alignContent: "center",
+    padding: 10,
+    marginHorizontal: 10,
+    marginVertical: 5,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, .3)",
     borderRadius: 5,
-    borderWidth: 0,
-    borderColor: "white",
-    paddingTop: 10,
-  },
-  tableContainer: {
-    flex: 1,
-    width: "100%",
-    justifyContent: "center",
-    alignContent: "center",
-    backgroundColor: "transparent",
-  },
-  graphContainer: {
-    flex: 1,
-    justifyContent: "center",
-    backgroundColor: "blue",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    textAlignVertical: "center",
+    textAlign: "center",
+    height: 60,
   },
 });

@@ -100,13 +100,22 @@ export default function TabLayout() {
           tabBarLabel: () => null,
           tabBarShowLabel: true,
           headerShown: true,
-          headerTitle: () => (
-            <View style={styles.titleContainer}>
+          headerTitle: () => (""),
+          headerLeft: () => (
+            <View style={styles.mainMenuTitleContainer}>
+              <MaterialIcons style={[{ justifyContent: 'center', color: "white", alignContent: "center", textAlignVertical: 'center', marginLeft: 10 }]}
+                name="account-circle"
+                size={30} />
+
+            </View>
+          ),
+          headerRight: () => (
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Button
                 buttonColor="black"
                 textColor={"white"}
                 rippleColor="white"
-                style={styles.bigButton}
+                style={styles.button}
                 compact
                 mode="contained"
                 onPress={() => { console.log("Button pressed!"); }}>
@@ -116,7 +125,7 @@ export default function TabLayout() {
                 buttonColor="black"
                 textColor={"white"}
                 rippleColor="white"
-                style={styles.bigButton}
+                style={styles.button}
                 compact
                 mode="contained"
                 onPress={() => { console.log("Button pressed!"); }}>
@@ -139,6 +148,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-evenly",
   },
+  mainMenuTitleContainer: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    alignContent: "space-around",
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
@@ -149,11 +166,11 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: "white",
   },
-  bigButton: {
-    width: "30%",
+  button: {
     borderRadius: 5,
     borderWidth: 1,
-    borderBottomWidth: 5,
     borderColor: "rgba(255, 255, 255, .3)",
+    marginRight: 10,
+    width: 80,
   },
 });
