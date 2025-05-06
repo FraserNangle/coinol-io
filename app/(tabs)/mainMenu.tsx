@@ -5,7 +5,7 @@ import React from "react";
 import { ScrollView } from "react-native-gesture-handler";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-export default function TabTwoScreen() {
+export default function MainMenuScreen() {
   return (
     <View style={styles.screenContainer}>
       <ScrollView fadingEdgeLength={25}>

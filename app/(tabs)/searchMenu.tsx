@@ -9,6 +9,7 @@ import { setAllCoinData } from "@/app/slices/allCoinDataSlice";
 import { RootState } from "@/app/store/store";
 import { Coin } from "@/app/models/Coin";
 import { SvgCssUri } from 'react-native-svg/css';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function SearchMenuScreen() {
   const [query, setQuery] = useState("");
@@ -62,7 +63,7 @@ export default function SearchMenuScreen() {
                           width={25}
                           height={25}
                           uri={item.image}
-                          onError={() => console.error("Error loading image", item.image)}
+                          fallback={<MaterialIcons name="data-array" size={25} color={"white"} />}
                         />
                       </View>
                     </View>

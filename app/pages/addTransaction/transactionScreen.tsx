@@ -54,9 +54,9 @@ export default function TransactionScreen() {
     const [canSell, setCanSell] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedFolios, setSelectedFolios] = useState<string[]>(
-        transactionToEdit?.folioId ? [transactionToEdit.folioId] : 
-        currentFolio?.folioId ? [currentFolio.folioId] : 
-        []
+        transactionToEdit?.folioId ? [transactionToEdit.folioId] :
+            currentFolio?.folioId ? [currentFolio.folioId] :
+                []
     );
     const [isLoading, setIsLoading] = useState(false);
 
@@ -132,7 +132,7 @@ export default function TransactionScreen() {
                             width={30}
                             height={30}
                             uri={persistedItem?.image ?? ''}
-                            onError={() => console.error("Error loading image", persistedItem?.image)}
+                            fallback={<MaterialIcons name="data-array" size={25} color={"white"} />}
                         />
                     </View>
                     <Text style={{ color: 'white', fontSize: 18 }}>{persistedItem?.name}</Text>
@@ -333,7 +333,7 @@ export default function TransactionScreen() {
                                     }
                                 }}
                                 onChange={(folios) => {
-                                    if(folios.length > 0){
+                                    if (folios.length > 0) {
                                         setSelectedFolios(folios);
                                     }
                                 }}
@@ -358,6 +358,7 @@ export default function TransactionScreen() {
                                                                     width={20}
                                                                     height={20}
                                                                     uri={image}
+                                                                    fallback={<MaterialIcons name="data-array" size={25} color={"white"} />}
                                                                     onError={() => console.error("Error loading image", image)}
                                                                 />
                                                             </View>

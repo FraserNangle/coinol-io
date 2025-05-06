@@ -163,7 +163,7 @@ export default function FolioSelectionModal({ db, visible, setVisible }: FolioSe
                                                                     width={20}
                                                                     height={20}
                                                                     uri={image}
-                                                                    onError={() => console.error("Error loading image", image)}
+                                                                    fallback={<MaterialIcons name="data-array" size={25} color={"white"} />}
                                                                 />
                                                             </View>
                                                         </View>

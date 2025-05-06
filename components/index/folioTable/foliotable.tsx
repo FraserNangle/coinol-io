@@ -154,7 +154,7 @@ export const FolioTable: React.FC<FolioTableProps> = (props: FolioTableProps) =>
                           width={25}
                           height={25}
                           uri={folioEntry.image}
-                          onError={() => console.error("Error loading image", folioEntry.image)}
+                          fallback={<MaterialIcons name="data-array" size={25} color={"white"} />}
                         />
                       </View>
                     </View>

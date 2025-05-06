@@ -4,13 +4,10 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-import { useSelector } from "react-redux";
-import { convertToCurrencyFormat } from "../utils/convertToCurrencyValue";
-import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange";
-import { RootState } from "../store/store";
 import FolioSelectionModal from "@/components/modals/folio/folioSelectionModal";
 import { useSQLiteContext } from "expo-sqlite";
 import { Button } from "react-native-paper";
+import { isGuest, onLogout } from "../services/apiService";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: Readonly<{
@@ -27,6 +24,11 @@ export default function TabLayout() {
   const showModal = () => setIsModalVisible(true);
 
   const db = useSQLiteContext();
+
+  const handleLogout = () => {
+    onLogout();
+    console.log("Logged out!");
+  };
 
   return (
     <Tabs
@@ -111,26 +113,44 @@ export default function TabLayout() {
           ),
           headerRight: () => (
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Button
-                buttonColor="black"
-                textColor={"white"}
-                rippleColor="white"
-                style={styles.button}
-                compact
-                mode="contained"
-                onPress={() => { console.log("Button pressed!"); }}>
-                LOG IN
-              </Button>
-              <Button
-                buttonColor="black"
-                textColor={"white"}
-                rippleColor="white"
-                style={styles.button}
-                compact
-                mode="contained"
-                onPress={() => { console.log("Button pressed!"); }}>
-                SIGN UP
-              </Button>
+              {!isGuest ? (
+                <>
+                  <Button
+                    buttonColor="black"
+                    textColor={"white"}
+                    rippleColor="white"
+                    style={styles.button}
+                    compact
+                    mode="contained"
+                    onPress={() => console.log("Navigate to Login")}
+                  >
+                    LOG IN
+                  </Button>
+                  <Button
+                    buttonColor="black"
+                    textColor={"white"}
+                    rippleColor="white"
+                    style={styles.button}
+                    compact
+                    mode="contained"
+                    onPress={() => console.log("Navigate to Sign Up")}
+                  >
+                    SIGN UP
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  buttonColor="black"
+                  textColor={"white"}
+                  rippleColor="white"
+                  style={styles.button}
+                  compact
+                  mode="contained"
+                  onPress={handleLogout}
+                >
+                  LOG OUT
+                </Button>
+              )}
             </View>
           ),
           tabBarIcon: ({ color }) => <TabBarIcon name="menu" color={color} />,

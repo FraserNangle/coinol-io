@@ -88,6 +88,7 @@ export const setCredentials = async (username?: string, password?: string) => {
 export const getCredentials = async () => {
   try {
     const credentials = await SecureStore.getItemAsync('user');
+    console.log('Credentials:', credentials);
     if (credentials) {
       const { username, password, isGuest } = JSON.parse(credentials);
       return { username, password, isGuest };

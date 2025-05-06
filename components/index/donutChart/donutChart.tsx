@@ -343,7 +343,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                                                 width={circleSize * 2}
                                                 height={circleSize * 2}
                                                 uri={selectedSection.details.image}
-                                                onError={() => console.error("Error loading image", selectedSection?.details?.image)}
+                                                fallback={<MaterialIcons name="data-array" size={25} color={"white"} />}
                                             />
                                         </View>
                                     ) : (

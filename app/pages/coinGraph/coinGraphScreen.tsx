@@ -20,6 +20,7 @@ import { CoinHoldingsPanel } from "@/components/coinGraphScreen/coinHoldingsPane
 import { refreshButton } from "@/components/refreshButton";
 import { SvgCssUri } from 'react-native-svg/css';
 import { fetchCoinDataByCoinsList } from "@/app/services/coinService";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 type RouteParams = {
     coinId: string;
@@ -60,7 +61,7 @@ export default function CoinGraphScreen() {
                                 width={30}
                                 height={30}
                                 uri={coinsMarket?.image}
-                                onError={() => console.error("Error loading image", coinsMarket?.image)}
+                                fallback={<MaterialIcons name="data-array" size={25} color={"white"} />}
                             />
                         </View>
                         <Text style={{ color: 'white', fontSize: 18 }}>{coinsMarket?.name}</Text>
@@ -123,7 +124,7 @@ export default function CoinGraphScreen() {
                         </>
                     }
                     {infoView === "STATS" && coinsMarket &&
-                    <CoinStatsPanel coinsMarkets={coinsMarket} />}
+                        <CoinStatsPanel coinsMarkets={coinsMarket} />}
                 </ScrollView>
             </View>
         </View>
