@@ -10,6 +10,7 @@ import { getPercentageChangeDisplayNoSymbol } from "../utils/getPercentageChange
 import { RootState } from "../store/store";
 import FolioSelectionModal from "@/components/modals/folio/folioSelectionModal";
 import { useSQLiteContext } from "expo-sqlite";
+import { Button } from "react-native-paper";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: Readonly<{
@@ -92,20 +93,47 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="mainMenu"
         options={{
           tabBarActiveBackgroundColor: "black",
           tabBarInactiveBackgroundColor: "black",
           tabBarLabel: () => null,
           tabBarShowLabel: true,
-          headerTitle: () => (
-            <View style={styles.titleContainer}>
-              <Text style={styles.headerTitle}>
-                Two
-              </Text>
+          headerShown: true,
+          headerTitle: () => (""),
+          headerLeft: () => (
+            <View style={styles.mainMenuTitleContainer}>
+              <MaterialIcons style={[{ justifyContent: 'center', color: "white", alignContent: "center", textAlignVertical: 'center', marginLeft: 10 }]}
+                name="account-circle"
+                size={30} />
+
             </View>
           ),
-          tabBarIcon: ({ color }) => <TabBarIcon name="settings" color={color} />,
+          headerRight: () => (
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Button
+                buttonColor="black"
+                textColor={"white"}
+                rippleColor="white"
+                style={styles.button}
+                compact
+                mode="contained"
+                onPress={() => { console.log("Button pressed!"); }}>
+                LOG IN
+              </Button>
+              <Button
+                buttonColor="black"
+                textColor={"white"}
+                rippleColor="white"
+                style={styles.button}
+                compact
+                mode="contained"
+                onPress={() => { console.log("Button pressed!"); }}>
+                SIGN UP
+              </Button>
+            </View>
+          ),
+          tabBarIcon: ({ color }) => <TabBarIcon name="menu" color={color} />,
           tabBarIconStyle: { justifyContent: "center", alignItems: "center", flex: 1, textAlign: "center", textAlignVertical: "center" },
         }}
       />
@@ -120,6 +148,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-evenly",
   },
+  mainMenuTitleContainer: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    alignContent: "space-around",
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
@@ -129,5 +165,12 @@ const styles = StyleSheet.create({
   percentageContainer: {
     marginLeft: 10,
     color: "white",
+  },
+  button: {
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, .3)",
+    marginRight: 10,
+    width: 80,
   },
 });

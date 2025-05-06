@@ -94,7 +94,6 @@ function RootLayoutNav() {
                   animation: "slide_from_right",
                 }}>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="modal" options={{ presentation: "modal" }} />
                 <Stack.Screen
                   name="pages/addTransaction/transactionScreen"
                   options={{
